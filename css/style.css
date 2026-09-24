@@ -531,3 +531,29 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
 .screen.clear.grad .clear-big { color: var(--accent2); text-shadow: 0 0 40px rgba(77,210,255,.5); }
 .training.final .panel.squad .money { margin-top: 10px; }
 @media (max-width: 720px) { .sq-climax { grid-template-columns: 48px 1fr; } .sq-climax .sq-opts { grid-column: 1 / -1; justify-content: flex-start; } .sq-row { grid-template-columns: 48px 1fr auto; } .upgs { grid-template-columns: 1fr; } }
+
+/* ---- v7 分岐・ライバル表示・バックアップ ---- */
+.choice-stage { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 12px auto; }
+.choice-stage .run-hero { margin: 0; flex: 1 1 300px; max-width: 420px; }
+.vs-mark { font-family: 'Oswald', sans-serif; font-size: 1.6rem; color: var(--danger); letter-spacing: .1em; }
+.run-hero.rival-hero { background: linear-gradient(90deg, rgba(255,42,74,.18), #0b1020 70%); border-color: rgba(255,42,74,.5); }
+.run-hero.rival-hero .rh-meta i { color: #ff8c8c; }
+.story-opt small .risk { color: var(--warn); font-style: normal; }
+.story-opt small .dep { display: block; color: var(--accent2); font-style: normal; margin-top: 2px; }
+.seg-list li.with-rival { display: flex; gap: 10px; align-items: center; }
+.seg-list .seg-rival svg { display: block; border-radius: 6px; }
+.seg-list .tag { font-style: normal; font-size: 10px; border-color: var(--gold); color: var(--gold); }
+.nm-head { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; }
+.nm-head .nm-rival svg { display: block; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(255,42,74,.25); }
+.nm-head h4 { margin-bottom: 2px; }
+.side .thumb.rival svg { outline: 2px solid rgba(255,42,74,.6); }
+.highlight { display: flex; gap: 14px; align-items: center; }
+.highlight > div { flex: 1; min-width: 0; }
+.rival-strip { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,42,74,.4); background: linear-gradient(90deg, rgba(255,42,74,.14), transparent); }
+.rival-strip .thumb svg { display: block; border-radius: 6px; }
+.rival-strip i { display: block; font-style: normal; font-size: 10px; color: #ff8c8c; letter-spacing: .1em; }
+.rival-strip b { display: block; font-size: 15px; }
+.rival-strip small { color: var(--muted); font-size: 11px; }
+.event.choice .ev-kicker { color: var(--accent2); }
+.modal-foot a.btn { text-decoration: none; }
+@media (max-width: 640px) { .highlight { flex-direction: column; align-items: stretch; } .rival-strip { justify-content: flex-start; } .choice-stage { flex-direction: column; } .vs-mark { display: none; } }

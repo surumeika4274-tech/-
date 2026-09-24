@@ -36,7 +36,7 @@
       segments: [
         { id: 'tag', name: 'オニごっこ', weeks: 0,
           match: { name: '入寮テスト「オニごっこ」', enemy: '同室の11人', lead: '吉良涼介 / 蜂楽廻 / 千切豹馬 ほか', rule: 'single', n: 1,
-            rate: R(42, 1.0, 1.0, 0.95, 0.95),
+            rate: R(43, 1.0, 1.0, 0.95, 0.95),
             options: {
               A: { name: '体を張って最後の一人に押し付ける', stats: ['PHY', 'SHT'], flavor: '残り3秒。ボールを持った吉良を体で止め、至近距離から当てる。' },
               B: { name: '死角を読み、最後の瞬間にパスを通す', stats: ['INT', 'TEC'], flavor: '誰がどこにいるか、全員の視線の外を計算する。' },
@@ -49,7 +49,7 @@
             lose: '136秒。ブザーが鳴った瞬間、ボールはお前の手の中にあった。「オニ」。青い監獄は、お前を必要としなかった。' } },
         { id: 'z_x', name: '第1戦 vs チームX', weeks: 3,
           match: { name: '第1戦 チームZ vs チームX', enemy: 'チームX', lead: '馬狼照英（「王様」）', rule: 'league', n: 3, final: false,
-            rate: R(122, 1.06, 1.0, 0.96, 0.94),
+            rate: R(126, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：1-5 敗北。馬狼がハットトリック級の独演。潔は「自分で決める」ことの意味を思い知る。',
             intro: 'チームXは馬狼照英のワンマンチーム。全員が「王様」にボールを預け、馬狼が一人で決める。',
             highlights: [
@@ -60,7 +60,7 @@
             win: '王様のチームを撃破した。馬狼が舌打ちする。「…奴隷が」', lose: '馬狼の独演の前に沈んだ。Xの勝利。だが総当たりは続く。' } },
         { id: 'z_y', name: '第2戦 vs チームY', weeks: 3,
           match: { name: '第2戦 チームZ vs チームY', enemy: 'チームY', lead: '二子一揮 / 大川響鬼', rule: 'league', n: 3, final: false,
-            rate: R(178, 1.0, 1.06, 0.96, 0.98),
+            rate: R(183, 1.0, 1.06, 0.96, 0.98),
             canon: '原作：2-1 勝利。久遠渉がYに情報を売った裏切りが発覚。それでもZは勝ち切った。',
             intro: 'チームYは二子一揮が「影の支配者」としてゲームを組み立てる戦術的なチーム。試合前、久遠がZの情報をYに売り渡していた。',
             highlights: [
@@ -71,7 +71,7 @@
             win: '裏切りを飲み込んで勝った。久遠は何も言えずに俯いた。', lose: '二子の支配に沈んだ。裏切りの傷だけが残る。' } },
         { id: 'z_w', name: '第3戦 vs チームW', weeks: 3,
           match: { name: '第3戦 チームZ vs チームW', enemy: 'チームW', lead: '鰐間淳壱 / 鰐間計助', rule: 'league', n: 3, final: false,
-            rate: R(249, 0.98, 1.0, 1.06, 0.96),
+            rate: R(256, 0.98, 1.0, 1.06, 0.96),
             canon: '原作：4-4 引き分け。「怪我が怖いのか」と挑発された千切豹馬が神速を解放。',
             intro: 'チームWは鰐間兄弟の以心伝心コンビが軸。試合中、鰐間が千切の古傷を嘲笑う——。',
             highlights: [
@@ -82,7 +82,7 @@
             win: '千切の神速と共に押し切った。Wの兄弟が呆然と立ち尽くす。', lose: '鰐間兄弟の連携に押し切られた。だが千切は覚醒した。' } },
         { id: 'z_v', name: '最終戦 vs チームV', weeks: 3,
           match: { name: '最終戦 チームZ vs チームV', enemy: 'チームV', lead: '凪誠士郎 / 御影玲王 / 剣城斬鉄', rule: 'league', n: 3, final: true,
-            rate: R(345, 1.02, 1.0, 0.98, 0.94),
+            rate: R(355, 1.02, 1.0, 0.98, 0.94),
             canon: '原作：5-4 勝利。蜂楽・國神・千切・我牙丸・潔（ダイレクトシュート）の5得点。凪が覚醒し、潔が最後に決めた。',
             intro: '一次選考最終戦。ブロック首位のVに勝てば2位で突破、負ければ全員脱落。凪誠士郎の神トラップと玲王の戦術、剣城の速さが立ちはだかる。',
             highlights: [
@@ -127,10 +127,10 @@
             ],
             win: '原作を覆した。凛のチームを破り、時光青志を奪った。凛が初めてお前を「敵」と認識する。', lose: '2-5。凛が指名したのは蜂楽だった。「お前は要らない」。潔と凪、2人だけが残された。' } },
         { id: 's_2v2', name: '2ndステージ 2対2', weeks: 0, cond: 'rinLoss',
-          match: { name: '2ndステージ 潔・凪 vs 馬狼・成早', enemy: '馬狼・成早ペア', lead: '馬狼照英 / 成早朝日', rule: 'mustWin', n: 3,
+          match: { name: '2ndステージ 2対2 vs 馬狼・成早', enemy: '馬狼・成早ペア', lead: '馬狼照英 / 成早朝日', rule: 'mustWin', n: 3,
             rate: R(633, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：5-4 勝利。馬狼を獲得。成早朝日は最後の一人となり脱落。',
-            intro: '2人になった。負ければ次はない。相手は「王様」馬狼と、金への執念で走る成早。',
+            intro: '相棒を奪われ、2人になった。負ければ次はない。相手は「王様」馬狼と、金への執念で走る成早。',
             highlights: [
               '馬狼が一人で2点を奪う。「奴隷は黙って見ていろ」。凪がお前を見る。「決めて」——。',
               '成早が全力で走り、馬狼へ渡す。だがその瞬間、王様の視線の外に空間が生まれた——。',
@@ -279,5 +279,108 @@
       ] }
   ];
 
-  BL.STORY = { arcs: ARCS };
+
+  /* ============================================================ v7：ライバル（試合画面の対戦相手）・分岐ルート・選択ノード */
+  var RIVALS = { tag: 'kira', z_x: 'barou', z_y: 'niko', z_w: 'wanima_j', z_v: 'nagi', s_rin1: 'rin', s_2v2: 'barou', s_2v2b: 'nagi', s_reo: 'reo', s_reo_b: 'reo', s_rin2: 'rin',
+                 t_tryout: 'karasu', t_u20: 'sae', w_nga: 'onaji', w_fra: 'loki', w_eng: 'teddy', w_qf: 'kaiser', w_sf: 'luna', w_final: 'loki' };
+  var NEL_RIVALS = { de: 'kaiser', en: 'prince', it: 'lorenzo', fr: 'loki', es: 'lavinho' };
+
+  /* 別ルートの節（二次選考 3rd ステージのチームメイト選択で分岐） */
+  var ALT_SEGMENTS = {
+    s_2v2b: { id: 's_2v2b', name: '2ndステージ 2対2（別ルート）', weeks: 0, cond: ['rinLoss', 'team_barou'],
+      match: { name: '2ndステージ 潔・成早 vs 蜂楽・凪', enemy: '蜂楽・凪ペア', lead: '蜂楽廻 / 凪誠士郎', rule: 'mustWin', n: 3,
+        rate: R(633, 0.98, 1.06, 1.0, 0.96),
+        canon: 'if：原作では潔は蜂楽・凪と組んだ。馬狼を奪われた潔が成早と2人で、怪物と天才に挑む。',
+        intro: '凛に馬狼を奪われ、残ったのは成早。相手は怪物・蜂楽と天才・凪——原作で味方だった二人が、敵として牙を剥く。',
+        highlights: ['蜂楽の怪物ドリブルで先制される。「遊ぼうよ」——笑顔が恐ろしい。成早がお前を見る。「決めろよ」——。', '凪の神トラップから2点目。だが凪の視線の外、蜂楽が笑っている間に空間が生まれた——。', '4-4。天才と怪物を相手に、最後の1点。成早の全力の走りから、ボールがお前へ——。'],
+        win: '5-4。怪物と天才を破り、蜂楽を奪い返した。凪が呟く。「…お前、面白い」', lose: '天才と怪物に食い尽くされた。最後の一人——脱落。' } },
+    s_reo_b: { id: 's_reo_b', name: '3rdステージ vs 蜂楽・凪・玲王', weeks: 3, cond: 'team_chigiri',
+      match: { name: '3rdステージ 潔・千切・國神 vs 蜂楽・凪・玲王', enemy: '蜂楽・凪・玲王チーム', lead: '蜂楽廻 / 凪誠士郎 / 御影玲王', rule: 'mustWin', n: 3,
+        rate: R(939, 1.0, 1.06, 1.0, 1.0),
+        canon: 'if：原作では潔は凪と組んで國神・千切・玲王に勝った。旧友と組んだ潔が、怪物・天才・司令塔の三角形に挑む。',
+        intro: '千切の神速と國神の大砲を従え、最強の三角形に挑む。玲王の戦術、凪の神トラップ、蜂楽の怪物——一次選考の仲間が最強の敵になった。',
+        highlights: ['玲王の戦術で崩され、凪のボレーで先制される。千切が走る。「あいつらに、今度は勝つ」——。', '蜂楽のドリブルからこぼれ球。國神が撃つ。GKが弾いた先に、お前がいる——。', '4-4。玲王がお前を睨む。「お前は凪を奪わない。なら、オレが奪う」——最後のボールが来る。'],
+        win: '5-4。最強の三角形を破った。蜂楽が笑って言う。「次はオレをもらってよ」', lose: '三角形に切り刻まれた。奪われ、削られ、二次選考はここで終わる。' } }
+  };
+
+  /* 選択ノード：fx は flags / opt / all / growth / flowP / bidMult（RUN 中持続）、rateMult・rateMultKeys（その節の試合）、nominateMult、hp / cond / cash / stat / protein（即時）、roll（ギャンブル）、ifFlag（過去の選択に依存）、ach（実績） */
+  var CHOICES = {
+    z_x: { title: 'チームZの方針', text: '王様・馬狼のチームXが初戦。寄せ集めのZで、お前はどう戦う。',
+      options: [
+        { label: '蜂楽と組んで即興連携を磨く', desc: 'Option B +3%・TEC 成長 +3%（この編）', fx: { flags: ['ally_bachira'], opt: { B: 3 }, growth: { TEC: 0.03 } }, result: '蜂楽が笑った。「いいね、遊ぼう」。二人の連携が形になり始める。' },
+        { label: '千切・國神のカウンターに乗る', desc: 'Option C +3%・SPD 成長 +3%（この編）', fx: { flags: ['ally_chigiri'], opt: { C: 3 }, growth: { SPD: 0.03 } }, result: '千切の走りと國神の大砲。Zのカウンターが唯一の武器になった。' },
+        { label: '自分で決める', desc: 'Option A +3%・SHT 成長 +3%（この編）', fx: { flags: ['ego_solo'], opt: { A: 3 }, growth: { SHT: 0.03 } }, result: '「オレが決める」。エゴを剥き出しにした。' } ] },
+    z_w: { title: '千切の古傷', text: '試合前、鰐間兄弟が千切の膝を嘲笑う。千切の目が揺れている。',
+      options: [
+        { label: '千切を信じて走らせる', desc: 'この試合の敵レート ×0.95', fx: { rateMult: 0.95, flags: ['chigiri_trust'] }, result: '「走れ、千切」。神速が解放される。Wの守備が崩れる。' },
+        { label: '千切を休ませ、自分で行く', desc: 'SHT +（1週分）・HP +5', fx: { stat: { SHT: 0.8 }, hp: 5 }, result: '千切を庇い、自分が前線で体を張った。' },
+        { label: '鰐間兄弟を挑発し返す', desc: 'ギャンブル：成功で敵レート ×0.90、失敗で ×1.05', fx: { roll: { p: 0.5, win: { rateMult: 0.90 }, lose: { rateMult: 1.05 }, winText: '兄弟が頭に血を上らせ、連携が乱れた。', loseText: '挑発は逆効果。兄弟の連携が研ぎ澄まされた。' } } } ] },
+    z_v: { title: '最終戦の覚悟', text: '勝てば生存、負ければ全員脱落。凪・玲王・剣城のVを前に、お前の一撃をどう用意する。',
+      options: [
+        { label: 'ダイレクトシュートを狙い続ける', desc: 'Option A +4%（この編）・Option A のレート ×0.96', fx: { opt: { A: 4 }, rateMultKeys: { A: 0.96 } }, result: '「来たボールを、そのまま撃つ」。原作の潔と同じ答えに辿り着いた。' },
+        { label: '凪を封じる守備から入る', desc: 'この試合の敵レート ×0.97', fx: { rateMult: 0.97 }, result: '天才に自由を与えない。守備からゴールへの道を作った。' },
+        { label: '玲王の戦術を読み切る', desc: 'Option B / D +3%（この編）・INT +', fx: { opt: { B: 3, D: 3 }, stat: { INT: 0.6 } }, result: '玲王の指示を先読みする。ピッチ全体が見えてきた。' } ] },
+    s_blm: { title: '100ゴールの攻略', text: '90分で100ゴール。GKマシンを前に、どう撃つ。',
+      options: [
+        { label: '限界まで撃ち続ける', desc: 'SHT +（1.2週分）・HP −15', fx: { stat: { SHT: 1.2 }, hp: -15 }, result: '足が壊れるまで撃った。決定力が跳ね上がる。' },
+        { label: 'マシンの反応パターンを解析する', desc: 'INT +（0.9週分）・Option B のレート ×0.96', fx: { stat: { INT: 0.9 }, rateMultKeys: { B: 0.96 } }, result: '腕の初動と軌道の関係を掴んだ。' },
+        { label: '休みを挟みながら撃つ', desc: 'HP +8・コンディション +1', fx: { hp: 8, cond: 1 }, result: '消耗を抑えて本番に備えた。' } ] },
+    s_rin1: { title: 'チームメイトを選べ', text: '3rdステージは3対3。相手は青い監獄ランキング1位・糸師凛のチーム。誰と組む。',
+      options: [
+        { label: '蜂楽と凪（原作ルート）', desc: '負けても除籍ではなく「奪われる」。勝てば時光を奪う', fx: { flags: ['team_bachira_nagi'] }, result: '怪物と天才。原作と同じ三人で、最強に挑む。' },
+        { label: '馬狼と成早', desc: 'Option A +3%（この編）。負ければ馬狼を奪われ、蜂楽・凪と 2対2 の別ルート', fx: { flags: ['team_barou'], opt: { A: 3 }, ach: 'route_barou' }, result: '王様が舌打ちする。「奴隷はオレにボールを渡せ」。' },
+        { label: '千切と國神', desc: 'Option C +3%（この編）。3rd の再戦相手が蜂楽・凪・玲王に変わる別ルート', fx: { flags: ['team_chigiri'], opt: { C: 3 }, ach: 'route_chigiri' }, result: 'チームZの旧友と再び。「今度は、あいつらに勝とう」' } ] },
+    s_rin2: { title: '凛との再戦', text: '4thステージ。勝てばトップチームとしてクリア。負けても凛が「欲しい」と思えば指名される。',
+      options: [
+        { label: '馬狼を「悪役」として使う', desc: 'Option A +3%（この編）', fx: { opt: { A: 3 } }, result: '王様が邪道に目覚めた。ゴール前が地獄になる。' },
+        { label: '凪の覚醒を引き出す', desc: 'Option B +3%（この編）', fx: { opt: { B: 3 } }, result: '「楽しい」。天才が本気になった。' },
+        { label: '凛と同じ景色を見る', desc: 'Option D +4%（この編）・指名に必要な INT ×0.85', fx: { opt: { D: 4 }, nominateMult: 0.85 }, result: '凛が見ているものが、お前にも見え始めた。' } ] },
+    t_tryout: { title: '誰の5人組に入る', text: 'トップ6が5人組を選ぶトライアウト。どのチームで23人枠を狙う。',
+      options: [
+        { label: '糸師凛のチーム', desc: 'この試合の敵レート ×0.97', fx: { rateMult: 0.97, flags: ['with_rin'] }, result: '凛が言う。「邪魔をするな」。最強のチームで勝ちにいく。' },
+        { label: '士道龍聖のチーム', desc: 'Option A +3%（この編）・HP −5。U-20戦の選択に影響', fx: { opt: { A: 3 }, hp: -5, flags: ['with_shidou'] }, result: '「イッちゃう？」。悪魔と組んだ。' },
+        { label: '烏・乙夜のチーム', desc: 'Option C +3%（この編）・INT +', fx: { opt: { C: 3 }, stat: { INT: 0.5 }, flags: ['with_karasu'] }, result: '烏がお前の弱点を読み、乙夜が消える。狡猾なチームだ。' } ] },
+    t_u20: { title: '冴への回答', text: '世界最高峰のMF糸師冴。「日本は世界で通用しない」。お前の答えは。',
+      options: [
+        { label: '正面から挑む', desc: 'Option A +3%（この編）', fx: { opt: { A: 3 } }, result: '冴の目の前で撃つ。それだけを考えた。' },
+        { label: '冴の視線を利用する', desc: 'Option D +4%（この編）', fx: { opt: { D: 4 } }, result: '冴が見る場所の外側に、お前の空間がある。' },
+        { label: '士道と組んで壊す', desc: 'トライアウトで士道と組んでいれば敵レート ×0.94、そうでなければ ×1.02', fx: { ifFlag: { flag: 'with_shidou', then: { rateMult: 0.94 }, else: { rateMult: 1.02 } } }, result: '悪魔との連携。噛み合うかどうかは、これまでの選択次第だ。' } ] },
+    n1: { title: 'マスターへの第一印象', text: '世界のマスターの下で初戦。どう自分を見せる。',
+      options: [
+        { label: '規律に従い、理論を吸収する', desc: 'INT 成長 +4%（この編）', fx: { growth: { INT: 0.04 } }, result: 'マスターの理論が身体に染み込み始めた。' },
+        { label: '自分の型を見せつける', desc: '得意 Option +3%（この編）', fx: { favOpt: 3 }, result: 'マスターが眉を上げた。「面白い」' },
+        { label: '観察に徹する', desc: '全選択肢 +1%（この編）・Cash +', fx: { all: 1, cash: 100000 }, result: '世界の基準を目に焼き付けた。' } ] },
+    n3: { title: '入札の駆け引き', text: 'スカウトの入札額が張り出された。残り2試合、どう評価を上げる。',
+      options: [
+        { label: '派手に決めて入札を煽る', desc: '年俸 ×1.15（この編）・敵レート ×1.03', fx: { bidMult: 1.15, rateMult: 1.03 }, result: '無理な角度から撃ち続ける。スカウトの目が集まる。' },
+        { label: '堅実にゴールを積む', desc: 'この試合の敵レート ×0.98', fx: { rateMult: 0.98 }, result: '確実なゴールだけを狙う。' },
+        { label: 'マスターの指導に専念する', desc: '全属性 成長 +3%（この編）', fx: { growth: { SHT: 0.03, SPD: 0.03, TEC: 0.03, INT: 0.03, PHY: 0.03 } }, result: '入札より成長を選んだ。' } ] },
+    w_nga: { title: 'フォーメーション', text: 'W杯開幕戦。BL.JAPAN の戦い方を決めろ。',
+      options: [
+        { label: '攻撃的 4-3-3', desc: '敵レート ×0.97（この試合）・練習HP消費 +2（この編）', fx: { rateMult: 0.97, hpCost: 2 }, result: '前から奪い、前で決める。消耗は激しい。' },
+        { label: '守備的 5-4-1', desc: '全選択肢 +2%（この編）・敵レート ×1.02（この試合）', fx: { all: 2, rateMult: 1.02 }, result: '守って刺す。原作後半の布陣だ。' },
+        { label: '臨機応変', desc: '変更なし・FLOW 突入率 +3%（この編）', fx: { flowP: 0.03 }, result: '流れを読んで動く。' } ] },
+    w_eng: { title: '勝利以外なし', text: 'イングランド戦。勝たなければ決勝トーナメントはない。',
+      options: [
+        { label: 'テディ・ナイトを封じる', desc: 'Option A のレート ×0.95', fx: { rateMultKeys: { A: 0.95 } }, result: '騎士を封じる。ゴール前の肉弾戦になる。' },
+        { label: '雪宮の1on1に賭ける', desc: 'Option B +4%（この編）', fx: { opt: { B: 4 } }, result: '一瞬の極限に賭けた。' },
+        { label: '総攻撃', desc: 'ギャンブル：成功で敵レート ×0.92、失敗で ×1.06', fx: { roll: { p: 0.5, win: { rateMult: 0.92 }, lose: { rateMult: 1.06 }, winText: 'イングランドの守備が総攻撃に耐えきれず崩れた。', loseText: 'カウンターを浴び続け、守備が崩壊した。' } } } ] },
+    w_final: { title: '決勝の覚悟', text: '世界一を懸けた決勝。許されるのは3対0のみ。',
+      options: [
+        { label: 'エゴを貫く', desc: '全選択肢 +2%（この編）', fx: { all: 2 }, result: '「オレが世界一になる」。' },
+        { label: '5人で繋ぐ', desc: '敵レート ×0.98（この試合）', fx: { rateMult: 0.98 }, result: '5人のエゴが噛み合った。' },
+        { label: 'ロキと走り合う', desc: 'Option C +4%（この編）', fx: { opt: { C: 4 } }, result: '神童と同じ速度で世界を見る。' } ] }
+  };
+
+  ARCS.forEach(function (arc) {
+    arc.segments.forEach(function (seg) { if (RIVALS[seg.id]) seg.match.rival = RIVALS[seg.id]; if (CHOICES[seg.id]) seg.choice = CHOICES[seg.id]; });
+    if (arc.id === 'second') {
+      var segs = arc.segments; var i2 = segs.findIndex(function (s) { return s.id === 's_2v2'; }); segs[i2].skipIf = 'team_barou'; segs.splice(i2 + 1, 0, ALT_SEGMENTS.s_2v2b);
+      var ir = segs.findIndex(function (s) { return s.id === 's_reo'; }); segs[ir].skipIf = 'team_chigiri'; segs.splice(ir + 1, 0, ALT_SEGMENTS.s_reo_b);
+      segs.forEach(function (seg) { if (RIVALS[seg.id]) seg.match.rival = RIVALS[seg.id]; });
+    }
+    if (arc.opponents) for (var k in arc.opponents) if (NEL_RIVALS[k]) arc.opponents[k].rival = NEL_RIVALS[k];
+  });
+
+  BL.STORY = { arcs: ARCS, choices: CHOICES };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

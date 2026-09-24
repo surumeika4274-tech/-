@@ -46,6 +46,7 @@ function playPart(state) {
     switch (run.phase) {
       case 'arcIntro': BL.continueStory(state); break;
       case 'policySelect': BL.choosePolicy(state, policyFor(run)); break;
+      case 'storyChoice': { var n = BL.currentChoice(run).choice.options.length; BL.chooseStory(state, process.env.CHOICE === 'rand' ? Math.floor(rnd() * n) : Math.min(n - 1, parseInt(process.env.CHOICE || '0', 10))); break; }
       case 'clubSelect': BL.chooseClub(state, 'de'); break;
       case 'training': policyTrain(state); break;
       case 'event': BL.resolveEvent(state, Math.floor(rnd() * 2)); break;

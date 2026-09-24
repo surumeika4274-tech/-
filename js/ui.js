@@ -103,6 +103,8 @@
       case 'naming': inner = renderNamingList(); break;
       case 'exchange': inner = renderExchange(); break;
       case 'grad': inner = renderGradDetail(); break;
+      case 'choiceResult': inner = renderChoiceResult(); break;
+      case 'export': inner = renderExport(); break;
       case 'summary': inner = '<div class="modal-head"><h2>RUN 結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">クリップボードにアクセスできない環境のため、以下を選択してコピーしてください。</p><textarea class="summary-box" id="summary-text" readonly onfocus="this.select()">' + esc(ui.modal.text) + '</textarea>'; break;
     }
     ov.innerHTML = '<div class="modal-backdrop"><div class="modal">' + inner + '</div></div>'; ov.hidden = false;
@@ -212,6 +214,7 @@
       '<div class="stat-line">' + D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(g.stats[s]) + '</span>'; }).join('') + '<span class="st total"><i>合計</i>' + num(BL.sumStats(g.stats)) + '</span></div>' +
       '<div class="muted">年俸 ' + yen(g.bid || 0) + ' ／ Cash ' + cash(g.cash || 0) + ' ／ 通算ゴール ' + ((g.totals || {}).goals || 0) + ' ／ 編評価 ' + esc((g.partRanks || []).join('')) + '</div>' +
       '<div class="panel skills"><h4>覚醒スキル</h4>' + (skillChips(g.skills) || '<span class="muted">なし</span>') + (g.sig ? '<span class="chip sig">★ ' + esc(D.CHARACTERS[g.charId].sig.name) + '<b>Lv.' + g.sig + '</b></span>' : '') + '</div>' +
+      ((g.choiceLog && g.choiceLog.length) ? '<h4 class="sect">選択の履歴</h4><ul class="req-list">' + g.choiceLog.map(function (c) { return '<li class="pending"><span>' + esc(ARCS[c.arc].part) + ' ' + esc(c.title) + '</span><b>' + esc(c.label) + '</b></li>'; }).join('') + '</ul>' : '') +
       (hist ? '<h4 class="sect">直近の試合</h4><ul class="req-list">' + hist + '</ul>' : '') + '</div></div>';
   }
   function renderUpgrades() {
@@ -246,7 +249,7 @@
       return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + (c.flow ? ' F' : '') + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】' + (c.origin === 'mod' ? ' <small class="muted">改変版</small>' : '') + '</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') + (own.tier ? ' ★+' + own.tier : '') : '—') + '</td></tr>';
     }).join('');
     var np = Object.keys(state.meta.portraits || {}).length; var nf = BL.PORTRAITS ? Object.keys(BL.PORTRAITS).length : 0;
-    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' +
+    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + ' 枚（' + Object.keys(D.CHARACTERS).length + ' キャラ）。行をクリックで詳細。</div>' +
       '<div class="notice"><b>画像パック一括取り込み</b><span class="muted small">ファイル名をキャラID（例 isagi.png）またはキャラ名（例 潔世一.jpg）にした画像をまとめて選択すると、各キャラのポートレートとして端末内に保存する（端末保存 ' + np + ' キャラ／同梱フォルダ ' + nf + ' キャラ）。開発版では <code>assets/portraits/</code> に置いた画像を <code>node tools/build_portraits.js</code> で取り込める。</span><label class="btn ghost sm"><input type="file" accept="image/*" multiple data-portrait-bulk="1" hidden>画像を選択</label><button class="btn ghost sm" data-action="open-naming">キャラID一覧</button></div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') +
       '<table class="tbl dex"><thead><tr><th>レア</th><th>カード</th><th>タイプ</th><th>ポジション</th><th>所持</th></tr></thead><tbody>' + rows + '</tbody></table>';
@@ -373,6 +376,9 @@
       '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? esc(ARCS[r.bestArc].part) + ' 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
       '<div class="kpi"><i>最高合計ステータス</i><b>' + num(r.bestTotal) + '</b></div><div class="kpi"><i>スカウト回数</i><b>' + r.gachaPulls + '</b></div><div class="kpi"><i>FIFA W杯 優勝</i><b>' + r.wcTitles + '</b></div></div>' +
       '<button class="btn ghost" data-action="open-rules">ルール・仕様を読む</button>' +
+      '<div class="notice"><b>バックアップ</b><span class="muted small">セーブ（カード・卒業生・強化・殿堂・進行中の RUN を含む全データ）と画像パック（端末保存のポートレート）を JSON で書き出し／読み込み。インポートは現在のデータを完全に上書きする。</span>' +
+      '<button class="btn ghost sm" data-action="open-export" data-arg="save">セーブを書き出す</button><label class="btn ghost sm"><input type="file" accept="application/json,.json" data-import-save="1" hidden>セーブを読み込む</label>' +
+      '<button class="btn ghost sm" data-action="open-export" data-arg="portraits">画像パックを書き出す</button><label class="btn ghost sm"><input type="file" accept="application/json,.json" data-import-portraits="1" hidden>画像パックを読み込む</label></div>' +
       (hist ? '<h4 class="sect">RUN 履歴</h4><table class="tbl"><thead><tr><th>#</th><th>カード</th><th>結果</th><th>合計</th><th>年俸</th><th>順位</th></tr></thead><tbody>' + hist + '</tbody></table>' : '') + '</div>';
   }
   function renderRules() {
@@ -408,6 +414,7 @@
       case 'arcIntro': return renderArcIntro();
       case 'policySelect': return renderPolicySelect();
       case 'clubSelect': return renderClubSelect();
+      case 'storyChoice': return renderStoryChoice();
       case 'training': case 'event': return BL.isFinal(run) ? renderTrainingFinal() : renderTraining();
       case 'match': return renderMatch(run.match, runMatchCtx());
       case 'matchResult': return (run.match && run.match.showResult) ? renderMatch(run.match, runMatchCtx()) : renderMatchResult();
@@ -438,10 +445,40 @@
     return '';
   }
 
+  function rivalHero(charId, size, kicker) {
+    var rival = charId ? BL.rivalCard(charId) : null; if (!rival) return '';
+    return '<div class="run-hero rival-hero" style="--rc:' + rc(rival.rar) + '"><div class="rh-art" data-action="card-detail" data-arg="' + rival.id + '">' + art(rival, size || 110) + '</div><div class="rh-meta"><i>' + esc(kicker || '次の相手') + '</i><b>' + esc(D.CHARACTERS[rival.char].name) + '</b><small>' + esc(D.CHARACTERS[rival.char].tag) + '</small></div></div>';
+  }
+  function renderStoryChoice() {
+    var run = state.run; var cc = BL.currentChoice(run); if (!cc) return ''; var arc = BL.arcOf(run); var seg = cc.seg; var ch = cc.choice;
+    var opts = ch.options.map(function (o, i) {
+      var gam = o.fx && o.fx.roll ? '<em class="risk">成功率 ' + Math.round(o.fx.roll.p * 100) + '% のギャンブル</em>' : '';
+      var dep = o.fx && o.fx.ifFlag ? '<em class="dep">過去の選択（' + esc(o.fx.ifFlag.flag) + '）で効果が変わる' + (run.flags[o.fx.ifFlag.flag] ? '：条件を満たしている' : '：条件を満たしていない') + '</em>' : '';
+      return '<button class="btn choice story-opt" data-action="choose-story" data-arg="' + i + '"><span>' + (i + 1) + '. ' + esc(o.label) + '</span><small>' + esc(o.desc || '') + ' ' + gam + dep + '</small></button>';
+    }).join('');
+    return '<section class="screen story choice"><div class="story-kicker">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><h2 class="story-title">' + esc(ch.title) + '<small>分岐：選択は即時保存され、この編の残り（場合によっては次の編）に影響する。</small></h2>' +
+      '<div class="choice-stage">' + runHero(run, 110) + (seg.match && seg.match.rival ? '<div class="vs-mark">VS</div>' + rivalHero(seg.match.rival, 110, '次の相手：' + (seg.match.enemy || '')) : '') + '</div>' +
+      '<div class="story-body"><p>' + esc(ch.text) + '</p></div><div class="choices">' + opts + '</div>' +
+      '<p class="hint">選択履歴は卒業生に引き継がれ、殿堂・戦績に記録される。キー 1〜3 でも選択可。</p></section>';
+  }
+  function renderChoiceResult() {
+    var r = ui.modal.result;
+    return '<div class="event choice"><div class="ev-kicker">分岐 — ' + esc(r.title) + '</div><h2>' + esc(r.label) + '</h2><p class="ev-text ' + (r.rollWin === false ? 'bad' : '') + '">' + esc(r.text) + '</p>' +
+      (r.effects.length ? '<div class="ev-fx">' + r.effects.map(function (e) { return '<span class="tag">' + esc(e) + '</span>'; }).join('') + '</div>' : '') + '<div class="modal-foot"><button class="btn primary" data-action="close-choice">続ける</button></div></div>';
+  }
+  function renderExport() {
+    var kind = ui.modal.kind; var text = kind === 'portraits' ? BL.exportPortraits(state) : BL.exportSave(state);
+    var fname = kind === 'portraits' ? 'bluelock_portraits.json' : 'bluelock_save.json';
+    var href = 'data:application/json;charset=utf-8,' + encodeURIComponent(text);
+    return '<div class="modal-head"><h2>' + (kind === 'portraits' ? '画像パックのエクスポート' : 'セーブデータのエクスポート') + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
+      '<p class="muted small">下のテキストを保存するか、ダウンロードする（' + Math.round(text.length / 1024) + ' KB）。別の端末・ブラウザで「インポート」すると復元できる。Artifact 表示ではダウンロードが無効化されるため、テキストをコピーして保存すること。</p>' +
+      '<textarea class="summary-box" readonly onfocus="this.select()">' + esc(text) + '</textarea>' +
+      '<div class="modal-foot"><a class="btn ghost" href="' + href + '" download="' + fname + '">ダウンロード</a><button class="btn primary" data-action="copy-text" data-arg="' + kind + '">コピー</button></div>';
+  }
   function renderArcIntro() {
     var run = state.run; var arc = BL.arcOf(run);
     var paras = arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
-    var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { return '<li><b>' + esc(s.name) + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></li>'; }).join('');
+    var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { var rv = s.match.rival ? BL.rivalCard(s.match.rival) : null; return '<li class="with-rival">' + (rv ? '<span class="seg-rival">' + art(rv, 44) + '</span>' : '') + '<span><b>' + esc(s.name) + (s.choice ? ' <em class="tag">分岐</em>' : '') + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></span></li>'; }).join('');
     return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + ' — PART ' + arc.n + ' / ' + ARCS.length + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' + runHero(run, 120) +
       '<div class="story-body">' + paras + '</div><div class="panel"><h4>この編の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">育成方針を選ぶ</button></div></section>';
@@ -473,7 +510,8 @@
   }
   function nextMatchPanel(mdef, preview) {
     var optPrev = preview.map(function (o) { return '<div class="opt-prev' + (o.wall ? ' wall' : '') + '"><b>' + o.key + '</b><span class="bar"><i style="width:' + Math.round(o.p) + '%;background:' + (D.OPTIONS[o.key] || { color: '#fff' }).color + '"></i></span><em>' + (o.wall ? '0%（壁）' : pct(o.p)) + '</em><small>' + o.stats.join('+') + ' ' + num(o.power) + '/' + num(o.rate) + '</small></div>'; }).join('');
-    return '<div class="panel next-match"><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div>' +
+    var rv = mdef.rival ? BL.rivalCard(mdef.rival) : null;
+    return '<div class="panel next-match"><div class="nm-head">' + (rv ? '<span class="nm-rival" data-action="card-detail" data-arg="' + rv.id + '">' + art(rv, 72) + '</span>' : '') + '<div><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div></div></div>' +
       '<div class="opt-prevs">' + optPrev + '</div><div class="muted small">原作：' + esc(mdef.canon || '') + '</div></div>';
   }
   function trainHeader(run, arc, seg, mdef) {
@@ -589,8 +627,10 @@
     var body = (m.showResult && m.lastResult) ? renderClimaxResult(m, ctx) : (m.current ? (m.current.players ? renderClimaxFinal(m, ctx) : renderClimax(m, ctx)) : '');
     var flow = (m.current && !m.showResult && (m.current.flow || (m.current.players && m.current.players.some(function (pe) { return pe.flow && pe.avail; }))));
     var meArt = ctx.final ? '<span class="thumb">' + BL.ART.emblem('JPN', '#2f80ff', 48) + '</span>' : (ctx.card ? '<span class="thumb">' + art(ctx.card, 48) + '</span>' : '');
+    var rivalCard = m.rival ? BL.rivalCard(m.rival) : null;
+    var enArt = rivalCard ? '<span class="thumb rival">' + art(rivalCard, 48) + '</span>' : '<span class="thumb">' + BL.ART.emblem(ctx.enemy.replace(/^[^ ]+ /, ''), '#ff2a4a', 48) + '</span>';
     return '<section class="screen match' + (flow ? ' in-flow' : '') + '"><header class="match-head"><div class="mh-title">' + esc(ctx.title) + '<small>' + esc(ctx.sub) + '</small></div>' +
-      '<div class="score"><div class="side me">' + meArt + '<i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i><span class="thumb">' + BL.ART.emblem(ctx.enemy.replace(/^[^ ]+ /, ''), '#ff2a4a', 48) + '</span></div></div>' +
+      '<div class="score"><div class="side me">' + meArt + '<i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i>' + enArt + '</div></div>' +
       '<div class="dots">' + dots + '</div><div class="need">' + esc(ctx.needText) + '</div></header>' + body + '</section>';
   }
   function optionButton(o, actionName, extraAttr) {
@@ -605,7 +645,7 @@
     var opts = cur.options.map(function (o) { return optionButton(o, ctx.kind === 'wc' ? 'wc-climax' : 'climax'); }).join('');
     return '<div class="climax-wrap">' + (m.idx === 0 && ctx.intro ? '<div class="match-intro">' + esc(ctx.intro) + '</div>' : '') +
       (cur.flow ? '<div class="flow-banner">FLOW — 覚醒。全選択肢 +20pt / 成功時スキル確定覚醒</div>' : '') +
-      '<div class="highlight"><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + '</span><p>' + esc(hl) + '</p></div><div class="climax-opts">' + opts + '</div>' +
+      '<div class="highlight">' + rivalStrip(m, ctx) + '<div><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + '</span><p>' + esc(hl) + '</p></div></div><div class="climax-opts">' + opts + '</div>' +
       '<p class="hint">選択した瞬間に判定・保存される。運による最低保証は無い。キー A/B/C/D でも選択可。</p></div>';
   }
   /** 決戦：起用選手 × 選択肢 */
@@ -619,8 +659,12 @@
     }).join('');
     return '<div class="climax-wrap">' + (m.idx === 0 && ctx.intro ? '<div class="match-intro">' + esc(ctx.intro) + '</div>' : '') +
       (cur.players.some(function (pe) { return pe.flow && pe.avail; }) ? '<div class="flow-banner">FLOW — 覚醒した選手がいる。その選手の全選択肢 +20pt / 成功時スキル確定覚醒</div>' : '') +
-      '<div class="highlight"><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + ' — 起用する選手と選択肢を選べ</span><p>' + esc(hl) + '</p></div><div class="squad-climax">' + rows + '</div>' +
+      '<div class="highlight">' + rivalStrip(m, ctx) + '<div><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + ' — 起用する選手と選択肢を選べ</span><p>' + esc(hl) + '</p></div></div><div class="squad-climax">' + rows + '</div>' +
       '<p class="hint">選択した瞬間に判定・保存される。同じ選手は決戦を通じて ' + BL.usesCap(run) + ' 回まで起用できる（全 18 局面）。</p></div>';
+  }
+  function rivalStrip(m, ctx) {
+    var rv = m.rival ? BL.rivalCard(m.rival) : null; if (!rv) return '';
+    return '<div class="rival-strip" style="--rc:' + rc(rv.rar) + '"><span class="thumb">' + art(rv, 72) + '</span><div><i>対戦相手</i><b>' + esc(D.CHARACTERS[rv.char].name) + '</b><small>' + esc(ctx.lead || '') + '</small></div></div>';
   }
   function renderClimaxResult(m, ctx) {
     var r = m.lastResult;
@@ -773,6 +817,10 @@
     'buy-upgrade': function (arg) { var res = BL.buyUpgrade(state, arg); if (!res.ok) { toast({ gems: 'Ego Gems が足りない', max: '最大 Lv' }[res.reason] || '購入できない', 'warn'); return; } sfx('buy'); toast(res.def.name + ' Lv.' + res.lv + '（💎 -' + res.cost + '）', 'ok'); render(); },
     'star-up': function (arg) { var res = BL.starUp(state, arg); if (!res.ok) { toast({ pieces: 'ピースが足りない', max: 'このカードの星上げは上限', top: '既に ★8' }[res.reason] || '星上げできない', 'warn'); return; } sfx('rare'); toast('星上げ → ' + stars(res.rar) + '（🧩 -' + res.cost + '）', 'ok'); render(); },
     'story-next': function () { BL.continueStory(state); sfx('click'); afterWeekAction(); },
+    'choose-story': function (arg) { var res = BL.chooseStory(state, parseInt(arg, 10)); if (!res.ok) return; sfx(res.rollWin === false ? 'lost' : 'event'); ui.modal = { type: 'choiceResult', result: res }; render(); },
+    'close-choice': function () { ui.modal = null; afterWeekAction(); },
+    'open-export': function (arg) { ui.modal = { type: 'export', kind: arg }; render(); },
+    'copy-text': function () { var ta = document.querySelector('.modal textarea'); if (!ta) return; var done = function () { toast('コピーした', 'ok'); }; var fb = function () { ta.focus(); ta.select(); toast('選択したテキストをコピーしてください', 'warn'); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, fb); else fb(); },
     'choose-club': function (arg) { BL.chooseClub(state, arg); sfx('click'); afterWeekAction(); },
     'train': function (arg) {
       if (ui.busy || !clickGuard()) return; var res = BL.train(state, arg); if (!res.ok) return;
@@ -864,7 +912,27 @@
     for (var id in D.CHARACTERS) if (D.CHARACTERS[id].name === base || D.CHARACTERS[id].name.replace(/[・ ]/g, '') === base.replace(/[・ ]/g, '')) return id;
     return null;
   }
+  function readTextFile(file, cb) { var r = new FileReader(); r.onload = function () { cb(String(r.result || '')); }; r.onerror = function () { cb(null); }; r.readAsText(file); }
   document.addEventListener('change', function (e) {
+    var imp = e.target; if (imp && imp.matches && imp.matches('input[type=file][data-import-save]')) {
+      var f0 = imp.files && imp.files[0]; if (!f0) return;
+      readTextFile(f0, function (txt) {
+        if (txt === null) { toast('ファイルを読めない', 'warn'); return; }
+        var res = BL.importSave(txt); if (!res.ok) { toast(res.reason === 'parse' ? 'JSON として読めない' : 'セーブデータの形式ではない', 'warn'); return; }
+        state = res.state; BL.SFX.setEnabled(state.meta.sfx !== false); ui.modal = null; ui.inLobby = !!(state.run || state.wc); ui.screen = 'game'; ui.lobbyTab = 'records';
+        toast('セーブデータを読み込んだ', 'ok'); render();
+      });
+      return;
+    }
+    if (imp && imp.matches && imp.matches('input[type=file][data-import-portraits]')) {
+      var f1 = imp.files && imp.files[0]; if (!f1) return;
+      readTextFile(f1, function (txt) {
+        if (txt === null) { toast('ファイルを読めない', 'warn'); return; }
+        var res = BL.importPortraits(state, txt); if (!res.ok) { toast('画像パックの形式ではない', 'warn'); return; }
+        toast('画像 ' + res.count + ' 件を読み込んだ', 'ok'); render();
+      });
+      return;
+    }
     var bulk = e.target; if (bulk && bulk.matches && bulk.matches('input[type=file][data-portrait-bulk]')) {
       var files = Array.prototype.slice.call(bulk.files || []); var okN = 0, ngN = 0, pending = files.length;
       if (!pending) return;
@@ -887,6 +955,7 @@
     if (e.key === 'Escape' && ui.modal && ui.modal.type !== 'event') { ui.modal = null; render(); return; }
     if (ui.modal || ui.screen === 'title' || ui.inLobby || !state.run) return;
     var run = state.run; var k = e.key.toUpperCase();
+    if (run.phase === 'storyChoice') { var ci = ['1', '2', '3', '4'].indexOf(e.key); if (ci >= 0) actions['choose-story'](String(ci)); return; }
     if (run.phase === 'training') {
       var idx = ['1', '2', '3', '4', '5'].indexOf(e.key); if (idx >= 0) { actions.train(D.STATS[idx]); return; }
       if (k === 'R') { actions.rest(); return; } if (k === 'S') { actions['open-store'](); return; }

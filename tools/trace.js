@@ -25,6 +25,7 @@ while (state.run && guard++ < 4000) {
   switch (run.phase) {
     case 'arcIntro': console.log('\n#### ' + BL.arcOf(run).part + ' ' + BL.arcOf(run).title + (BL.isFinal(run) ? '（決戦・5人）' : '')); BL.continueStory(state); break;
     case 'policySelect': BL.choosePolicy(state, process.env.POLICY || 'balance'); break;
+    case 'storyChoice': { const cc = BL.currentChoice(run); const n = cc.choice.options.length; const idx = process.env.CHOICE === 'rand' ? Math.floor(rnd() * n) : Math.min(n - 1, parseInt(process.env.CHOICE || '0', 10)); const r = BL.chooseStory(state, idx); console.log(`   [分岐] ${cc.choice.title} → ${r.label}${r.rollWin === undefined ? '' : (r.rollWin ? ' (WIN)' : ' (LOSE)')} : ${r.effects.join(' / ')}`); break; }
     case 'clubSelect': BL.chooseClub(state, process.argv[5] || 'de'); break;
     case 'training':
       if (run.hp < 30 || (run.hp < 50 && run.weeksLeft > 1)) { BL.rest(state); break; }

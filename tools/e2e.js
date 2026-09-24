@@ -81,8 +81,15 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
   assert(await page.$('.result-wrap.success'), 'entry result shown');
   await page.click('[data-action="climax-next"]'); await wait(100);
   st = await S(); assert(st.run.phase === 'matchResult' && st.run.matchResult.outcome === 'advance', 'match result screen');
-  await page.click('[data-action="match-next"]'); await wait(1700);
-  st = await S(); assert(st.run.phase === 'training' && st.run.seg === 1 && st.run.weeksLeft === 3, 'first arc: seg z_x training 3 weeks');
+  await page.click('[data-action="match-next"]'); await wait(300);
+  st = await S(); assert(st.run.phase === 'storyChoice' && st.run.seg === 1, 'story choice shown before z_x');
+  assert((await page.$$('[data-action="choose-story"]')).length === 3 && (await page.$('.rival-hero')), 'three options + rival hero');
+  await page.screenshot({ path: OUT + '/11_choice.png', fullPage: true });
+  await page.click('[data-action="choose-story"][data-arg="1"]'); await wait(150);
+  assert(await page.$('[data-action="close-choice"]'), 'choice result modal');
+  await page.click('[data-action="close-choice"]'); await wait(200);
+  st = await S(); assert(st.run.phase === 'training' && st.run.seg === 1 && st.run.weeksLeft === 3 && st.run.flags.ally_chigiri && st.run.storyFx.opt.C === 3 && st.run.choiceLog.length === 1, 'choice applied: flag + Option C +3, training 3 weeks');
+  assert(await page.$('.nm-rival'), 'rival art in next-match panel');
   await page.screenshot({ path: OUT + '/13_training.png', fullPage: true });
   await page.keyboard.press('1'); await wait(150);
   st = await S();
@@ -106,6 +113,7 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
       if (ph === 'evaluation') { await page.click('[data-action="eval-next"]'); await wait(300); continue; }
       if (ph === 'arcIntro') { await page.evaluate(() => { const s = BL_UI.state(); if (s.run.players) s.run.players.forEach(p => Object.keys(p.stats).forEach(k => { p.stats[k] *= 4; })); else Object.keys(s.run.stats).forEach(k => { s.run.stats[k] *= 4; }); BL.save(s); }); await page.click('[data-action="story-next"]'); await wait(200); continue; }
       if (ph === 'policySelect') { await page.click('[data-action="choose-policy"][data-arg="balance"]'); await wait(200); continue; }
+      if (ph === 'storyChoice') { const ci = (st.run.arc === 1 && st.run.seg === 1) ? 1 : 0; await page.click('[data-action="choose-story"][data-arg="' + ci + '"]'); await wait(120); if (await page.$('[data-action="close-choice"]')) { await page.click('[data-action="close-choice"]'); await wait(120); } continue; }
       if (ph === 'clubSelect') { await page.screenshot({ path: OUT + '/16_club.png', fullPage: true }); await page.click('[data-action="choose-club"][data-arg="fr"]'); await wait(200); continue; }
       if (ph === 'gameover' || ph === 'clear' || ph === 'graduated') return;
     }
@@ -137,9 +145,12 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
   await playUntil(s => s.run.phase === 'match' && s.run.match.rule === 'stage3_rin');
   st = await S(); assert(st.run.match.rule === 'stage3_rin', 'at 3rd stage vs Rin');
   for (let i = 0; i < 3; i++) { await zero(); await page.click('[data-action="climax"][data-arg="A"]'); await wait(60); await page.click('[data-action="climax-next"]'); await wait(60); }
-  st = await S(); assert(st.run.phase === 'matchResult' && st.run.matchResult.outcome === 'branch' && st.run.flags.rinLoss, 'loss vs Rin branches instead of eliminating');
+  st = await S(); assert(st.run.phase === 'matchResult' && st.run.matchResult.outcome === 'branch' && st.run.flags.rinLoss && st.run.flags.team_barou, 'loss vs Rin branches (team_barou route)');
   await page.click('[data-action="match-next"]'); await wait(1700);
-  st = await S(); assert(st.run.phase === 'match' && /2ndステージ/.test(st.run.match.name), '2v2 segment inserted immediately (0 weeks)');
+  st = await S(); assert(st.run.phase === 'match' && /蜂楽・凪/.test(st.run.match.name) && st.run.match.rival === 'nagi', 'alternate 2v2 route vs Bachira/Nagi inserted (0 weeks)');
+  assert(await page.$('.rival-strip'), 'rival strip in climax');
+  assert(!!st.meta.achievements.route_barou, 'route achievement');
+  await page.screenshot({ path: OUT + '/15b_alt_route.png', fullPage: true });
   await playUntil(s => s.run.phase === 'graduated'); await page.click('[data-action="close-run"]'); await wait(100);
   st = await S(); assert(st.meta.grads.length === 1 && st.meta.grads[0].part === 2, 'same graduate advanced to part 2');
   /* part 3, part 4 */
@@ -178,6 +189,13 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
   await page.screenshot({ path: OUT + '/22_clear.png', fullPage: true });
   await page.click('[data-action="close-run"]'); await wait(100);
   st = await S(); assert(st.meta.hof.length === 5 && st.run === null && st.meta.grads.length === 0 && st.meta.history[0].kind === 'final', 'HoF ×5, grads consumed, history recorded');
+  /* export / import roundtrip */
+  await page.click('[data-action="lobby-tab"][data-arg="records"]'); await page.click('[data-action="open-export"][data-arg="save"]'); await wait(100);
+  const exported = await page.evaluate(() => document.querySelector('.modal textarea').value); assert(exported.length > 1000 && JSON.parse(exported).v === 5, 'save exported');
+  await page.click('[data-action="close-modal"]');
+  const imp = await page.evaluate((txt) => { const r = BL.importSave(txt.replace('"gems":' + JSON.parse(txt).meta.gems, '"gems":4321')); return r.ok && BL.load().meta.gems; }, exported);
+  assert(imp === 4321, 'import roundtrip (gems overwritten)');
+  await page.evaluate((txt) => { BL.importSave(txt); }, exported);
   await page.click('[data-action="lobby-tab"][data-arg="hof"]'); await page.screenshot({ path: OUT + '/23_hof.png', fullPage: true });
   await page.click('[data-action="wc-start"]'); assert(await page.$('.wc-intro'), 'WC intro');
   await page.click('[data-action="wc-begin"]'); await wait(1600);

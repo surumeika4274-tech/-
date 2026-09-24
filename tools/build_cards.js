@@ -27,7 +27,7 @@ const BAND = {
   raichi: [1, 5], gagamaru: [1, 5], igarashi: [1, 4], naruhaya: [1, 3], kira: [1, 4], iemon: [1, 3], imamura: [1, 3], kuon: [1, 3], okawa: [1, 3],
   niko: [1, 5], wanima_j: [1, 3], wanima_k: [1, 3], aryu: [2, 5], tokimitsu: [2, 5], zantetsu: [2, 5], kiyora: [3, 5], hiori: [3, 6], karasu: [3, 6],
   otoya: [3, 6], yukimiya: [3, 6], kurona: [4, 5], nanase: [3, 5], aiku: [4, 6], sendou: [4, 6], mitoma: [5, 7], honda: [5, 7],
-  luna: [5, 7], blake: [5, 7], dada: [5, 7], cavazos: [5, 7], loki: [6, 8]
+  luna: [5, 7], blake: [5, 7], dada: [5, 7], cavazos: [5, 7], loki: [6, 8], childs: [4, 6], bello: [4, 6]
 };
 const T = { '1': 0, '2': 0.25, '3': 0.5, '4': 0.8, '4FLOW': 0.8, '5': 1 };
 
@@ -79,7 +79,17 @@ const ORIGINAL = [
   O('onaji', 'ナイジェリアの猛獣', 4, 'フィジカル', ['CF', 'CB'], 'U-20 W杯'), O('onaji', '灼熱のエース', 6, 'キック', ['CF', 'RWG'], 'U-20 W杯'),
   O('kusso', 'ナイジェリアの頭脳', 4, '賢さ', ['OMF', 'DMF'], 'U-20 W杯'), O('kusso', 'クッソの魔術', 5, 'テクニック', ['OMF', 'LMF'], 'U-20 W杯'),
   O('hugo', 'フランスの巨躯', 4, 'フィジカル', ['CF', 'CB'], 'U-20 W杯'), O('hugo', 'フランス代表FW', 6, 'キック', ['CF', 'OMF'], 'U-20 W杯'),
-  O('raiden', '雷光のサイド', 4, 'スピード', ['RSB', 'RWG'], 'U-20 W杯'), O('raiden', 'フランス代表DF', 5, 'フィジカル', ['RSB', 'CB'], 'U-20 W杯')
+  O('raiden', '雷光のサイド', 4, 'スピード', ['RSB', 'RWG'], 'U-20 W杯'), O('raiden', 'フランス代表DF', 5, 'フィジカル', ['RSB', 'CB'], 'U-20 W杯'),
+  O('childs', 'イングランドの守護者', 4, 'フィジカル', ['CB', 'DMF'], 'U-20 W杯'), O('childs', '世界標準の壁', 6, 'フィジカル', ['CB', 'DMF'], 'U-20 W杯'),
+  O('bello', 'ナイジェリアの疾風', 4, 'スピード', ['RWG', 'CF'], 'U-20 W杯'), O('bello', '灼熱のスプリンター', 5, 'スピード', ['LWG', 'CF'], 'U-20 W杯'),
+  /* 決戦（U-20 W杯）の BL.JAPAN 個体 */
+  O('isagi', 'BL.JAPANの心臓', 7, '賢さ', ['OMF', 'CF'], '決戦'), O('rin', '決戦の破壊者', 7, 'キック', ['CF', 'OMF'], '決戦'), O('bachira', 'W杯の怪物', 6, 'テクニック', ['OMF', 'LWG'], '決戦'),
+  O('nagi', '天才の本気', 6, 'テクニック', ['CF', 'OMF'], '決戦'), O('chigiri', '世界に届く神速', 6, 'スピード', ['LWG', 'RWG'], '決戦'), O('kunigami', '蘇ったヒーロー', 5, 'フィジカル', ['CF', 'LWG'], '決戦'),
+  O('reo', '万能の司令塔', 5, '賢さ', ['OMF', 'DMF'], '決戦'), O('barou', '王様の凱旋', 6, 'キック', ['CF', 'RWG'], '決戦'), O('shidou', '世界を喰う悪魔', 7, 'キック', ['CF', 'OMF'], '決戦'),
+  O('karasu', '世界の弱点を読む', 6, '賢さ', ['DMF', 'OMF'], '決戦'), O('otoya', '忍術は世界に通じる', 6, 'スピード', ['RWG', 'LWG'], '決戦'), O('yukimiya', '一瞬の極限・世界', 6, 'テクニック', ['RWG', 'CF'], '決戦'),
+  O('hiori', '氷の司令塔', 6, '賢さ', ['OMF', 'DMF'], '決戦'), O('aryu', 'オシャの頂点', 5, 'フィジカル', ['CB', 'CF'], '決戦'), O('niko', '世界の影', 5, '賢さ', ['DMF', 'OMF'], '決戦'),
+  O('kurona', 'シャークの牙', 5, 'スピード', ['LWG', 'RWG'], '決戦'), O('nanase', '虹の躍動', 5, 'スタミナ', ['RMF', 'LMF'], '決戦'), O('kiyora', '境界線を越えて', 5, 'コンディション', ['OMF', 'RMF'], '決戦'),
+  O('sae', '美しく壊す・決戦', 7, 'テクニック', ['OMF', 'DMF'], '決戦')
 ];
 const all = cards.concat(ORIGINAL);
 all.sort((a, b) => Number(b.rar) - Number(a.rar) || a.char.localeCompare(b.char) || a.title.localeCompare(b.title, 'ja'));

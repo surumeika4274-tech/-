@@ -256,7 +256,11 @@
     hugo:     { name: 'ユーゴー',     tag: 'フランスの巨躯',         ident: { SHT: 1.15, SPD: 0.95, TEC: 0.95, INT: 0.9, PHY: 1.15 }, fav: 'A',
                 passive: { name: '巨躯', desc: 'Option A +4%。', opt: { A: 4 } }, sig: { name: 'ユーゴーの砲撃', desc: 'Option A +7%', fx: { opt: { A: 7 } } } },
     raiden:   { name: 'ライデン',     tag: '雷光',                   ident: { SHT: 0.95, SPD: 1.15, TEC: 0.85, INT: 0.85, PHY: 1.15 }, fav: 'C',
-                passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } }
+                passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } },
+    childs:   { name: 'チャイルズ',    tag: 'イングランドの守護者',   ident: { SHT: 0.85, SPD: 1.0, TEC: 0.95, INT: 1.1, PHY: 1.25 }, fav: 'A',
+                passive: { name: '鉄壁の統率', desc: 'Option A +3%。練習HP消費 -1。', opt: { A: 3 }, hpCost: -1 }, sig: { name: 'イングランドの壁', desc: 'Option A +6% / 全選択肢 +2%', fx: { opt: { A: 6 }, all: 2 } } },
+    bello:    { name: 'ベロ',          tag: 'ナイジェリアの疾風',     ident: { SHT: 1.0, SPD: 1.3, TEC: 0.95, INT: 0.85, PHY: 1.05 }, fav: 'C',
+                passive: { name: '疾風の一撃', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ベロのスプリント', desc: 'Option C +8%', fx: { opt: { C: 8 } } } },
   };
 
   /* 育成方針：各編の冒頭で選択。編の間だけ成長補正に加算される（5回の育成それぞれに方針を持たせる） */
@@ -842,7 +846,12 @@
     { id: 'upgrade_1',    name: 'エゴ強化',             desc: '永続強化を初めて購入した',                   gems: 100 },
     { id: 'upgrade_max',  name: '完全強化',             desc: 'いずれかの永続強化を最大 Lv にした',         gems: 500 },
     { id: 'mastery_5',    name: '熟練の証',             desc: 'いずれかのキャラの熟練度が Lv5 に達した',    gems: 300 },
-    { id: 'chem_pair',    name: '原作の化学反応',       desc: '原作ペアの化学反応イベントが発生した',       gems: 150 }
+    { id: 'chem_pair',    name: '原作の化学反応',       desc: '原作ペアの化学反応イベントが発生した',       gems: 150 },
+    /* v7：ストーリー分岐 */
+    { id: 'route_barou',  name: '王様と組む',           desc: '二次選考 3rd ステージで馬狼・成早と組んだ',   gems: 150 },
+    { id: 'route_chigiri',name: '旧友と組む',           desc: '二次選考 3rd ステージで千切・國神と組んだ',   gems: 150 },
+    { id: 'choices_10',   name: 'エゴの選択',           desc: 'ストーリーの分岐を 10 回選んだ',              gems: 200 },
+    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 }
   ];
 
 
@@ -891,6 +900,30 @@
     { a: 'mitoma',   b: 'isagi',     name: 'ワールドストライカーの教え', fx: { growth: { SPD: 0.04, INT: 0.04 }, opt: { C: 2 } } }
   ];
 
+
+  /* ------------------------------------------------ 生成アート用の外見（アニメ版の配色に準拠。未定義のキャラはIDから決定的に生成） */
+  var LOOKS = {
+    isagi: { hair: 'short', color: '#3a2e2a', eye: '#3b82f6' }, bachira: { hair: 'bob', color: '#141414', accent: '#f5d142', eye: '#f5c542' },
+    chigiri: { hair: 'long', color: '#e0567f', eye: '#7c3aed' }, kunigami: { hair: 'short', color: '#e8863b', eye: '#f59e0b' },
+    nagi: { hair: 'wavy', color: '#e9edf2', eye: '#9ca3af' }, reo: { hair: 'short', color: '#7c4dff', eye: '#a78bfa' },
+    barou: { hair: 'spiky', color: '#232323', eye: '#22c55e' }, rin: { hair: 'bangs', color: '#1f2a44', eye: '#38bdf8' },
+    sae: { hair: 'bangs', color: '#a83a3a', eye: '#2dd4bf' }, shidou: { hair: 'spiky', color: '#f0d36a', accent: '#f472b6', eye: '#f472b6' },
+    raichi: { hair: 'spiky', color: '#f5c542', accent: '#2a2a2a', eye: '#f59e0b' }, gagamaru: { hair: 'buzz', color: '#2a2a2a', eye: '#a3e635' },
+    igarashi: { hair: 'short', color: '#6b4f3a', eye: '#78716c' }, naruhaya: { hair: 'short', color: '#1a1a1a', eye: '#a3a3a3' },
+    kira: { hair: 'wavy', color: '#8b5a2b', eye: '#60a5fa' }, kuon: { hair: 'short', color: '#333', eye: '#9ca3af' }, iemon: { hair: 'buzz', color: '#222', eye: '#9ca3af' },
+    imamura: { hair: 'short', color: '#4b3a2f', eye: '#9ca3af' }, okawa: { hair: 'spiky', color: '#2a2a2a', eye: '#9ca3af' }, niko: { hair: 'bangs', color: '#111', eye: '#111' },
+    wanima_j: { hair: 'short', color: '#c9a227', eye: '#eab308' }, wanima_k: { hair: 'short', color: '#c9a227', eye: '#eab308' },
+    aryu: { hair: 'long', color: '#d8c9a8', eye: '#a16207' }, tokimitsu: { hair: 'short', color: '#1c1c1c', eye: '#9ca3af' },
+    hiori: { hair: 'bob', color: '#a3bffa', eye: '#60a5fa' }, karasu: { hair: 'short', color: '#111', eye: '#111' }, yukimiya: { hair: 'wavy', color: '#f2d16b', eye: '#fbbf24' },
+    kurona: { hair: 'bangs', color: '#1e1e2e', eye: '#ef4444' }, nanase: { hair: 'bob', color: '#d9d9d9', accent: '#1f2937', eye: '#22d3ee' },
+    mitoma: { hair: 'short', color: '#111', eye: '#111' }, honda: { hair: 'short', color: '#111', eye: '#111' },
+    loki: { hair: 'wavy', color: '#f1d27a', eye: '#22c55e' }, noa: { hair: 'short', color: '#2b1f17', eye: '#a3a3a3' }, ego_if: { hair: 'spiky', color: '#111', eye: '#111' },
+    snuffy: { hair: 'short', color: '#9aa0a6', eye: '#9ca3af' }, lavinho: { hair: 'curly', color: '#2a1f1a', eye: '#a16207' }, prince: { hair: 'wavy', color: '#f2e6c9', eye: '#60a5fa' },
+    kaiser: { hair: 'wavy', color: '#f5e6a3', accent: '#3b82f6', eye: '#3b82f6' }, ness: { hair: 'bob', color: '#a78bfa', eye: '#c084fc' }, lorenzo: { hair: 'long', color: '#111', eye: '#111' },
+    achampong: { hair: 'buzz', color: '#111', skin: '#7a4a2a', eye: '#111' }, onaji: { hair: 'buzz', color: '#111', skin: '#5b3a21', eye: '#111' },
+    kusso: { hair: 'short', color: '#111', skin: '#6b4226', eye: '#111' }, bello: { hair: 'spiky', color: '#111', skin: '#6b4226', eye: '#111' }
+  };
+
   /* ------------------------------------------------------- 調整パラメータ */
   var PARAMS = {
     BASE_MAIN: 10,     COMP_MAIN: 0.006,
@@ -929,7 +962,7 @@
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
     CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
-    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY,
+    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',

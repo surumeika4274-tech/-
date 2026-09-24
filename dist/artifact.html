@@ -537,6 +537,32 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
 .training.final .panel.squad .money { margin-top: 10px; }
 @media (max-width: 720px) { .sq-climax { grid-template-columns: 48px 1fr; } .sq-climax .sq-opts { grid-column: 1 / -1; justify-content: flex-start; } .sq-row { grid-template-columns: 48px 1fr auto; } .upgs { grid-template-columns: 1fr; } }
 
+/* ---- v7 分岐・ライバル表示・バックアップ ---- */
+.choice-stage { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 12px auto; }
+.choice-stage .run-hero { margin: 0; flex: 1 1 300px; max-width: 420px; }
+.vs-mark { font-family: 'Oswald', sans-serif; font-size: 1.6rem; color: var(--danger); letter-spacing: .1em; }
+.run-hero.rival-hero { background: linear-gradient(90deg, rgba(255,42,74,.18), #0b1020 70%); border-color: rgba(255,42,74,.5); }
+.run-hero.rival-hero .rh-meta i { color: #ff8c8c; }
+.story-opt small .risk { color: var(--warn); font-style: normal; }
+.story-opt small .dep { display: block; color: var(--accent2); font-style: normal; margin-top: 2px; }
+.seg-list li.with-rival { display: flex; gap: 10px; align-items: center; }
+.seg-list .seg-rival svg { display: block; border-radius: 6px; }
+.seg-list .tag { font-style: normal; font-size: 10px; border-color: var(--gold); color: var(--gold); }
+.nm-head { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; }
+.nm-head .nm-rival svg { display: block; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(255,42,74,.25); }
+.nm-head h4 { margin-bottom: 2px; }
+.side .thumb.rival svg { outline: 2px solid rgba(255,42,74,.6); }
+.highlight { display: flex; gap: 14px; align-items: center; }
+.highlight > div { flex: 1; min-width: 0; }
+.rival-strip { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,42,74,.4); background: linear-gradient(90deg, rgba(255,42,74,.14), transparent); }
+.rival-strip .thumb svg { display: block; border-radius: 6px; }
+.rival-strip i { display: block; font-style: normal; font-size: 10px; color: #ff8c8c; letter-spacing: .1em; }
+.rival-strip b { display: block; font-size: 15px; }
+.rival-strip small { color: var(--muted); font-size: 11px; }
+.event.choice .ev-kicker { color: var(--accent2); }
+.modal-foot a.btn { text-decoration: none; }
+@media (max-width: 640px) { .highlight { flex-direction: column; align-items: stretch; } .rival-strip { justify-content: flex-start; } .choice-stage { flex-direction: column; } .vs-mark { display: none; } }
+
 </style>
 
   <noscript><div class="noscript">JavaScript を有効にしてください。</div></noscript>
@@ -803,7 +829,11 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     hugo:     { name: 'ユーゴー',     tag: 'フランスの巨躯',         ident: { SHT: 1.15, SPD: 0.95, TEC: 0.95, INT: 0.9, PHY: 1.15 }, fav: 'A',
                 passive: { name: '巨躯', desc: 'Option A +4%。', opt: { A: 4 } }, sig: { name: 'ユーゴーの砲撃', desc: 'Option A +7%', fx: { opt: { A: 7 } } } },
     raiden:   { name: 'ライデン',     tag: '雷光',                   ident: { SHT: 0.95, SPD: 1.15, TEC: 0.85, INT: 0.85, PHY: 1.15 }, fav: 'C',
-                passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } }
+                passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } },
+    childs:   { name: 'チャイルズ',    tag: 'イングランドの守護者',   ident: { SHT: 0.85, SPD: 1.0, TEC: 0.95, INT: 1.1, PHY: 1.25 }, fav: 'A',
+                passive: { name: '鉄壁の統率', desc: 'Option A +3%。練習HP消費 -1。', opt: { A: 3 }, hpCost: -1 }, sig: { name: 'イングランドの壁', desc: 'Option A +6% / 全選択肢 +2%', fx: { opt: { A: 6 }, all: 2 } } },
+    bello:    { name: 'ベロ',          tag: 'ナイジェリアの疾風',     ident: { SHT: 1.0, SPD: 1.3, TEC: 0.95, INT: 0.85, PHY: 1.05 }, fav: 'C',
+                passive: { name: '疾風の一撃', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ベロのスプリント', desc: 'Option C +8%', fx: { opt: { C: 8 } } } },
   };
 
   /* 育成方針：各編の冒頭で選択。編の間だけ成長補正に加算される（5回の育成それぞれに方針を持たせる） */
@@ -1389,7 +1419,12 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     { id: 'upgrade_1',    name: 'エゴ強化',             desc: '永続強化を初めて購入した',                   gems: 100 },
     { id: 'upgrade_max',  name: '完全強化',             desc: 'いずれかの永続強化を最大 Lv にした',         gems: 500 },
     { id: 'mastery_5',    name: '熟練の証',             desc: 'いずれかのキャラの熟練度が Lv5 に達した',    gems: 300 },
-    { id: 'chem_pair',    name: '原作の化学反応',       desc: '原作ペアの化学反応イベントが発生した',       gems: 150 }
+    { id: 'chem_pair',    name: '原作の化学反応',       desc: '原作ペアの化学反応イベントが発生した',       gems: 150 },
+    /* v7：ストーリー分岐 */
+    { id: 'route_barou',  name: '王様と組む',           desc: '二次選考 3rd ステージで馬狼・成早と組んだ',   gems: 150 },
+    { id: 'route_chigiri',name: '旧友と組む',           desc: '二次選考 3rd ステージで千切・國神と組んだ',   gems: 150 },
+    { id: 'choices_10',   name: 'エゴの選択',           desc: 'ストーリーの分岐を 10 回選んだ',              gems: 200 },
+    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 }
   ];
 
 
@@ -1438,6 +1473,30 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     { a: 'mitoma',   b: 'isagi',     name: 'ワールドストライカーの教え', fx: { growth: { SPD: 0.04, INT: 0.04 }, opt: { C: 2 } } }
   ];
 
+
+  /* ------------------------------------------------ 生成アート用の外見（アニメ版の配色に準拠。未定義のキャラはIDから決定的に生成） */
+  var LOOKS = {
+    isagi: { hair: 'short', color: '#3a2e2a', eye: '#3b82f6' }, bachira: { hair: 'bob', color: '#141414', accent: '#f5d142', eye: '#f5c542' },
+    chigiri: { hair: 'long', color: '#e0567f', eye: '#7c3aed' }, kunigami: { hair: 'short', color: '#e8863b', eye: '#f59e0b' },
+    nagi: { hair: 'wavy', color: '#e9edf2', eye: '#9ca3af' }, reo: { hair: 'short', color: '#7c4dff', eye: '#a78bfa' },
+    barou: { hair: 'spiky', color: '#232323', eye: '#22c55e' }, rin: { hair: 'bangs', color: '#1f2a44', eye: '#38bdf8' },
+    sae: { hair: 'bangs', color: '#a83a3a', eye: '#2dd4bf' }, shidou: { hair: 'spiky', color: '#f0d36a', accent: '#f472b6', eye: '#f472b6' },
+    raichi: { hair: 'spiky', color: '#f5c542', accent: '#2a2a2a', eye: '#f59e0b' }, gagamaru: { hair: 'buzz', color: '#2a2a2a', eye: '#a3e635' },
+    igarashi: { hair: 'short', color: '#6b4f3a', eye: '#78716c' }, naruhaya: { hair: 'short', color: '#1a1a1a', eye: '#a3a3a3' },
+    kira: { hair: 'wavy', color: '#8b5a2b', eye: '#60a5fa' }, kuon: { hair: 'short', color: '#333', eye: '#9ca3af' }, iemon: { hair: 'buzz', color: '#222', eye: '#9ca3af' },
+    imamura: { hair: 'short', color: '#4b3a2f', eye: '#9ca3af' }, okawa: { hair: 'spiky', color: '#2a2a2a', eye: '#9ca3af' }, niko: { hair: 'bangs', color: '#111', eye: '#111' },
+    wanima_j: { hair: 'short', color: '#c9a227', eye: '#eab308' }, wanima_k: { hair: 'short', color: '#c9a227', eye: '#eab308' },
+    aryu: { hair: 'long', color: '#d8c9a8', eye: '#a16207' }, tokimitsu: { hair: 'short', color: '#1c1c1c', eye: '#9ca3af' },
+    hiori: { hair: 'bob', color: '#a3bffa', eye: '#60a5fa' }, karasu: { hair: 'short', color: '#111', eye: '#111' }, yukimiya: { hair: 'wavy', color: '#f2d16b', eye: '#fbbf24' },
+    kurona: { hair: 'bangs', color: '#1e1e2e', eye: '#ef4444' }, nanase: { hair: 'bob', color: '#d9d9d9', accent: '#1f2937', eye: '#22d3ee' },
+    mitoma: { hair: 'short', color: '#111', eye: '#111' }, honda: { hair: 'short', color: '#111', eye: '#111' },
+    loki: { hair: 'wavy', color: '#f1d27a', eye: '#22c55e' }, noa: { hair: 'short', color: '#2b1f17', eye: '#a3a3a3' }, ego_if: { hair: 'spiky', color: '#111', eye: '#111' },
+    snuffy: { hair: 'short', color: '#9aa0a6', eye: '#9ca3af' }, lavinho: { hair: 'curly', color: '#2a1f1a', eye: '#a16207' }, prince: { hair: 'wavy', color: '#f2e6c9', eye: '#60a5fa' },
+    kaiser: { hair: 'wavy', color: '#f5e6a3', accent: '#3b82f6', eye: '#3b82f6' }, ness: { hair: 'bob', color: '#a78bfa', eye: '#c084fc' }, lorenzo: { hair: 'long', color: '#111', eye: '#111' },
+    achampong: { hair: 'buzz', color: '#111', skin: '#7a4a2a', eye: '#111' }, onaji: { hair: 'buzz', color: '#111', skin: '#5b3a21', eye: '#111' },
+    kusso: { hair: 'short', color: '#111', skin: '#6b4226', eye: '#111' }, bello: { hair: 'spiky', color: '#111', skin: '#6b4226', eye: '#111' }
+  };
+
   /* ------------------------------------------------------- 調整パラメータ */
   var PARAMS = {
     BASE_MAIN: 10,     COMP_MAIN: 0.006,
@@ -1476,7 +1535,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
     CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
-    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY,
+    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',
@@ -1498,248 +1557,271 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   { id: 'k001', char: 'ego_if', title: "現役if・青い監獄の設計者", rar: '8', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "現役if" },
   { id: 'k002', char: 'noa', title: "世界最高のストライカー", rar: '8', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "世界最強" },
   { id: 'k003', char: 'chevalier', title: "フランス代表の刃", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "U-20 W杯" },
-  { id: 'k004', char: 'isagi', title: "サッカー日本代表Ver.", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: '賢さ', pos: ["OMF","RSB"] },
-  { id: 'k005', char: 'kaiser', title: "世界11傑の皇帝", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "世界11傑" },
-  { id: 'k006', char: 'lavinho', title: "マスター・FCバルチャ", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LWG","OMF"], stage: "マスター" },
-  { id: 'k007', char: 'loki', title: "フランス代表", rar: '7', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k008', char: 'loki', title: "神童", rar: '7', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k009', char: 'mitoma', title: "受け止めた勝利", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["CB","OMF"] },
-  { id: 'k010', char: 'noa', title: "バスタードの規律", rar: '7', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["CF","DMF"], stage: "指導者" },
-  { id: 'k011', char: 'prince', title: "マスター・マンシャイン", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "マスター" },
-  { id: 'k012', char: 'rin', title: "夕紅色の風情", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: 'キック', pos: ["CF","LWG"] },
-  { id: 'k013', char: 'sae', title: "『美しく壊す』哲学", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["LMF","OMF"] },
-  { id: 'k014', char: 'sae', title: "SEASIDE EGOIST", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LMF","OMF"] },
-  { id: 'k015', char: 'sae', title: "次の景色を見せてやる", rar: '7', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'テクニック', pos: ["LMF","OMF"] },
-  { id: 'k016', char: 'sae', title: "夕紅色の風情", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["OMF","RMF"] },
-  { id: 'k017', char: 'snuffy', title: "マスター・ユーヴァース", rar: '7', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","CB"], stage: "マスター" },
-  { id: 'k018', char: 'teddy', title: "騎士の覚醒", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "U-20 W杯" },
-  { id: 'k019', char: 'achampong', title: "魔法の指揮者", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","RMF"], stage: "U-20 W杯" },
-  { id: 'k020', char: 'aiku', title: "オールMAXで視える世界", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["CB","DMF"] },
-  { id: 'k021', char: 'aiku', title: "捉える“間合い”", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: '賢さ', pos: ["LSB","CB"] },
-  { id: 'k022', char: 'barou', title: "HUNTING BEAST", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["RWG","DMF"] },
-  { id: 'k023', char: 'blake', title: "GGジャンキー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["DMF"] },
-  { id: 'k024', char: 'blake', title: "イングランド代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k025', char: 'cavazos', title: "アルゼンチン代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k026', char: 'cavazos', title: "そばかすベイビー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k027', char: 'chevalier', title: "電光石火の騎士", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "新英雄大戦" },
-  { id: 'k028', char: 'dada', title: "ブラジル代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
-  { id: 'k029', char: 'dada', title: "重戦車", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["LSB"] },
-  { id: 'k030', char: 'ego_if', title: "若き日の絵心", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "若手時代" },
-  { id: 'k031', char: 'hiori', title: "「静」のテクニシャン", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: '賢さ', pos: ["RSB","RMF"] },
-  { id: 'k032', char: 'honda', title: "永遠の挑戦者", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k033', char: 'hugo', title: "フランス代表FW", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "U-20 W杯" },
-  { id: 'k034', char: 'isagi', title: "”青い監獄”の心臓", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["LMF","OMF"] },
-  { id: 'k035', char: 'isagi', title: "3周年記念Ver.", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["LSB","OMF"] },
-  { id: 'k036', char: 'kaiser', title: "皇帝", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "新英雄大戦" },
-  { id: 'k037', char: 'karasu', title: "広げる弱点と選択肢", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["DMF","OMF"] },
-  { id: 'k038', char: 'lavinho', title: "ブラジルの遊び人", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "現役時代" },
-  { id: 'k039', char: 'lorenzo', title: "守備の魔物", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
-  { id: 'k040', char: 'luna', title: "スペイン代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
-  { id: 'k041', char: 'luna', title: "レ・アールの貴公子", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k042', char: 'mitoma', title: "勝利への執念", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k043', char: 'mitoma', title: "信念を貫くドリブル", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["RWG"] },
-  { id: 'k044', char: 'mitoma', title: "電光石火", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k045', char: 'mitoma', title: "独走のワールドストライカー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k046', char: 'nagi', title: "SUMMER SPLASH", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'キック', pos: ["OMF","CF"] },
-  { id: 'k047', char: 'noa', title: "若き日のノア", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","OMF"], stage: "若手時代" },
-  { id: 'k048', char: 'onaji', title: "灼熱のエース", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "U-20 W杯" },
-  { id: 'k049', char: 'prince', title: "マンシャインの王子", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "現役" },
-  { id: 'k050', char: 'reo', title: "エレガント・ローズ", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["CB","DMF"] },
-  { id: 'k051', char: 'rin', title: "SEASIDE EGOIST", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["RWG","CF"] },
-  { id: 'k052', char: 'rin', title: "X 相性最悪のクリスマス", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["DMF","CF"] },
-  { id: 'k053', char: 'rin', title: "破壊者", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LWG","CF"] },
-  { id: 'k054', char: 'sendou', title: "世界標準の欲望", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'フィジカル', pos: ["CB","CF"] },
-  { id: 'k055', char: 'shidou', title: "アンストッパブル・デーモン", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'キック', pos: ["RWG","CF"] },
-  { id: 'k056', char: 'shidou', title: "歓喜の”誕生”", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["LWG","CF"] },
-  { id: 'k057', char: 'snuffy', title: "現役時代の名将", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["DMF","OMF"], stage: "現役時代" },
-  { id: 'k058', char: 'teddy', title: "新世代世界11傑", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["CF","RWG"], stage: "U-20 W杯" },
-  { id: 'k059', char: 'aiku', title: "U-20日本代表主将", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
-  { id: 'k060', char: 'bachira', title: "X 俺は俺のゴールのために", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'テクニック', pos: ["LSB","RMF"] },
-  { id: 'k061', char: 'bachira', title: "怪物夢中", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["LSB","LMF"] },
-  { id: 'k062', char: 'barou', title: "貪り喰らう咆哮", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["OMF","RWG"] },
-  { id: 'k063', char: 'chevalier', title: "P・X・Gの騎士", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "新英雄大戦" },
-  { id: 'k064', char: 'chigiri', title: "ブリリアント・ブーケ", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["RSB","RMF"] },
-  { id: 'k065', char: 'chigiri', title: "最速の韋駄天", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["RSB","RMF"] },
-  { id: 'k066', char: 'chigiri', title: "縛られぬ速さ", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'スピード', pos: ["RSB","LWG"] },
-  { id: 'k067', char: 'hiori', title: "X 自分にできる武器", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["RSB","LSB"] },
-  { id: 'k068', char: 'hiori', title: "はんなりゲーマー", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k069', char: 'hiori', title: "桜はんなり", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k070', char: 'hiori', title: "冷静な視野", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k071', char: 'kaiser', title: "青い薔薇", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["CF","LWG"], stage: "新英雄大戦" },
-  { id: 'k072', char: 'karasu', title: "X 弱点がないなら創るまで", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RMF","DMF"] },
-  { id: 'k073', char: 'karasu', title: "ヒットマン", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k074', char: 'karasu', title: "無欠への一手", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k075', char: 'kunigami', title: "正々堂々肉体勝負", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["LSB","CF"] },
-  { id: 'k076', char: 'kurona', title: "小柄なシャーク", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RSB","DMF"] },
-  { id: 'k077', char: 'kusso', title: "クッソの魔術", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "U-20 W杯" },
-  { id: 'k078', char: 'lorenzo', title: "イタリアの守護者", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
-  { id: 'k079', char: 'nagi', title: "3周年記念Ver.", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["RMF","OMF"] },
-  { id: 'k080', char: 'nagi', title: "はじめまして日本", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["OMF","LWG"] },
-  { id: 'k081', char: 'nanase', title: "X トレッキング・トレーニング", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RMF","LMF"] },
-  { id: 'k082', char: 'ness', title: "皇帝の魔術師", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "新英雄大戦" },
-  { id: 'k083', char: 'nio', title: "新英雄大戦", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
-  { id: 'k084', char: 'otoya', title: "最強の飛び道具", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
-  { id: 'k085', char: 'otoya', title: "速攻の忍術", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'スピード', pos: ["RMF","RWG"] },
-  { id: 'k086', char: 'otoya', title: "忍者の末裔", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k087', char: 'raiden', title: "フランス代表DF", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["RSB","CB"], stage: "U-20 W杯" },
-  { id: 'k088', char: 'reo', title: "X SEASIDE EGOIST", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["CB","DMF"] },
-  { id: 'k089', char: 'reo', title: "万能のカメレオン", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["RSB","CB"] },
-  { id: 'k090', char: 'rin', title: "1周年記念Ver.", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k091', char: 'rin', title: "一瞬に懸ける命", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k092', char: 'rin', title: "蹴り描く放物線", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k093', char: 'rin', title: "戦場の支配者", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k094', char: 'sendou', title: "U-20日本代表エース", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
-  { id: 'k095', char: 'sendou', title: "エースの意地", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k096', char: 'shidou', title: "Halloween Demon", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k097', char: 'shidou', title: "PA最強の悪魔", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["LWG"] },
-  { id: 'k098', char: 'shidou', title: "超弩級の個人能力", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["RWG"] },
-  { id: 'k099', char: 'shidou', title: "龍聖・直下蹴弾", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k100', char: 'teddy', title: "イングランドの新星", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "U-20 W杯" },
-  { id: 'k101', char: 'yukimiya', title: "1on1エンペラー", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
-  { id: 'k102', char: 'yukimiya', title: "ストリート・スタイル", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k103', char: 'yukimiya', title: "一瞬に見出す極限", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LMF","LWG"] },
-  { id: 'k104', char: 'achampong', title: "イングランドの司令塔", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "U-20 W杯" },
-  { id: 'k105', char: 'aryu', title: "No.1オシャ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k106', char: 'aryu', title: "反則級の特級身体", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k107', char: 'bachira', title: "X 呪縛からの解放", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k108', char: 'bachira', title: "かいぶつのいない世界", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
-  { id: 'k109', char: 'bachira', title: "正面突破", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k110', char: 'bachira', title: "変幻自在の足技", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
-  { id: 'k111', char: 'bachira', title: "遊興の法被姿", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
-  { id: 'k112', char: 'barou', title: "HUNGER WOLF", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k113', char: 'barou', title: "俺が王様だ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k114', char: 'barou', title: "混乱を創る独裁の王", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k115', char: 'barou', title: "邪道こそが王道", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k116', char: 'chigiri', title: "X この熱が尽きるまで", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k117', char: 'chigiri', title: "最速の蹴撃", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k118', char: 'chigiri', title: "聖夜の赤豹", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k119', char: 'chigiri', title: "熱い滾り", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k120', char: 'chigiri', title: "浴衣姿の趣", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LMF"] },
-  { id: 'k121', char: 'chou', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["RMF","OMF"], stage: "新英雄大戦" },
-  { id: 'k122', char: 'fukaku', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スタミナ', pos: ["CB","DMF"], stage: "新英雄大戦" },
-  { id: 'k123', char: 'haiji', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["DMF","OMF"], stage: "新英雄大戦" },
-  { id: 'k124', char: 'hayate', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "新英雄大戦" },
-  { id: 'k125', char: 'hiiragi', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","DMF"], stage: "新英雄大戦" },
-  { id: 'k126', char: 'himizu', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RSB","RMF"], stage: "新英雄大戦" },
-  { id: 'k127', char: 'hugo', title: "フランスの巨躯", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "U-20 W杯" },
-  { id: 'k128', char: 'isagi', title: "この一瞬に『反射』しろ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k129', char: 'isagi', title: "ストライカー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k130', char: 'isagi', title: "運命への第一歩", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CF"] },
-  { id: 'k131', char: 'isagi', title: "主役の座", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
-  { id: 'k132', char: 'isagi', title: "進化する視野", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k133', char: 'isagi', title: "戦場の桜花", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k134', char: 'ishikari', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "新英雄大戦" },
-  { id: 'k135', char: 'jarai', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","CF"], stage: "新英雄大戦" },
-  { id: 'k136', char: 'kiyora', title: "ボーダーライナー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k137', char: 'kori', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RMF","DMF"], stage: "新英雄大戦" },
-  { id: 'k138', char: 'kunigami', title: "ジューンブライド・ヒーロー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k139', char: 'kunigami', title: "驚異の左足", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
-  { id: 'k140', char: 'kunigami', title: "空中の肉弾戦", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
-  { id: 'k141', char: 'kunigami', title: "全身全霊の一閃", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k142', char: 'kusso', title: "ナイジェリアの頭脳", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "U-20 W杯" },
-  { id: 'k143', char: 'nagi', title: "1周年記念Ver.", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
-  { id: 'k144', char: 'nagi', title: "X 反転蹴弾", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k145', char: 'nagi', title: "X’mas", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
-  { id: 'k146', char: 'nagi', title: "好奇心という名の衝動", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k147', char: 'nagi', title: "変幻自在のトラップ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
-  { id: 'k148', char: 'nagi', title: "浴衣姿の趣", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k149', char: 'nanase', title: "天然記念物", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k150', char: 'ness', title: "カイザーの従者", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","LMF"], stage: "新英雄大戦" },
-  { id: 'k151', char: 'nio', title: "U-20日本代表", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["CB","DMF"], stage: "U-20日本代表" },
-  { id: 'k152', char: 'nishioka', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","RMF"], stage: "新英雄大戦" },
-  { id: 'k153', char: 'onaji', title: "ナイジェリアの猛獣", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "U-20 W杯" },
-  { id: 'k154', char: 'otoru', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "新英雄大戦" },
-  { id: 'k155', char: 'raichi', title: "噛み付くフィジカル", rar: '4', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'フィジカル', pos: ["CB","DMF"] },
-  { id: 'k156', char: 'raiden', title: "雷光のサイド", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RSB","RWG"], stage: "U-20 W杯" },
-  { id: 'k157', char: 'reo', title: "1周年記念Ver.", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k158', char: 'reo', title: "Present to You", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
-  { id: 'k159', char: 'reo', title: "X 狙撃手パス", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k160', char: 'reo', title: "再現する才能", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
-  { id: 'k161', char: 'reo', title: "自負と決意の『複写』", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
-  { id: 'k162', char: 'reo', title: "絶対勝つ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
-  { id: 'k163', char: 'rin', title: "新BLランキング1位", rar: '4', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k164', char: 'saramadara', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
-  { id: 'k165', char: 'sendouji', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "新英雄大戦" },
-  { id: 'k166', char: 'shidou', title: "生命の爆発", rar: '4', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k167', char: 'shiguma', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","CF"], stage: "新英雄大戦" },
-  { id: 'k168', char: 'sokura', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "新英雄大戦" },
-  { id: 'k169', char: 'tanaka', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","CB"], stage: "新英雄大戦" },
-  { id: 'k170', char: 'tokimitsu', title: "X 背肩奪取", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k171', char: 'tokimitsu', title: "フィジカルモンスター", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
-  { id: 'k172', char: 'tsunzaki', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","OMF"], stage: "新英雄大戦" },
-  { id: 'k173', char: 'wakatsuki', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","RSB"], stage: "新英雄大戦" },
-  { id: 'k174', char: 'yuzu', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LMF","DMF"], stage: "新英雄大戦" },
-  { id: 'k175', char: 'zantetsu', title: "俺の”領域”", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
-  { id: 'k176', char: 'zantetsu', title: "名誉返上の守備", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LMF"] },
-  { id: 'k177', char: 'aryu', title: "新ＢＬランキング2位", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
-  { id: 'k178', char: 'barou', title: "強烈な個性", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["OMF"] },
-  { id: 'k179', char: 'gagamaru', title: "アクロバティック", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k180', char: 'gagamaru', title: "野生児", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
-  { id: 'k181', char: 'igarashi', title: "駆け上がる渇望", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
-  { id: 'k182', char: 'igarashi', title: "諦めない心", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
-  { id: 'k183', char: 'isagi', title: "空間認識能力の萌芽", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k184', char: 'kira', title: "みんなに届ける恩返し", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["LSB"] },
-  { id: 'k185', char: 'kira', title: "松風黒王のエース", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k186', char: 'nagi', title: "異次元の発想", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
-  { id: 'k187', char: 'niko', title: "影の支配者", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k188', char: 'niko', title: "無限の発想", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
-  { id: 'k189', char: 'raichi', title: "起死回生の一蹴", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
-  { id: 'k190', char: 'raichi', title: "執念の男", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
-  { id: 'k191', char: 'raichi', title: "傍若無人強奪", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k192', char: 'reo', title: "御曹司", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
-  { id: 'k193', char: 'tokimitsu', title: "新BLランキング3位", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["DMF"] },
-  { id: 'k194', char: 'zantetsu', title: "独特な語彙力", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k195', char: 'bachira', title: "ドリブラー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k196', char: 'chigiri', title: "スピードスター", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
-  { id: 'k197', char: 'chou', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RMF","RWG"], stage: "二次選考" },
-  { id: 'k198', char: 'fukaku', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","CF"], stage: "二次選考" },
-  { id: 'k199', char: 'gagamaru', title: "肉体のバネ", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
-  { id: 'k200', char: 'haiji', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","LMF"], stage: "二次選考" },
-  { id: 'k201', char: 'hayate', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","LSB"], stage: "二次選考" },
-  { id: 'k202', char: 'hiiragi', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","RMF"], stage: "二次選考" },
-  { id: 'k203', char: 'himizu', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RSB","RWG"], stage: "二次選考" },
-  { id: 'k204', char: 'iemon', title: "鉄壁", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
-  { id: 'k205', char: 'igarashi', title: "南無三", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["RWG"] },
-  { id: 'k206', char: 'imamura', title: "恋愛脳", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
-  { id: 'k207', char: 'ishikari', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "二次選考" },
-  { id: 'k208', char: 'jarai', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "二次選考" },
-  { id: 'k209', char: 'kira', title: "日本サッカー界の宝", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k210', char: 'kori', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RMF","OMF"], stage: "二次選考" },
-  { id: 'k211', char: 'kunigami', title: "スーパーヒーローの卵", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["CF"] },
-  { id: 'k212', char: 'kuon', title: "ハイジャンパー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k213', char: 'naruhaya', title: "ムードメーカー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
-  { id: 'k214', char: 'niko', title: "チームＹの心臓", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
-  { id: 'k215', char: 'nio', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","RSB"], stage: "二次選考" },
-  { id: 'k216', char: 'nishioka', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","RSB"], stage: "二次選考" },
-  { id: 'k217', char: 'okawa', title: "熊本県大会得点王", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["CF"] },
-  { id: 'k218', char: 'otoru', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","LMF"], stage: "二次選考" },
-  { id: 'k219', char: 'raichi', title: "スタミナの塊", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["RWG"] },
-  { id: 'k220', char: 'saramadara', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'コンディション', pos: ["CB","DMF"], stage: "二次選考" },
-  { id: 'k221', char: 'sendouji', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "二次選考" },
-  { id: 'k222', char: 'shiguma', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","LSB"], stage: "二次選考" },
-  { id: 'k223', char: 'sokura', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "二次選考" },
-  { id: 'k224', char: 'tanaka', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","OMF"], stage: "二次選考" },
-  { id: 'k225', char: 'tsunzaki', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "二次選考" },
-  { id: 'k226', char: 'wakatsuki', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スタミナ', pos: ["CB","LSB"], stage: "二次選考" },
-  { id: 'k227', char: 'wanima_j', title: "弟との以心伝心連携", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["LWG"] },
-  { id: 'k228', char: 'wanima_k', title: "兄との以心伝心連携", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k229', char: 'yuzu', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LMF","OMF"], stage: "二次選考" },
-  { id: 'k230', char: 'bachira', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k231', char: 'chigiri', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
-  { id: 'k232', char: 'gagamaru', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k233', char: 'iemon', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["LWG"] },
-  { id: 'k234', char: 'igarashi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["LWG"] },
-  { id: 'k235', char: 'imamura', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
-  { id: 'k236', char: 'isagi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'キック', pos: ["OMF"] },
-  { id: 'k237', char: 'kira', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["RMF"] },
-  { id: 'k238', char: 'kunigami', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k239', char: 'kuon', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
-  { id: 'k240', char: 'naruhaya', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
-  { id: 'k241', char: 'niko', title: "チームＹ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k242', char: 'okawa', title: "チームＹ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
-  { id: 'k243', char: 'raichi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スタミナ', pos: ["CF"] },
-  { id: 'k244', char: 'wanima_j', title: "チームＷ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
-  { id: 'k245', char: 'wanima_k', title: "チームＷ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["LMF"] }
+  { id: 'k004', char: 'isagi', title: "BL.JAPANの心臓", rar: '7', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","CF"], stage: "決戦" },
+  { id: 'k005', char: 'isagi', title: "サッカー日本代表Ver.", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: '賢さ', pos: ["OMF","RSB"] },
+  { id: 'k006', char: 'kaiser', title: "世界11傑の皇帝", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "世界11傑" },
+  { id: 'k007', char: 'lavinho', title: "マスター・FCバルチャ", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LWG","OMF"], stage: "マスター" },
+  { id: 'k008', char: 'loki', title: "フランス代表", rar: '7', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k009', char: 'loki', title: "神童", rar: '7', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k010', char: 'mitoma', title: "受け止めた勝利", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["CB","OMF"] },
+  { id: 'k011', char: 'noa', title: "バスタードの規律", rar: '7', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["CF","DMF"], stage: "指導者" },
+  { id: 'k012', char: 'prince', title: "マスター・マンシャイン", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "マスター" },
+  { id: 'k013', char: 'rin', title: "決戦の破壊者", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "決戦" },
+  { id: 'k014', char: 'rin', title: "夕紅色の風情", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: 'キック', pos: ["CF","LWG"] },
+  { id: 'k015', char: 'sae', title: "『美しく壊す』哲学", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["LMF","OMF"] },
+  { id: 'k016', char: 'sae', title: "SEASIDE EGOIST", rar: '7', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LMF","OMF"] },
+  { id: 'k017', char: 'sae', title: "次の景色を見せてやる", rar: '7', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'テクニック', pos: ["LMF","OMF"] },
+  { id: 'k018', char: 'sae', title: "美しく壊す・決戦", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","DMF"], stage: "決戦" },
+  { id: 'k019', char: 'sae', title: "夕紅色の風情", rar: '7', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["OMF","RMF"] },
+  { id: 'k020', char: 'shidou', title: "世界を喰う悪魔", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "決戦" },
+  { id: 'k021', char: 'snuffy', title: "マスター・ユーヴァース", rar: '7', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","CB"], stage: "マスター" },
+  { id: 'k022', char: 'teddy', title: "騎士の覚醒", rar: '7', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "U-20 W杯" },
+  { id: 'k023', char: 'achampong', title: "魔法の指揮者", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","RMF"], stage: "U-20 W杯" },
+  { id: 'k024', char: 'aiku', title: "オールMAXで視える世界", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["CB","DMF"] },
+  { id: 'k025', char: 'aiku', title: "捉える“間合い”", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: '賢さ', pos: ["LSB","CB"] },
+  { id: 'k026', char: 'bachira', title: "W杯の怪物", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LWG"], stage: "決戦" },
+  { id: 'k027', char: 'barou', title: "HUNTING BEAST", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["RWG","DMF"] },
+  { id: 'k028', char: 'barou', title: "王様の凱旋", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "決戦" },
+  { id: 'k029', char: 'blake', title: "GGジャンキー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["DMF"] },
+  { id: 'k030', char: 'blake', title: "イングランド代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k031', char: 'cavazos', title: "アルゼンチン代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k032', char: 'cavazos', title: "そばかすベイビー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k033', char: 'chevalier', title: "電光石火の騎士", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "新英雄大戦" },
+  { id: 'k034', char: 'chigiri', title: "世界に届く神速", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "決戦" },
+  { id: 'k035', char: 'childs', title: "世界標準の壁", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "U-20 W杯" },
+  { id: 'k036', char: 'dada', title: "ブラジル代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
+  { id: 'k037', char: 'dada', title: "重戦車", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["LSB"] },
+  { id: 'k038', char: 'ego_if', title: "若き日の絵心", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "若手時代" },
+  { id: 'k039', char: 'hiori', title: "「静」のテクニシャン", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: '賢さ', pos: ["RSB","RMF"] },
+  { id: 'k040', char: 'hiori', title: "氷の司令塔", rar: '6', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "決戦" },
+  { id: 'k041', char: 'honda', title: "永遠の挑戦者", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k042', char: 'hugo', title: "フランス代表FW", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "U-20 W杯" },
+  { id: 'k043', char: 'isagi', title: "”青い監獄”の心臓", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["LMF","OMF"] },
+  { id: 'k044', char: 'isagi', title: "3周年記念Ver.", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["LSB","OMF"] },
+  { id: 'k045', char: 'kaiser', title: "皇帝", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "新英雄大戦" },
+  { id: 'k046', char: 'karasu', title: "広げる弱点と選択肢", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["DMF","OMF"] },
+  { id: 'k047', char: 'karasu', title: "世界の弱点を読む", rar: '6', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","OMF"], stage: "決戦" },
+  { id: 'k048', char: 'lavinho', title: "ブラジルの遊び人", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "現役時代" },
+  { id: 'k049', char: 'lorenzo', title: "守備の魔物", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
+  { id: 'k050', char: 'luna', title: "スペイン代表", rar: '6', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
+  { id: 'k051', char: 'luna', title: "レ・アールの貴公子", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k052', char: 'mitoma', title: "勝利への執念", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k053', char: 'mitoma', title: "信念を貫くドリブル", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["RWG"] },
+  { id: 'k054', char: 'mitoma', title: "電光石火", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k055', char: 'mitoma', title: "独走のワールドストライカー", rar: '6', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k056', char: 'nagi', title: "SUMMER SPLASH", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'キック', pos: ["OMF","CF"] },
+  { id: 'k057', char: 'nagi', title: "天才の本気", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["CF","OMF"], stage: "決戦" },
+  { id: 'k058', char: 'noa', title: "若き日のノア", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","OMF"], stage: "若手時代" },
+  { id: 'k059', char: 'onaji', title: "灼熱のエース", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "U-20 W杯" },
+  { id: 'k060', char: 'otoya', title: "忍術は世界に通じる", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","LWG"], stage: "決戦" },
+  { id: 'k061', char: 'prince', title: "マンシャインの王子", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "現役" },
+  { id: 'k062', char: 'reo', title: "エレガント・ローズ", rar: '6', flow: false, pwc: "5", origin: 'pwc', type: 'テクニック', pos: ["CB","DMF"] },
+  { id: 'k063', char: 'rin', title: "SEASIDE EGOIST", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["RWG","CF"] },
+  { id: 'k064', char: 'rin', title: "X 相性最悪のクリスマス", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["DMF","CF"] },
+  { id: 'k065', char: 'rin', title: "破壊者", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LWG","CF"] },
+  { id: 'k066', char: 'sendou', title: "世界標準の欲望", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'フィジカル', pos: ["CB","CF"] },
+  { id: 'k067', char: 'shidou', title: "アンストッパブル・デーモン", rar: '6', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'キック', pos: ["RWG","CF"] },
+  { id: 'k068', char: 'shidou', title: "歓喜の”誕生”", rar: '6', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["LWG","CF"] },
+  { id: 'k069', char: 'snuffy', title: "現役時代の名将", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["DMF","OMF"], stage: "現役時代" },
+  { id: 'k070', char: 'teddy', title: "新世代世界11傑", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["CF","RWG"], stage: "U-20 W杯" },
+  { id: 'k071', char: 'yukimiya', title: "一瞬の極限・世界", rar: '6', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["RWG","CF"], stage: "決戦" },
+  { id: 'k072', char: 'aiku', title: "U-20日本代表主将", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
+  { id: 'k073', char: 'aryu', title: "オシャの頂点", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","CF"], stage: "決戦" },
+  { id: 'k074', char: 'bachira', title: "X 俺は俺のゴールのために", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'テクニック', pos: ["LSB","RMF"] },
+  { id: 'k075', char: 'bachira', title: "怪物夢中", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["LSB","LMF"] },
+  { id: 'k076', char: 'barou', title: "貪り喰らう咆哮", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["OMF","RWG"] },
+  { id: 'k077', char: 'bello', title: "灼熱のスプリンター", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","CF"], stage: "U-20 W杯" },
+  { id: 'k078', char: 'chevalier', title: "P・X・Gの騎士", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "新英雄大戦" },
+  { id: 'k079', char: 'chigiri', title: "ブリリアント・ブーケ", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["RSB","RMF"] },
+  { id: 'k080', char: 'chigiri', title: "最速の韋駄天", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["RSB","RMF"] },
+  { id: 'k081', char: 'chigiri', title: "縛られぬ速さ", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'スピード', pos: ["RSB","LWG"] },
+  { id: 'k082', char: 'hiori', title: "X 自分にできる武器", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: '賢さ', pos: ["RSB","LSB"] },
+  { id: 'k083', char: 'hiori', title: "はんなりゲーマー", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k084', char: 'hiori', title: "桜はんなり", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k085', char: 'hiori', title: "冷静な視野", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k086', char: 'kaiser', title: "青い薔薇", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["CF","LWG"], stage: "新英雄大戦" },
+  { id: 'k087', char: 'karasu', title: "X 弱点がないなら創るまで", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RMF","DMF"] },
+  { id: 'k088', char: 'karasu', title: "ヒットマン", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k089', char: 'karasu', title: "無欠への一手", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k090', char: 'kiyora', title: "境界線を越えて", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'コンディション', pos: ["OMF","RMF"], stage: "決戦" },
+  { id: 'k091', char: 'kunigami', title: "正々堂々肉体勝負", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["LSB","CF"] },
+  { id: 'k092', char: 'kunigami', title: "蘇ったヒーロー", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","LWG"], stage: "決戦" },
+  { id: 'k093', char: 'kurona', title: "シャークの牙", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "決戦" },
+  { id: 'k094', char: 'kurona', title: "小柄なシャーク", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RSB","DMF"] },
+  { id: 'k095', char: 'kusso', title: "クッソの魔術", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "U-20 W杯" },
+  { id: 'k096', char: 'lorenzo', title: "イタリアの守護者", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
+  { id: 'k097', char: 'nagi', title: "3周年記念Ver.", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["RMF","OMF"] },
+  { id: 'k098', char: 'nagi', title: "はじめまして日本", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'キック', pos: ["OMF","LWG"] },
+  { id: 'k099', char: 'nanase', title: "X トレッキング・トレーニング", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["RMF","LMF"] },
+  { id: 'k100', char: 'nanase', title: "虹の躍動", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'スタミナ', pos: ["RMF","LMF"], stage: "決戦" },
+  { id: 'k101', char: 'ness', title: "皇帝の魔術師", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "新英雄大戦" },
+  { id: 'k102', char: 'niko', title: "世界の影", rar: '5', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","OMF"], stage: "決戦" },
+  { id: 'k103', char: 'nio', title: "新英雄大戦", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
+  { id: 'k104', char: 'otoya', title: "最強の飛び道具", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
+  { id: 'k105', char: 'otoya', title: "速攻の忍術", rar: '5', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'スピード', pos: ["RMF","RWG"] },
+  { id: 'k106', char: 'otoya', title: "忍者の末裔", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k107', char: 'raiden', title: "フランス代表DF", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["RSB","CB"], stage: "U-20 W杯" },
+  { id: 'k108', char: 'reo', title: "X SEASIDE EGOIST", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'テクニック', pos: ["CB","DMF"] },
+  { id: 'k109', char: 'reo', title: "万能のカメレオン", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'フィジカル', pos: ["RSB","CB"] },
+  { id: 'k110', char: 'reo', title: "万能の司令塔", rar: '5', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "決戦" },
+  { id: 'k111', char: 'rin', title: "1周年記念Ver.", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k112', char: 'rin', title: "一瞬に懸ける命", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k113', char: 'rin', title: "蹴り描く放物線", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k114', char: 'rin', title: "戦場の支配者", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k115', char: 'sendou', title: "U-20日本代表エース", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
+  { id: 'k116', char: 'sendou', title: "エースの意地", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k117', char: 'shidou', title: "Halloween Demon", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k118', char: 'shidou', title: "PA最強の悪魔", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["LWG"] },
+  { id: 'k119', char: 'shidou', title: "超弩級の個人能力", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["RWG"] },
+  { id: 'k120', char: 'shidou', title: "龍聖・直下蹴弾", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k121', char: 'teddy', title: "イングランドの新星", rar: '5', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "U-20 W杯" },
+  { id: 'k122', char: 'yukimiya', title: "1on1エンペラー", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
+  { id: 'k123', char: 'yukimiya', title: "ストリート・スタイル", rar: '5', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k124', char: 'yukimiya', title: "一瞬に見出す極限", rar: '5', flow: false, pwc: "4", origin: 'pwc', type: 'スピード', pos: ["LMF","LWG"] },
+  { id: 'k125', char: 'achampong', title: "イングランドの司令塔", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "U-20 W杯" },
+  { id: 'k126', char: 'aryu', title: "No.1オシャ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k127', char: 'aryu', title: "反則級の特級身体", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k128', char: 'bachira', title: "X 呪縛からの解放", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k129', char: 'bachira', title: "かいぶつのいない世界", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
+  { id: 'k130', char: 'bachira', title: "正面突破", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k131', char: 'bachira', title: "変幻自在の足技", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
+  { id: 'k132', char: 'bachira', title: "遊興の法被姿", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
+  { id: 'k133', char: 'barou', title: "HUNGER WOLF", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k134', char: 'barou', title: "俺が王様だ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k135', char: 'barou', title: "混乱を創る独裁の王", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k136', char: 'barou', title: "邪道こそが王道", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k137', char: 'bello', title: "ナイジェリアの疾風", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","CF"], stage: "U-20 W杯" },
+  { id: 'k138', char: 'chigiri', title: "X この熱が尽きるまで", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k139', char: 'chigiri', title: "最速の蹴撃", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k140', char: 'chigiri', title: "聖夜の赤豹", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k141', char: 'chigiri', title: "熱い滾り", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k142', char: 'chigiri', title: "浴衣姿の趣", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LMF"] },
+  { id: 'k143', char: 'childs', title: "イングランドの守護者", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "U-20 W杯" },
+  { id: 'k144', char: 'chou', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["RMF","OMF"], stage: "新英雄大戦" },
+  { id: 'k145', char: 'fukaku', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スタミナ', pos: ["CB","DMF"], stage: "新英雄大戦" },
+  { id: 'k146', char: 'haiji', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["DMF","OMF"], stage: "新英雄大戦" },
+  { id: 'k147', char: 'hayate', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "新英雄大戦" },
+  { id: 'k148', char: 'hiiragi', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","DMF"], stage: "新英雄大戦" },
+  { id: 'k149', char: 'himizu', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RSB","RMF"], stage: "新英雄大戦" },
+  { id: 'k150', char: 'hugo', title: "フランスの巨躯", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "U-20 W杯" },
+  { id: 'k151', char: 'isagi', title: "この一瞬に『反射』しろ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k152', char: 'isagi', title: "ストライカー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k153', char: 'isagi', title: "運命への第一歩", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CF"] },
+  { id: 'k154', char: 'isagi', title: "主役の座", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
+  { id: 'k155', char: 'isagi', title: "進化する視野", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k156', char: 'isagi', title: "戦場の桜花", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k157', char: 'ishikari', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "新英雄大戦" },
+  { id: 'k158', char: 'jarai', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","CF"], stage: "新英雄大戦" },
+  { id: 'k159', char: 'kiyora', title: "ボーダーライナー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k160', char: 'kori', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RMF","DMF"], stage: "新英雄大戦" },
+  { id: 'k161', char: 'kunigami', title: "ジューンブライド・ヒーロー", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k162', char: 'kunigami', title: "驚異の左足", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
+  { id: 'k163', char: 'kunigami', title: "空中の肉弾戦", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
+  { id: 'k164', char: 'kunigami', title: "全身全霊の一閃", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k165', char: 'kusso', title: "ナイジェリアの頭脳", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","DMF"], stage: "U-20 W杯" },
+  { id: 'k166', char: 'nagi', title: "1周年記念Ver.", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
+  { id: 'k167', char: 'nagi', title: "X 反転蹴弾", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k168', char: 'nagi', title: "X’mas", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
+  { id: 'k169', char: 'nagi', title: "好奇心という名の衝動", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k170', char: 'nagi', title: "変幻自在のトラップ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'キック', pos: ["OMF"] },
+  { id: 'k171', char: 'nagi', title: "浴衣姿の趣", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k172', char: 'nanase', title: "天然記念物", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k173', char: 'ness', title: "カイザーの従者", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["OMF","LMF"], stage: "新英雄大戦" },
+  { id: 'k174', char: 'nio', title: "U-20日本代表", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["CB","DMF"], stage: "U-20日本代表" },
+  { id: 'k175', char: 'nishioka', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","RMF"], stage: "新英雄大戦" },
+  { id: 'k176', char: 'onaji', title: "ナイジェリアの猛獣", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "U-20 W杯" },
+  { id: 'k177', char: 'otoru', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","RWG"], stage: "新英雄大戦" },
+  { id: 'k178', char: 'raichi', title: "噛み付くフィジカル", rar: '4', flow: true, pwc: "4FLOW", origin: 'pwc', type: 'フィジカル', pos: ["CB","DMF"] },
+  { id: 'k179', char: 'raiden', title: "雷光のサイド", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RSB","RWG"], stage: "U-20 W杯" },
+  { id: 'k180', char: 'reo', title: "1周年記念Ver.", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k181', char: 'reo', title: "Present to You", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
+  { id: 'k182', char: 'reo', title: "X 狙撃手パス", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k183', char: 'reo', title: "再現する才能", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
+  { id: 'k184', char: 'reo', title: "自負と決意の『複写』", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
+  { id: 'k185', char: 'reo', title: "絶対勝つ", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'テクニック', pos: ["LMF"] },
+  { id: 'k186', char: 'rin', title: "新BLランキング1位", rar: '4', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k187', char: 'saramadara', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","DMF"], stage: "新英雄大戦" },
+  { id: 'k188', char: 'sendouji', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "新英雄大戦" },
+  { id: 'k189', char: 'shidou', title: "生命の爆発", rar: '4', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k190', char: 'shiguma', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","CF"], stage: "新英雄大戦" },
+  { id: 'k191', char: 'sokura', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "新英雄大戦" },
+  { id: 'k192', char: 'tanaka', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","CB"], stage: "新英雄大戦" },
+  { id: 'k193', char: 'tokimitsu', title: "X 背肩奪取", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k194', char: 'tokimitsu', title: "フィジカルモンスター", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
+  { id: 'k195', char: 'tsunzaki', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","OMF"], stage: "新英雄大戦" },
+  { id: 'k196', char: 'wakatsuki', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","RSB"], stage: "新英雄大戦" },
+  { id: 'k197', char: 'yuzu', title: "新英雄大戦", rar: '4', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LMF","DMF"], stage: "新英雄大戦" },
+  { id: 'k198', char: 'zantetsu', title: "俺の”領域”", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
+  { id: 'k199', char: 'zantetsu', title: "名誉返上の守備", rar: '4', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LMF"] },
+  { id: 'k200', char: 'aryu', title: "新ＢＬランキング2位", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
+  { id: 'k201', char: 'barou', title: "強烈な個性", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["OMF"] },
+  { id: 'k202', char: 'gagamaru', title: "アクロバティック", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k203', char: 'gagamaru', title: "野生児", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
+  { id: 'k204', char: 'igarashi', title: "駆け上がる渇望", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
+  { id: 'k205', char: 'igarashi', title: "諦めない心", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
+  { id: 'k206', char: 'isagi', title: "空間認識能力の萌芽", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k207', char: 'kira', title: "みんなに届ける恩返し", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["LSB"] },
+  { id: 'k208', char: 'kira', title: "松風黒王のエース", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k209', char: 'nagi', title: "異次元の発想", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["RMF"] },
+  { id: 'k210', char: 'niko', title: "影の支配者", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k211', char: 'niko', title: "無限の発想", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
+  { id: 'k212', char: 'raichi', title: "起死回生の一蹴", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
+  { id: 'k213', char: 'raichi', title: "執念の男", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'スタミナ', pos: ["CB"] },
+  { id: 'k214', char: 'raichi', title: "傍若無人強奪", rar: '3', flow: false, pwc: "3", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k215', char: 'reo', title: "御曹司", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RMF"] },
+  { id: 'k216', char: 'tokimitsu', title: "新BLランキング3位", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["DMF"] },
+  { id: 'k217', char: 'zantetsu', title: "独特な語彙力", rar: '3', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k218', char: 'bachira', title: "ドリブラー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k219', char: 'chigiri', title: "スピードスター", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["LWG"] },
+  { id: 'k220', char: 'chou', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RMF","RWG"], stage: "二次選考" },
+  { id: 'k221', char: 'fukaku', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","CF"], stage: "二次選考" },
+  { id: 'k222', char: 'gagamaru', title: "肉体のバネ", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["RSB"] },
+  { id: 'k223', char: 'haiji', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","LMF"], stage: "二次選考" },
+  { id: 'k224', char: 'hayate', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","LSB"], stage: "二次選考" },
+  { id: 'k225', char: 'hiiragi', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","RMF"], stage: "二次選考" },
+  { id: 'k226', char: 'himizu', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RSB","RWG"], stage: "二次選考" },
+  { id: 'k227', char: 'iemon', title: "鉄壁", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["DMF"] },
+  { id: 'k228', char: 'igarashi', title: "南無三", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["RWG"] },
+  { id: 'k229', char: 'imamura', title: "恋愛脳", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["DMF"] },
+  { id: 'k230', char: 'ishikari', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","RWG"], stage: "二次選考" },
+  { id: 'k231', char: 'jarai', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["OMF","LMF"], stage: "二次選考" },
+  { id: 'k232', char: 'kira', title: "日本サッカー界の宝", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k233', char: 'kori', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["RMF","OMF"], stage: "二次選考" },
+  { id: 'k234', char: 'kunigami', title: "スーパーヒーローの卵", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["CF"] },
+  { id: 'k235', char: 'kuon', title: "ハイジャンパー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k236', char: 'naruhaya', title: "ムードメーカー", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["RSB"] },
+  { id: 'k237', char: 'niko', title: "チームＹの心臓", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: '賢さ', pos: ["LMF"] },
+  { id: 'k238', char: 'nio', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","RSB"], stage: "二次選考" },
+  { id: 'k239', char: 'nishioka', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["RWG","RSB"], stage: "二次選考" },
+  { id: 'k240', char: 'okawa', title: "熊本県大会得点王", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'コンディション', pos: ["CF"] },
+  { id: 'k241', char: 'otoru', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スピード', pos: ["LWG","LMF"], stage: "二次選考" },
+  { id: 'k242', char: 'raichi', title: "スタミナの塊", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'スタミナ', pos: ["RWG"] },
+  { id: 'k243', char: 'saramadara', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'コンディション', pos: ["CB","DMF"], stage: "二次選考" },
+  { id: 'k244', char: 'sendouji', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","LWG"], stage: "二次選考" },
+  { id: 'k245', char: 'shiguma', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CB","LSB"], stage: "二次選考" },
+  { id: 'k246', char: 'sokura', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'キック', pos: ["CF","OMF"], stage: "二次選考" },
+  { id: 'k247', char: 'tanaka', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: '賢さ', pos: ["DMF","OMF"], stage: "二次選考" },
+  { id: 'k248', char: 'tsunzaki', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'フィジカル', pos: ["CF","CB"], stage: "二次選考" },
+  { id: 'k249', char: 'wakatsuki', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'スタミナ', pos: ["CB","LSB"], stage: "二次選考" },
+  { id: 'k250', char: 'wanima_j', title: "弟との以心伝心連携", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'キック', pos: ["LWG"] },
+  { id: 'k251', char: 'wanima_k', title: "兄との以心伝心連携", rar: '2', flow: false, pwc: "2", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k252', char: 'yuzu', title: "二次選考", rar: '2', flow: false, pwc: null, origin: 'mod', type: 'テクニック', pos: ["LMF","OMF"], stage: "二次選考" },
+  { id: 'k253', char: 'bachira', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k254', char: 'chigiri', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スピード', pos: ["RWG"] },
+  { id: 'k255', char: 'gagamaru', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k256', char: 'iemon', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["LWG"] },
+  { id: 'k257', char: 'igarashi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["LWG"] },
+  { id: 'k258', char: 'imamura', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["OMF"] },
+  { id: 'k259', char: 'isagi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'キック', pos: ["OMF"] },
+  { id: 'k260', char: 'kira', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'コンディション', pos: ["RMF"] },
+  { id: 'k261', char: 'kunigami', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k262', char: 'kuon', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["LSB"] },
+  { id: 'k263', char: 'naruhaya', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スピード', pos: ["RMF"] },
+  { id: 'k264', char: 'niko', title: "チームＹ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k265', char: 'okawa', title: "チームＹ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'フィジカル', pos: ["CB"] },
+  { id: 'k266', char: 'raichi', title: "チームＺ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'スタミナ', pos: ["CF"] },
+  { id: 'k267', char: 'wanima_j', title: "チームＷ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: '賢さ', pos: ["LSB"] },
+  { id: 'k268', char: 'wanima_k', title: "チームＷ", rar: '1', flow: false, pwc: "1", origin: 'pwc', type: 'テクニック', pos: ["LMF"] }
   ];
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
@@ -1783,7 +1865,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       segments: [
         { id: 'tag', name: 'オニごっこ', weeks: 0,
           match: { name: '入寮テスト「オニごっこ」', enemy: '同室の11人', lead: '吉良涼介 / 蜂楽廻 / 千切豹馬 ほか', rule: 'single', n: 1,
-            rate: R(42, 1.0, 1.0, 0.95, 0.95),
+            rate: R(43, 1.0, 1.0, 0.95, 0.95),
             options: {
               A: { name: '体を張って最後の一人に押し付ける', stats: ['PHY', 'SHT'], flavor: '残り3秒。ボールを持った吉良を体で止め、至近距離から当てる。' },
               B: { name: '死角を読み、最後の瞬間にパスを通す', stats: ['INT', 'TEC'], flavor: '誰がどこにいるか、全員の視線の外を計算する。' },
@@ -1796,7 +1878,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
             lose: '136秒。ブザーが鳴った瞬間、ボールはお前の手の中にあった。「オニ」。青い監獄は、お前を必要としなかった。' } },
         { id: 'z_x', name: '第1戦 vs チームX', weeks: 3,
           match: { name: '第1戦 チームZ vs チームX', enemy: 'チームX', lead: '馬狼照英（「王様」）', rule: 'league', n: 3, final: false,
-            rate: R(122, 1.06, 1.0, 0.96, 0.94),
+            rate: R(126, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：1-5 敗北。馬狼がハットトリック級の独演。潔は「自分で決める」ことの意味を思い知る。',
             intro: 'チームXは馬狼照英のワンマンチーム。全員が「王様」にボールを預け、馬狼が一人で決める。',
             highlights: [
@@ -1807,7 +1889,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
             win: '王様のチームを撃破した。馬狼が舌打ちする。「…奴隷が」', lose: '馬狼の独演の前に沈んだ。Xの勝利。だが総当たりは続く。' } },
         { id: 'z_y', name: '第2戦 vs チームY', weeks: 3,
           match: { name: '第2戦 チームZ vs チームY', enemy: 'チームY', lead: '二子一揮 / 大川響鬼', rule: 'league', n: 3, final: false,
-            rate: R(178, 1.0, 1.06, 0.96, 0.98),
+            rate: R(183, 1.0, 1.06, 0.96, 0.98),
             canon: '原作：2-1 勝利。久遠渉がYに情報を売った裏切りが発覚。それでもZは勝ち切った。',
             intro: 'チームYは二子一揮が「影の支配者」としてゲームを組み立てる戦術的なチーム。試合前、久遠がZの情報をYに売り渡していた。',
             highlights: [
@@ -1818,7 +1900,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
             win: '裏切りを飲み込んで勝った。久遠は何も言えずに俯いた。', lose: '二子の支配に沈んだ。裏切りの傷だけが残る。' } },
         { id: 'z_w', name: '第3戦 vs チームW', weeks: 3,
           match: { name: '第3戦 チームZ vs チームW', enemy: 'チームW', lead: '鰐間淳壱 / 鰐間計助', rule: 'league', n: 3, final: false,
-            rate: R(249, 0.98, 1.0, 1.06, 0.96),
+            rate: R(256, 0.98, 1.0, 1.06, 0.96),
             canon: '原作：4-4 引き分け。「怪我が怖いのか」と挑発された千切豹馬が神速を解放。',
             intro: 'チームWは鰐間兄弟の以心伝心コンビが軸。試合中、鰐間が千切の古傷を嘲笑う——。',
             highlights: [
@@ -1829,7 +1911,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
             win: '千切の神速と共に押し切った。Wの兄弟が呆然と立ち尽くす。', lose: '鰐間兄弟の連携に押し切られた。だが千切は覚醒した。' } },
         { id: 'z_v', name: '最終戦 vs チームV', weeks: 3,
           match: { name: '最終戦 チームZ vs チームV', enemy: 'チームV', lead: '凪誠士郎 / 御影玲王 / 剣城斬鉄', rule: 'league', n: 3, final: true,
-            rate: R(345, 1.02, 1.0, 0.98, 0.94),
+            rate: R(355, 1.02, 1.0, 0.98, 0.94),
             canon: '原作：5-4 勝利。蜂楽・國神・千切・我牙丸・潔（ダイレクトシュート）の5得点。凪が覚醒し、潔が最後に決めた。',
             intro: '一次選考最終戦。ブロック首位のVに勝てば2位で突破、負ければ全員脱落。凪誠士郎の神トラップと玲王の戦術、剣城の速さが立ちはだかる。',
             highlights: [
@@ -1874,10 +1956,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
             ],
             win: '原作を覆した。凛のチームを破り、時光青志を奪った。凛が初めてお前を「敵」と認識する。', lose: '2-5。凛が指名したのは蜂楽だった。「お前は要らない」。潔と凪、2人だけが残された。' } },
         { id: 's_2v2', name: '2ndステージ 2対2', weeks: 0, cond: 'rinLoss',
-          match: { name: '2ndステージ 潔・凪 vs 馬狼・成早', enemy: '馬狼・成早ペア', lead: '馬狼照英 / 成早朝日', rule: 'mustWin', n: 3,
+          match: { name: '2ndステージ 2対2 vs 馬狼・成早', enemy: '馬狼・成早ペア', lead: '馬狼照英 / 成早朝日', rule: 'mustWin', n: 3,
             rate: R(633, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：5-4 勝利。馬狼を獲得。成早朝日は最後の一人となり脱落。',
-            intro: '2人になった。負ければ次はない。相手は「王様」馬狼と、金への執念で走る成早。',
+            intro: '相棒を奪われ、2人になった。負ければ次はない。相手は「王様」馬狼と、金への執念で走る成早。',
             highlights: [
               '馬狼が一人で2点を奪う。「奴隷は黙って見ていろ」。凪がお前を見る。「決めて」——。',
               '成早が全力で走り、馬狼へ渡す。だがその瞬間、王様の視線の外に空間が生まれた——。',
@@ -2026,7 +2108,110 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       ] }
   ];
 
-  BL.STORY = { arcs: ARCS };
+
+  /* ============================================================ v7：ライバル（試合画面の対戦相手）・分岐ルート・選択ノード */
+  var RIVALS = { tag: 'kira', z_x: 'barou', z_y: 'niko', z_w: 'wanima_j', z_v: 'nagi', s_rin1: 'rin', s_2v2: 'barou', s_2v2b: 'nagi', s_reo: 'reo', s_reo_b: 'reo', s_rin2: 'rin',
+                 t_tryout: 'karasu', t_u20: 'sae', w_nga: 'onaji', w_fra: 'loki', w_eng: 'teddy', w_qf: 'kaiser', w_sf: 'luna', w_final: 'loki' };
+  var NEL_RIVALS = { de: 'kaiser', en: 'prince', it: 'lorenzo', fr: 'loki', es: 'lavinho' };
+
+  /* 別ルートの節（二次選考 3rd ステージのチームメイト選択で分岐） */
+  var ALT_SEGMENTS = {
+    s_2v2b: { id: 's_2v2b', name: '2ndステージ 2対2（別ルート）', weeks: 0, cond: ['rinLoss', 'team_barou'],
+      match: { name: '2ndステージ 潔・成早 vs 蜂楽・凪', enemy: '蜂楽・凪ペア', lead: '蜂楽廻 / 凪誠士郎', rule: 'mustWin', n: 3,
+        rate: R(633, 0.98, 1.06, 1.0, 0.96),
+        canon: 'if：原作では潔は蜂楽・凪と組んだ。馬狼を奪われた潔が成早と2人で、怪物と天才に挑む。',
+        intro: '凛に馬狼を奪われ、残ったのは成早。相手は怪物・蜂楽と天才・凪——原作で味方だった二人が、敵として牙を剥く。',
+        highlights: ['蜂楽の怪物ドリブルで先制される。「遊ぼうよ」——笑顔が恐ろしい。成早がお前を見る。「決めろよ」——。', '凪の神トラップから2点目。だが凪の視線の外、蜂楽が笑っている間に空間が生まれた——。', '4-4。天才と怪物を相手に、最後の1点。成早の全力の走りから、ボールがお前へ——。'],
+        win: '5-4。怪物と天才を破り、蜂楽を奪い返した。凪が呟く。「…お前、面白い」', lose: '天才と怪物に食い尽くされた。最後の一人——脱落。' } },
+    s_reo_b: { id: 's_reo_b', name: '3rdステージ vs 蜂楽・凪・玲王', weeks: 3, cond: 'team_chigiri',
+      match: { name: '3rdステージ 潔・千切・國神 vs 蜂楽・凪・玲王', enemy: '蜂楽・凪・玲王チーム', lead: '蜂楽廻 / 凪誠士郎 / 御影玲王', rule: 'mustWin', n: 3,
+        rate: R(939, 1.0, 1.06, 1.0, 1.0),
+        canon: 'if：原作では潔は凪と組んで國神・千切・玲王に勝った。旧友と組んだ潔が、怪物・天才・司令塔の三角形に挑む。',
+        intro: '千切の神速と國神の大砲を従え、最強の三角形に挑む。玲王の戦術、凪の神トラップ、蜂楽の怪物——一次選考の仲間が最強の敵になった。',
+        highlights: ['玲王の戦術で崩され、凪のボレーで先制される。千切が走る。「あいつらに、今度は勝つ」——。', '蜂楽のドリブルからこぼれ球。國神が撃つ。GKが弾いた先に、お前がいる——。', '4-4。玲王がお前を睨む。「お前は凪を奪わない。なら、オレが奪う」——最後のボールが来る。'],
+        win: '5-4。最強の三角形を破った。蜂楽が笑って言う。「次はオレをもらってよ」', lose: '三角形に切り刻まれた。奪われ、削られ、二次選考はここで終わる。' } }
+  };
+
+  /* 選択ノード：fx は flags / opt / all / growth / flowP / bidMult（RUN 中持続）、rateMult・rateMultKeys（その節の試合）、nominateMult、hp / cond / cash / stat / protein（即時）、roll（ギャンブル）、ifFlag（過去の選択に依存）、ach（実績） */
+  var CHOICES = {
+    z_x: { title: 'チームZの方針', text: '王様・馬狼のチームXが初戦。寄せ集めのZで、お前はどう戦う。',
+      options: [
+        { label: '蜂楽と組んで即興連携を磨く', desc: 'Option B +3%・TEC 成長 +3%（この編）', fx: { flags: ['ally_bachira'], opt: { B: 3 }, growth: { TEC: 0.03 } }, result: '蜂楽が笑った。「いいね、遊ぼう」。二人の連携が形になり始める。' },
+        { label: '千切・國神のカウンターに乗る', desc: 'Option C +3%・SPD 成長 +3%（この編）', fx: { flags: ['ally_chigiri'], opt: { C: 3 }, growth: { SPD: 0.03 } }, result: '千切の走りと國神の大砲。Zのカウンターが唯一の武器になった。' },
+        { label: '自分で決める', desc: 'Option A +3%・SHT 成長 +3%（この編）', fx: { flags: ['ego_solo'], opt: { A: 3 }, growth: { SHT: 0.03 } }, result: '「オレが決める」。エゴを剥き出しにした。' } ] },
+    z_w: { title: '千切の古傷', text: '試合前、鰐間兄弟が千切の膝を嘲笑う。千切の目が揺れている。',
+      options: [
+        { label: '千切を信じて走らせる', desc: 'この試合の敵レート ×0.95', fx: { rateMult: 0.95, flags: ['chigiri_trust'] }, result: '「走れ、千切」。神速が解放される。Wの守備が崩れる。' },
+        { label: '千切を休ませ、自分で行く', desc: 'SHT +（1週分）・HP +5', fx: { stat: { SHT: 0.8 }, hp: 5 }, result: '千切を庇い、自分が前線で体を張った。' },
+        { label: '鰐間兄弟を挑発し返す', desc: 'ギャンブル：成功で敵レート ×0.90、失敗で ×1.05', fx: { roll: { p: 0.5, win: { rateMult: 0.90 }, lose: { rateMult: 1.05 }, winText: '兄弟が頭に血を上らせ、連携が乱れた。', loseText: '挑発は逆効果。兄弟の連携が研ぎ澄まされた。' } } } ] },
+    z_v: { title: '最終戦の覚悟', text: '勝てば生存、負ければ全員脱落。凪・玲王・剣城のVを前に、お前の一撃をどう用意する。',
+      options: [
+        { label: 'ダイレクトシュートを狙い続ける', desc: 'Option A +4%（この編）・Option A のレート ×0.96', fx: { opt: { A: 4 }, rateMultKeys: { A: 0.96 } }, result: '「来たボールを、そのまま撃つ」。原作の潔と同じ答えに辿り着いた。' },
+        { label: '凪を封じる守備から入る', desc: 'この試合の敵レート ×0.97', fx: { rateMult: 0.97 }, result: '天才に自由を与えない。守備からゴールへの道を作った。' },
+        { label: '玲王の戦術を読み切る', desc: 'Option B / D +3%（この編）・INT +', fx: { opt: { B: 3, D: 3 }, stat: { INT: 0.6 } }, result: '玲王の指示を先読みする。ピッチ全体が見えてきた。' } ] },
+    s_blm: { title: '100ゴールの攻略', text: '90分で100ゴール。GKマシンを前に、どう撃つ。',
+      options: [
+        { label: '限界まで撃ち続ける', desc: 'SHT +（1.2週分）・HP −15', fx: { stat: { SHT: 1.2 }, hp: -15 }, result: '足が壊れるまで撃った。決定力が跳ね上がる。' },
+        { label: 'マシンの反応パターンを解析する', desc: 'INT +（0.9週分）・Option B のレート ×0.96', fx: { stat: { INT: 0.9 }, rateMultKeys: { B: 0.96 } }, result: '腕の初動と軌道の関係を掴んだ。' },
+        { label: '休みを挟みながら撃つ', desc: 'HP +8・コンディション +1', fx: { hp: 8, cond: 1 }, result: '消耗を抑えて本番に備えた。' } ] },
+    s_rin1: { title: 'チームメイトを選べ', text: '3rdステージは3対3。相手は青い監獄ランキング1位・糸師凛のチーム。誰と組む。',
+      options: [
+        { label: '蜂楽と凪（原作ルート）', desc: '負けても除籍ではなく「奪われる」。勝てば時光を奪う', fx: { flags: ['team_bachira_nagi'] }, result: '怪物と天才。原作と同じ三人で、最強に挑む。' },
+        { label: '馬狼と成早', desc: 'Option A +3%（この編）。負ければ馬狼を奪われ、蜂楽・凪と 2対2 の別ルート', fx: { flags: ['team_barou'], opt: { A: 3 }, ach: 'route_barou' }, result: '王様が舌打ちする。「奴隷はオレにボールを渡せ」。' },
+        { label: '千切と國神', desc: 'Option C +3%（この編）。3rd の再戦相手が蜂楽・凪・玲王に変わる別ルート', fx: { flags: ['team_chigiri'], opt: { C: 3 }, ach: 'route_chigiri' }, result: 'チームZの旧友と再び。「今度は、あいつらに勝とう」' } ] },
+    s_rin2: { title: '凛との再戦', text: '4thステージ。勝てばトップチームとしてクリア。負けても凛が「欲しい」と思えば指名される。',
+      options: [
+        { label: '馬狼を「悪役」として使う', desc: 'Option A +3%（この編）', fx: { opt: { A: 3 } }, result: '王様が邪道に目覚めた。ゴール前が地獄になる。' },
+        { label: '凪の覚醒を引き出す', desc: 'Option B +3%（この編）', fx: { opt: { B: 3 } }, result: '「楽しい」。天才が本気になった。' },
+        { label: '凛と同じ景色を見る', desc: 'Option D +4%（この編）・指名に必要な INT ×0.85', fx: { opt: { D: 4 }, nominateMult: 0.85 }, result: '凛が見ているものが、お前にも見え始めた。' } ] },
+    t_tryout: { title: '誰の5人組に入る', text: 'トップ6が5人組を選ぶトライアウト。どのチームで23人枠を狙う。',
+      options: [
+        { label: '糸師凛のチーム', desc: 'この試合の敵レート ×0.97', fx: { rateMult: 0.97, flags: ['with_rin'] }, result: '凛が言う。「邪魔をするな」。最強のチームで勝ちにいく。' },
+        { label: '士道龍聖のチーム', desc: 'Option A +3%（この編）・HP −5。U-20戦の選択に影響', fx: { opt: { A: 3 }, hp: -5, flags: ['with_shidou'] }, result: '「イッちゃう？」。悪魔と組んだ。' },
+        { label: '烏・乙夜のチーム', desc: 'Option C +3%（この編）・INT +', fx: { opt: { C: 3 }, stat: { INT: 0.5 }, flags: ['with_karasu'] }, result: '烏がお前の弱点を読み、乙夜が消える。狡猾なチームだ。' } ] },
+    t_u20: { title: '冴への回答', text: '世界最高峰のMF糸師冴。「日本は世界で通用しない」。お前の答えは。',
+      options: [
+        { label: '正面から挑む', desc: 'Option A +3%（この編）', fx: { opt: { A: 3 } }, result: '冴の目の前で撃つ。それだけを考えた。' },
+        { label: '冴の視線を利用する', desc: 'Option D +4%（この編）', fx: { opt: { D: 4 } }, result: '冴が見る場所の外側に、お前の空間がある。' },
+        { label: '士道と組んで壊す', desc: 'トライアウトで士道と組んでいれば敵レート ×0.94、そうでなければ ×1.02', fx: { ifFlag: { flag: 'with_shidou', then: { rateMult: 0.94 }, else: { rateMult: 1.02 } } }, result: '悪魔との連携。噛み合うかどうかは、これまでの選択次第だ。' } ] },
+    n1: { title: 'マスターへの第一印象', text: '世界のマスターの下で初戦。どう自分を見せる。',
+      options: [
+        { label: '規律に従い、理論を吸収する', desc: 'INT 成長 +4%（この編）', fx: { growth: { INT: 0.04 } }, result: 'マスターの理論が身体に染み込み始めた。' },
+        { label: '自分の型を見せつける', desc: '得意 Option +3%（この編）', fx: { favOpt: 3 }, result: 'マスターが眉を上げた。「面白い」' },
+        { label: '観察に徹する', desc: '全選択肢 +1%（この編）・Cash +', fx: { all: 1, cash: 100000 }, result: '世界の基準を目に焼き付けた。' } ] },
+    n3: { title: '入札の駆け引き', text: 'スカウトの入札額が張り出された。残り2試合、どう評価を上げる。',
+      options: [
+        { label: '派手に決めて入札を煽る', desc: '年俸 ×1.15（この編）・敵レート ×1.03', fx: { bidMult: 1.15, rateMult: 1.03 }, result: '無理な角度から撃ち続ける。スカウトの目が集まる。' },
+        { label: '堅実にゴールを積む', desc: 'この試合の敵レート ×0.98', fx: { rateMult: 0.98 }, result: '確実なゴールだけを狙う。' },
+        { label: 'マスターの指導に専念する', desc: '全属性 成長 +3%（この編）', fx: { growth: { SHT: 0.03, SPD: 0.03, TEC: 0.03, INT: 0.03, PHY: 0.03 } }, result: '入札より成長を選んだ。' } ] },
+    w_nga: { title: 'フォーメーション', text: 'W杯開幕戦。BL.JAPAN の戦い方を決めろ。',
+      options: [
+        { label: '攻撃的 4-3-3', desc: '敵レート ×0.97（この試合）・練習HP消費 +2（この編）', fx: { rateMult: 0.97, hpCost: 2 }, result: '前から奪い、前で決める。消耗は激しい。' },
+        { label: '守備的 5-4-1', desc: '全選択肢 +2%（この編）・敵レート ×1.02（この試合）', fx: { all: 2, rateMult: 1.02 }, result: '守って刺す。原作後半の布陣だ。' },
+        { label: '臨機応変', desc: '変更なし・FLOW 突入率 +3%（この編）', fx: { flowP: 0.03 }, result: '流れを読んで動く。' } ] },
+    w_eng: { title: '勝利以外なし', text: 'イングランド戦。勝たなければ決勝トーナメントはない。',
+      options: [
+        { label: 'テディ・ナイトを封じる', desc: 'Option A のレート ×0.95', fx: { rateMultKeys: { A: 0.95 } }, result: '騎士を封じる。ゴール前の肉弾戦になる。' },
+        { label: '雪宮の1on1に賭ける', desc: 'Option B +4%（この編）', fx: { opt: { B: 4 } }, result: '一瞬の極限に賭けた。' },
+        { label: '総攻撃', desc: 'ギャンブル：成功で敵レート ×0.92、失敗で ×1.06', fx: { roll: { p: 0.5, win: { rateMult: 0.92 }, lose: { rateMult: 1.06 }, winText: 'イングランドの守備が総攻撃に耐えきれず崩れた。', loseText: 'カウンターを浴び続け、守備が崩壊した。' } } } ] },
+    w_final: { title: '決勝の覚悟', text: '世界一を懸けた決勝。許されるのは3対0のみ。',
+      options: [
+        { label: 'エゴを貫く', desc: '全選択肢 +2%（この編）', fx: { all: 2 }, result: '「オレが世界一になる」。' },
+        { label: '5人で繋ぐ', desc: '敵レート ×0.98（この試合）', fx: { rateMult: 0.98 }, result: '5人のエゴが噛み合った。' },
+        { label: 'ロキと走り合う', desc: 'Option C +4%（この編）', fx: { opt: { C: 4 } }, result: '神童と同じ速度で世界を見る。' } ] }
+  };
+
+  ARCS.forEach(function (arc) {
+    arc.segments.forEach(function (seg) { if (RIVALS[seg.id]) seg.match.rival = RIVALS[seg.id]; if (CHOICES[seg.id]) seg.choice = CHOICES[seg.id]; });
+    if (arc.id === 'second') {
+      var segs = arc.segments; var i2 = segs.findIndex(function (s) { return s.id === 's_2v2'; }); segs[i2].skipIf = 'team_barou'; segs.splice(i2 + 1, 0, ALT_SEGMENTS.s_2v2b);
+      var ir = segs.findIndex(function (s) { return s.id === 's_reo'; }); segs[ir].skipIf = 'team_chigiri'; segs.splice(ir + 1, 0, ALT_SEGMENTS.s_reo_b);
+      segs.forEach(function (seg) { if (RIVALS[seg.id]) seg.match.rival = RIVALS[seg.id]; });
+    }
+    if (arc.opponents) for (var k in arc.opponents) if (NEL_RIVALS[k]) arc.opponents[k].rival = NEL_RIVALS[k];
+  });
+
+  BL.STORY = { arcs: ARCS, choices: CHOICES };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
@@ -2102,7 +2287,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       meta: {
         gems: P.INITIAL_GEMS, roster: roster, hof: [],
         achievements: {}, pendingAch: [],
-        records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0 },
+        records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0, choices: 0 },
         history: [], sfx: true, portraits: {}, pieces: 0,
         grads: [], upgrades: {}, mastery: {}, squadPick: [],
         createdAt: Date.now()
@@ -2285,6 +2470,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
     if (player.policy) { var pol = policyById(player.policy); if (pol) merge({ growth: pol.growth }); }
     if (player.upg) merge(upgradeFx(player.upg));
+    if (player.storyFx) merge(player.storyFx);
     if (player.masteryLv) { var mg = { growth: {} }; for (var i = 0; i < D.STATS.length; i++) mg.growth[D.STATS[i]] = P.MASTERY_GROWTH * player.masteryLv; merge(mg); }
     if (player.partnerId && card) { var ch = chemistryFor(card.char, cardById(player.partnerId), player.partnerTier || 0); if (ch) { merge(ch.fx); if (ch.pairFx) merge(ch.pairFx); } }
     return m;
@@ -2350,7 +2536,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
 
   /** 節の試合定義を解決（NEL は所属クラブと対戦順から相手を決定） */
   function resolveMatch(run, arc, seg) {
-    var m = clone(seg.match);
+    var m = clone(seg.match); m.segId = seg.id;
     if (m.rule === 'nel') {
       var club = clubById(run.club) || D.NEL_CLUBS[0];
       var oppIdx = arc.segments.filter(function (s) { return s.match.rule === 'nel'; }).indexOf(seg);
@@ -2361,10 +2547,16 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       m.rate = { A: Math.round(m.base * opp.profile.A), B: Math.round(m.base * opp.profile.B), C: Math.round(m.base * opp.profile.C), D: Math.round(m.base * opp.profile.D) };
       m.intro = text.intro; m.highlights = text.highlights; m.canon = opp.canon;
       m.win = opp.name + ' を破った。スカウトの入札額が跳ね上がる。'; m.lose = opp.name + ' に敗れた。それでも入札は続く——ゴールがすべてだ。';
-      m.oppClub = opp.id;
+      m.oppClub = opp.id; if (text.rival) m.rival = text.rival;
     }
+    /* ストーリー分岐による敵レート補正・指名条件補正 */
+    var sr = run.segRate && run.segRate[seg.id];
+    if (sr) { var keys = ['A', 'B', 'C', 'D']; for (var ki = 0; ki < keys.length; ki++) { var kk = keys[ki]; if (m.rate[kk] == null) continue; var mult = (typeof sr === 'number') ? sr : (sr.all || 1) * (sr[kk] || 1); m.rate[kk] = Math.round(m.rate[kk] * mult); } }
+    if (m.nominateInt && run.nominateMult) m.nominateInt = Math.round(m.nominateInt * run.nominateMult);
     return m;
   }
+  /** 試合画面に出すライバルの代表カード（そのキャラの最高レア） */
+  BL.rivalCard = function (charId) { var best = null; for (var i = 0; i < BL.CARDS.length; i++) { var c = BL.CARDS[i]; if (c.char !== charId) continue; if (!best || Number(c.rar) > Number(best.rar)) best = c; } return best; };
   BL.resolveMatch = resolveMatch;
   BL.currentMatchDef = function (run) { var seg = segOf(run); return seg ? resolveMatch(run, arcOf(run), seg) : null; };
 
@@ -2648,7 +2840,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   BL.previewOptionsFor = function (run, i) { var m = BL.currentMatchDef(run); return m ? computeOptions(playerView(run, i), m, { note: run.note, flow: false }) : []; };
 
   function newMatchState(mdef, note) {
-    return { name: mdef.name, enemy: mdef.enemy, lead: mdef.lead, rule: mdef.rule, n: mdef.n, rate: mdef.rate, options: mdef.options || null,
+    return { name: mdef.name, enemy: mdef.enemy, lead: mdef.lead, rule: mdef.rule, n: mdef.n, rate: mdef.rate, options: mdef.options || null, rival: mdef.rival || null, segId: mdef.segId || null,
              intro: mdef.intro, highlights: mdef.highlights, canon: mdef.canon, winText: mdef.win, loseText: mdef.lose, nominateInt: mdef.nominateInt || 0, final: !!mdef.final,
              note: !!note, idx: 0, me: 0, en: 0, wins: 0, losses: 0, results: [], current: null, showResult: false, ended: false,
              cold: false, draw: false, won: false, flows: 0, flowSuccess: 0 };
@@ -2865,18 +3057,68 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     return { ok: true, phase: run.phase };
   };
 
+  function segAvailable(run, seg) {
+    var c = seg.cond ? [].concat(seg.cond) : []; for (var i = 0; i < c.length; i++) if (!run.flags[c[i]]) return false;
+    var sk = seg.skipIf ? [].concat(seg.skipIf) : []; for (var j = 0; j < sk.length; j++) if (run.flags[sk[j]]) return false;
+    return true;
+  }
+  function startSegment(state, seg) {
+    var run = state.run; var arc = arcOf(run);
+    run.weeksLeft = seg.weeks; run.phase = 'training'; rollHot(run);
+    pushLog(run, '【' + arc.title + '】' + seg.name + '——公式戦まで ' + seg.weeks + ' 週。');
+    if (seg.weeks <= 0) beginMatch(state);
+  }
   function enterSegment(state) {
     var run = state.run; var arc = arcOf(run);
     while (run.seg < arc.segments.length) {
       var seg = arc.segments[run.seg];
-      if (seg.cond && !run.flags[seg.cond]) { run.seg += 1; continue; }
-      run.weeksLeft = seg.weeks; run.phase = 'training'; rollHot(run);
-      pushLog(run, '【' + arc.title + '】' + seg.name + '——公式戦まで ' + seg.weeks + ' 週。');
-      if (seg.weeks <= 0) beginMatch(state);
-      return;
+      if (!segAvailable(run, seg)) { run.seg += 1; continue; }
+      if (seg.choice && !(run.choices && run.choices[seg.id] !== undefined)) { run.phase = 'storyChoice'; return; }
+      startSegment(state, seg); return;
     }
     evaluateArc(state);
   }
+  /* ------------------------------------------------------------ story choices */
+  function applyChoiceFx(state, run, fx, seg, out) {
+    if (!fx) return;
+    var i;
+    if (fx.ifFlag) { applyChoiceFx(state, run, run.flags[fx.ifFlag.flag] ? fx.ifFlag.then : fx.ifFlag.else, seg, out); }
+    if (fx.flags) for (i = 0; i < fx.flags.length; i++) run.flags[fx.flags[i]] = true;
+    var sf = run.storyFx;
+    if (fx.opt) for (var k in fx.opt) { sf.opt[k] = (sf.opt[k] || 0) + fx.opt[k]; out.push('Option ' + k + ' +' + fx.opt[k] + '%'); }
+    if (fx.favOpt) { var card = cardById(run.cardId); var fav = card ? charOf(card).fav : 'A'; sf.opt[fav] = (sf.opt[fav] || 0) + fx.favOpt; out.push('Option ' + fav + ' +' + fx.favOpt + '%'); }
+    if (fx.all) { sf.all += fx.all; out.push('全選択肢 +' + fx.all + '%'); }
+    if (fx.growth) for (var g in fx.growth) { sf.growth[g] += fx.growth[g]; out.push(g + ' 成長 +' + Math.round(fx.growth[g] * 100) + '%'); }
+    if (fx.flowP) { sf.flowP += fx.flowP; out.push('FLOW 突入率 +' + Math.round(fx.flowP * 100) + '%'); }
+    if (fx.hpCost) { sf.hpCost += fx.hpCost; out.push('練習HP消費 ' + (fx.hpCost > 0 ? '+' : '') + fx.hpCost); }
+    if (fx.bidMult) { sf.bidMult *= fx.bidMult; out.push('年俸 ×' + fx.bidMult); }
+    if (fx.rateMult) { var cur = run.segRate[seg.id]; run.segRate[seg.id] = (typeof cur === 'number' ? cur : 1) * fx.rateMult; out.push('敵レート ×' + fx.rateMult); }
+    if (fx.rateMultKeys) { var o = run.segRate[seg.id]; if (typeof o !== 'object' || !o) o = { all: (typeof o === 'number' ? o : 1) }; for (var rk in fx.rateMultKeys) { o[rk] = (o[rk] || 1) * fx.rateMultKeys[rk]; out.push('Option ' + rk + ' レート ×' + fx.rateMultKeys[rk]); } run.segRate[seg.id] = o; }
+    if (fx.nominateMult) { run.nominateMult = (run.nominateMult || 1) * fx.nominateMult; out.push('指名 INT ×' + fx.nominateMult); }
+    if (fx.stat || fx.hp || fx.cond || fx.protein) { var tgt = { stat: fx.stat, hp: fx.hp, cond: fx.cond, protein: fx.protein }; var eff = applyFx(state, run, tgt, null); for (i = 0; i < eff.length; i++) out.push(eff[i]); }
+    if (fx.cash) { run.cash = Math.max(0, run.cash + fx.cash); out.push('Cash ' + (fx.cash >= 0 ? '+' : '') + '¥' + fx.cash.toLocaleString()); }
+    if (fx.ach) unlock(state, fx.ach);
+  }
+  BL.chooseStory = function (state, idx) {
+    var run = state.run;
+    if (!run || run.phase !== 'storyChoice') return { ok: false };
+    var seg = arcOf(run).segments[run.seg]; var ch = seg && seg.choice; var opt = ch && ch.options[idx];
+    if (!opt) return { ok: false, reason: 'option' };
+    var res = { ok: true, title: ch.title, label: opt.label, text: opt.result || '', effects: [] };
+    if (opt.fx && opt.fx.roll) {
+      var win = rng() < opt.fx.roll.p; res.rollWin = win; res.text = win ? opt.fx.roll.winText : opt.fx.roll.loseText;
+      applyChoiceFx(state, run, win ? opt.fx.roll.win : opt.fx.roll.lose, seg, res.effects);
+      if (win) unlock(state, 'gamble_win');
+    } else applyChoiceFx(state, run, opt.fx, seg, res.effects);
+    run.choices[seg.id] = idx; run.choiceLog.push({ arc: run.arc, seg: seg.id, title: ch.title, label: opt.label });
+    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10');
+    pushLog(run, '【分岐】' + ch.title + ' → ' + opt.label + (res.effects.length ? '（' + res.effects.join(' / ') + '）' : ''));
+    run.lastChoice = res;
+    startSegment(state, seg);
+    BL.save(state);
+    return res;
+  };
+  BL.currentChoice = function (run) { if (!run || run.phase !== 'storyChoice') return null; var seg = arcOf(run).segments[run.seg]; return seg ? { seg: seg, choice: seg.choice } : null; };
 
   /* ------------------------------------------------------------ graduates */
   function gradById(state, id) { for (var i = 0; i < state.meta.grads.length; i++) if (state.meta.grads[i].id === id) return state.meta.grads[i]; return null; }
@@ -2892,6 +3134,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     g.bid = run.bid; g.cash = run.cash; g.partRanks = (run.partRanks || []).slice(); g.rank = run.rank || 300;
     g.advisorId = run.advisorId; g.partnerId = run.partnerId || null; g.club = run.club || g.club || null;
     g.policies = (g.policies || []).concat([run.policy]); g.updatedAt = Date.now(); g.runs = (g.runs || 0) + 1;
+    g.flags = clone(run.flags || {}); g.choiceLog = (run.choiceLog || []).slice(-30);
     for (var k in run.totals) if (run.totals.hasOwnProperty(k)) g.totals[k] = (g.totals[k] || 0) + run.totals[k];
     g.history = (g.history || []).concat(run.history); if (g.history.length > 40) g.history = g.history.slice(-40);
     ev.graduated = true; ev.gradId = g.id; ev.part = g.part;
@@ -3051,7 +3294,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       match: null, matchResult: null, evalResult: null, gameover: null, log: [], flags: {}, history: [],
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
       totals: { goals: 0, climaxWins: 0, flows: 0, events: 0, purchases: 0, weeksTrained: 0, weeksRested: 0, matches: 0, matchWins: 0, pairEvents: 0 },
-      upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs
+      upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs,
+      choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
     };
   }
   /** opts: { cardId } → 第一編を新規開始 ／ { gradId } → 卒業生で次の編を開始。partnerId は任意（相棒）。旧 API startRun(state, cardId, advisorId) も受け付ける */
@@ -3082,6 +3326,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     run.skills = grad ? clone(grad.skills) : {}; run.sig = grad ? (grad.sig || 0) : 0; run.partRanks = grad ? (grad.partRanks || []).slice() : [];
     run.bid = grad ? (grad.bid || 0) : 0; run.cash = grad ? (grad.cash || 0) : 0;
     run.partnerId = partner ? partner.id : null; run.partnerChar = partner ? partner.char : null; run.partnerTier = pown ? (pown.tier || 0) : 0;
+    if (grad) { run.flags = clone(grad.flags || {}); run.choiceLog = (grad.choiceLog || []).slice(); }
     state.run = run; state.meta.records.runs = state.meta.records.runs; run.runNo = state.meta.records.runs;
     var chem = partner ? chemistryFor(card.char, partner, run.partnerTier) : null;
     pushLog(run, BL.cardName(card) + (grad ? '（' + ARCS[arcIdx - 1].part + ' 卒業）' : '') + ' の育成を開始（アドバイザー：' + adv.name + (partner ? ' ／ 相棒：' + BL.cardName(partner) + (chem && chem.pair ? '＝化学反応「' + chem.name + '」' : '') : '') + '）。');
@@ -3225,6 +3470,24 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     if (v >= 1e4) return Math.round(v / 1e4).toLocaleString() + '万円';
     return v.toLocaleString() + '円';
   };
+  /** セーブのエクスポート／インポート（JSON 文字列。インポートは検証・移行のうえ上書き保存し、新しい state を返す） */
+  BL.exportSave = function (state) { return JSON.stringify(state); };
+  BL.importSave = function (json) {
+    var st; try { st = JSON.parse(json); } catch (e) { return { ok: false, reason: 'parse' }; }
+    if (!st || typeof st !== 'object' || !st.meta || !st.meta.roster) return { ok: false, reason: 'format' };
+    if (st.v !== SAVE_VERSION) st = migrate(st);
+    var fresh = newState().meta;
+    for (var k in fresh) if (fresh.hasOwnProperty(k) && st.meta[k] === undefined) st.meta[k] = fresh[k];
+    for (var r in fresh.records) if (st.meta.records[r] === undefined) st.meta.records[r] = fresh.records[r];
+    BL.save(st); return { ok: true, state: st };
+  };
+  BL.exportPortraits = function (state) { return JSON.stringify({ portraits: state.meta.portraits || {} }); };
+  BL.importPortraits = function (state, json) {
+    var o; try { o = JSON.parse(json); } catch (e) { return { ok: false, reason: 'parse' }; }
+    var src = (o && o.portraits) || o; if (!src || typeof src !== 'object') return { ok: false, reason: 'format' };
+    var n = 0; for (var id in src) { if (!D.CHARACTERS[id] || typeof src[id] !== 'string' || src[id].indexOf('data:image/') !== 0) continue; var r = BL.setPortrait(state, id, src[id]); if (r.ok) n++; }
+    return { ok: true, count: n };
+  };
   BL.toggleSfx = function (state) { state.meta.sfx = !state.meta.sfx; BL.save(state); return state.meta.sfx; };
   /** 利用者が権利を持つ画像をキャラのポートレートとして端末内に保存（data URL、上限 60KB／枚・合計 3MB） */
   BL.setPortrait = function (state, charId, dataUrl) {
@@ -3308,9 +3571,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   <script>
 /* ============================================================================
  * カードアートワーク（生成 SVG）
- *  原作のキャラクター画像は著作物のため同梱しない。代わりに、タイプ色・レアリティ枠・キャラ固有の
- *  エンブレム（姓の頭文字）とストライカーのシルエットで各カード固有の絵柄を生成する。
- *  利用者が権利を持つ画像を設定した場合（meta.portraits[charId]）はそれを表示する。
+ *  原作のキャラクター画像は著作物のため同梱しない。代わりに、タイプ色・レアリティ枠・キャラの外見データ
+ *  （髪型・髪色・目の色：アニメ版の配色に準拠、未定義キャラは ID から決定的に生成）でバストアップを描き、
+ *  段階（チームZ／新英雄大戦／決戦…）に応じたユニフォーム色を付ける。
+ *  利用者が権利を持つ画像を設定した場合（meta.portraits[charId] / BL.PORTRAITS）はそれを表示する。
  * ========================================================================== */
 (function (root) {
   'use strict';
@@ -3323,8 +3587,76 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   function stars(n) { var s = ''; for (var i = 0; i < n; i++) s += '★'; return s; }
   var uid = 0;
 
+  /* 髪型テンプレート（100×100 の座標系。頭の中心 (50,42)、横半径 16、縦半径 18） */
+  var HAIR = {
+    short:   { back: 'M32 44 Q30 18 50 18 Q70 18 68 44 Q60 36 50 36 Q40 36 32 44 Z', front: 'M33 36 Q38 22 50 22 Q62 22 67 36 Q60 30 50 30 Q40 30 33 36 Z' },
+    spiky:   { back: 'M31 46 Q28 20 50 17 Q72 20 69 46 Q60 38 50 38 Q40 38 31 46 Z', front: 'M30 38 L36 16 L42 30 L48 12 L54 30 L60 14 L66 32 L70 22 L69 40 Q60 30 50 30 Q40 30 30 38 Z' },
+    long:    { back: 'M28 46 Q26 16 50 15 Q74 16 72 46 L76 82 Q50 90 24 82 Z', front: 'M32 38 Q38 20 50 20 Q62 20 68 38 Q62 30 50 30 Q38 30 32 38 Z' },
+    bob:     { back: 'M29 44 Q28 16 50 16 Q72 16 71 44 L72 60 Q50 66 28 60 Z', front: 'M32 40 Q34 22 50 22 Q66 22 68 40 L68 38 Q50 34 32 38 Z' },
+    wavy:    { back: 'M30 46 Q26 18 50 17 Q74 18 70 46 Q64 40 50 40 Q36 40 30 46 Z', front: 'M31 40 Q34 24 44 24 Q48 30 52 24 Q60 22 66 28 Q70 34 68 40 Q60 32 50 33 Q40 33 31 40 Z' },
+    buzz:    { back: 'M33 44 Q32 22 50 21 Q68 22 67 44 Q60 40 50 40 Q40 40 33 44 Z', front: '' },
+    curly:   { back: 'M30 46 Q24 30 34 22 Q40 12 50 16 Q60 12 66 22 Q76 30 70 46 Q60 40 50 40 Q40 40 30 46 Z', front: 'M32 40 Q30 30 38 28 Q44 22 50 26 Q56 22 62 28 Q70 30 68 40 Q60 34 50 34 Q40 34 32 40 Z' },
+    bangs:   { back: 'M30 46 Q28 16 50 16 Q72 16 70 46 Q62 42 50 42 Q38 42 30 46 Z', front: 'M31 44 Q34 20 50 20 Q66 20 69 44 L66 46 L60 40 L56 48 L50 42 L44 48 L40 40 L34 46 Z' },
+    ponytail:{ back: 'M32 44 Q30 18 50 18 Q70 18 68 44 Q60 36 50 36 Q40 36 32 44 Z M62 30 Q80 40 74 70 Q70 76 66 72 Q70 50 60 38 Z', front: 'M33 36 Q38 22 50 22 Q62 22 67 36 Q60 30 50 30 Q40 30 33 36 Z' }
+  };
+  var HAIR_KEYS = Object.keys(HAIR);
+  var HAIR_PALETTE = ['#1f1f1f', '#3a2e2a', '#5b3a21', '#8b5a2b', '#c9a227', '#e8863b', '#a83a3a', '#7c4dff', '#1f2a44', '#9aa0a6', '#e9edf2', '#2f5a3f'];
+  var EYE_PALETTE = ['#3b82f6', '#22c55e', '#f59e0b', '#a78bfa', '#38bdf8', '#ef4444', '#9ca3af', '#111827'];
+  /* 国籍・クラブによるユニフォーム色（決戦・新英雄大戦などの段階カード用） */
+  var NATION = { teddy: 'en', achampong: 'en', childs: 'en', blake: 'en', onaji: 'ng', kusso: 'ng', bello: 'ng', loki: 'fr', chevalier: 'fr', hugo: 'fr', raiden: 'fr', luna: 'es', dada: 'br', cavazos: 'ar', snuffy: 'it', lorenzo: 'it', lavinho: 'br', prince: 'en', noa: 'fr', kaiser: 'de', ness: 'de' };
+  var NATION_KIT = { jp: ['#1e3a8a', '#ffffff'], en: ['#f8fafc', '#dc2626'], ng: ['#15803d', '#ffffff'], fr: ['#1d4ed8', '#ffffff'], es: ['#b91c1c', '#facc15'], br: ['#facc15', '#16a34a'], ar: ['#7dd3fc', '#ffffff'], it: ['#1d4ed8', '#ffffff'], de: ['#f8fafc', '#111827'] };
+  var CLUB_KIT = { de: ['#111827', '#dc2626'], en: ['#7dd3fc', '#ffffff'], it: ['#f8fafc', '#111827'], fr: ['#1e3a8a', '#dc2626'], es: ['#b91c1c', '#1d4ed8'] };
+  var CLUB_OF = { kaiser: 'de', ness: 'de', noa: 'de', prince: 'en', blake: 'en', snuffy: 'it', lorenzo: 'it', loki: 'fr', chevalier: 'fr', lavinho: 'es', luna: 'es' };
+
+  function lookOf(charId) {
+    var l = (D.LOOKS && D.LOOKS[charId]) || null;
+    if (l) return { hair: l.hair, color: l.color, accent: l.accent || null, eye: l.eye || '#3b82f6', skin: l.skin || '#f3cfa8' };
+    var h = hash(charId);
+    return { hair: HAIR_KEYS[h % HAIR_KEYS.length], color: HAIR_PALETTE[(h >>> 4) % HAIR_PALETTE.length], accent: null, eye: EYE_PALETTE[(h >>> 8) % EYE_PALETTE.length], skin: '#f3cfa8' };
+  }
+  function kitOf(card, typeColor) {
+    var stage = card.stage || '';
+    if (/W杯|決戦/.test(stage)) { var nk = NATION_KIT[NATION[card.char] || 'jp']; return { main: nk[0], trim: nk[1] }; }
+    if (/新英雄大戦|マスター|現役/.test(stage) && CLUB_OF[card.char]) { var ck = CLUB_KIT[CLUB_OF[card.char]]; return { main: ck[0], trim: ck[1] }; }
+    if (/チーム/.test(card.title) || /二次選考|一次/.test(stage)) return { main: '#1d4ed8', trim: '#ffffff' };
+    return { main: typeColor, trim: '#ffffff' };
+  }
+
+  /** バストアップ（100×100 の座標系に描く） */
+  function bust(card, look, kit, id, flip) {
+    var hs = HAIR[look.hair] || HAIR.short; var out = [];
+    out.push('<g transform="translate(50 0) scale(' + flip + ' 1) translate(-50 0)">');
+    /* 髪（後ろ） */
+    out.push('<path d="' + hs.back + '" fill="' + look.color + '"/>');
+    /* 首・ユニフォーム */
+    out.push('<path d="M44 58 L44 66 Q50 70 56 66 L56 58 Z" fill="' + shade(look.skin, -18) + '"/>');
+    out.push('<path d="M14 100 Q16 74 36 66 L44 66 Q50 72 56 66 L64 66 Q84 74 86 100 Z" fill="' + kit.main + '"/>');
+    out.push('<path d="M36 66 L44 66 Q50 72 56 66 L64 66 L60 76 Q50 80 40 76 Z" fill="' + kit.trim + '" fill-opacity=".9"/>');
+    out.push('<path d="M22 100 Q24 82 34 74 M78 100 Q76 82 66 74" stroke="' + kit.trim + '" stroke-opacity=".7" stroke-width="2.5" fill="none"/>');
+    /* 顔 */
+    out.push('<ellipse cx="50" cy="42" rx="16" ry="18" fill="' + look.skin + '"/>');
+    out.push('<ellipse cx="34.5" cy="44" rx="2.6" ry="3.4" fill="' + look.skin + '"/><ellipse cx="65.5" cy="44" rx="2.6" ry="3.4" fill="' + look.skin + '"/>');
+    /* 目 */
+    out.push('<ellipse cx="43.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/><ellipse cx="56.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/>');
+    out.push('<circle cx="44" cy="45.3" r="1.9" fill="' + look.eye + '"/><circle cx="57" cy="45.3" r="1.9" fill="' + look.eye + '"/>');
+    out.push('<circle cx="44.6" cy="44.6" r=".6" fill="#fff"/><circle cx="57.6" cy="44.6" r=".6" fill="#fff"/>');
+    out.push('<path d="M40 40 Q44 38 47 40 M53 40 Q56 38 60 40" stroke="' + shade(look.color, -30) + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>');
+    out.push('<path d="M47 53 Q50 55 53 53" stroke="' + shade(look.skin, -60) + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>');
+    /* 髪（前） */
+    if (hs.front) out.push('<path d="' + hs.front + '" fill="' + look.color + '"/>');
+    if (look.accent) out.push('<path d="M40 24 Q46 20 52 24 L50 32 Q46 30 42 32 Z" fill="' + look.accent + '" fill-opacity=".95"/>');
+    out.push('</g>');
+    return out.join('');
+  }
+  function shade(hex, amt) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return hex;
+    var n = parseInt(m[1], 16); var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    r = Math.max(0, Math.min(255, r + amt)); g = Math.max(0, Math.min(255, g + amt)); b = Math.max(0, Math.min(255, b + amt));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
   /**
-   * card: BL.CARDS の要素 / opts: { portrait: dataURL|null, size: px幅, compact: bool }
+   * card: BL.CARDS の要素 / opts: { portrait: dataURL|null, size: px幅 }
    */
   function svg(card, opts) {
     opts = opts || {};
@@ -3332,8 +3664,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var typeColor = (D.STAT_META[t.stat] || { color: '#4dd2ff' }).color;
     var id = 'a' + (uid++);
     var h = hash(card.id + card.char);
-    var tilt = ((h % 7) - 3) * 2;                 /* シルエットの微妙な傾き（個体差） */
-    var flip = (h >> 3) % 2 === 0 ? 1 : -1;       /* 左右反転（個体差） */
+    var flip = (h >>> 3) % 2 === 0 ? 1 : -1;      /* 左右反転（個体差） */
     var W = 120, H = 150;
     var size = opts.size || 120; var hgt = Math.round(size * H / W);
     var initial = firstChar(c.name);
@@ -3353,24 +3684,15 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     if (opts.portrait) {
       out.push('<image href="' + opts.portrait + '" x="0" y="0" width="' + W + '" height="' + H + '" preserveAspectRatio="xMidYMid slice"/>');
     } else {
-      /* 背景エンブレム（姓の頭文字） */
+      /* 背景エンブレム（姓の頭文字）とスタジアムの光 */
       out.push('<text x="60" y="98" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-weight="900" font-size="92" fill="' + typeColor + '" fill-opacity=".14">' + esc(initial) + '</text>');
-      /* ピッチのライン */
-      out.push('<path d="M-10 118 L130 118 M10 150 L20 118 M110 150 L100 118" stroke="#ffffff" stroke-opacity=".12" stroke-width="1.5" fill="none"/>');
-      out.push('<ellipse cx="60" cy="118" rx="26" ry="6" stroke="#ffffff" stroke-opacity=".12" fill="none"/>');
-      /* ストライカーのシルエット */
-      out.push('<g transform="translate(60 80) rotate(' + tilt + ') scale(' + flip + ' 1) translate(-50 -58)">');
-      out.push('<path d="M100 56 a7 7 0 1 0 0.1 0" fill="#f3f4f6"/><path d="M96 52 l4 3 l-1 5 l-5 -1 z M102 60 l4 -2 l1 4 l-3 3 z" fill="#111827"/>');
-      out.push('<circle cx="48" cy="22" r="9" fill="#111827"/>');
-      out.push('<path d="M38 32 L58 32 L63 60 L35 60 Z" fill="' + typeColor + '"/>');
-      out.push('<path d="M38 32 L58 32 L56 44 L40 44 Z" fill="#ffffff" fill-opacity=".18"/>');
-      out.push('<path d="M40 36 L22 50 M58 36 L76 28" stroke="#111827" stroke-width="6" stroke-linecap="round" fill="none"/>');
-      out.push('<path d="M44 60 L40 92 M54 60 L74 74 L92 62" stroke="#111827" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>');
-      out.push('<path d="M36 92 L46 94 M90 58 L96 66" stroke="#111827" stroke-width="5" stroke-linecap="round"/>');
-      out.push('<g transform="translate(49 0) scale(' + flip + ' 1) translate(-49 0)"><text x="49" y="52" text-anchor="middle" font-family="Oswald, Noto Sans JP, sans-serif" font-weight="700" font-size="14" fill="#05070f" fill-opacity=".85">' + (card.pos && card.pos[0] ? esc(card.pos[0]) : '') + '</text></g>');
-      out.push('</g>');
-      /* タイプ色のスピードライン */
       out.push('<path d="M-5 30 L45 30 M-5 38 L30 38 M-5 46 L20 46" stroke="' + typeColor + '" stroke-opacity=".35" stroke-width="2"/>');
+      out.push('<path d="M-10 128 L130 128 M10 150 L20 128 M110 150 L100 128" stroke="#ffffff" stroke-opacity=".12" stroke-width="1.5" fill="none"/>');
+      /* バストアップ */
+      var look = lookOf(card.char); var kit = kitOf(card, typeColor);
+      out.push('<g transform="translate(-6 2) scale(1.32)">' + bust(card, look, kit, id, flip) + '</g>');
+      /* 胸のポジション */
+      out.push('<text x="60" y="106" text-anchor="middle" font-family="Oswald, Noto Sans JP, sans-serif" font-weight="700" font-size="11" fill="' + kit.trim + '" fill-opacity=".9">' + (card.pos && card.pos[0] ? esc(card.pos[0]) : '') + '</text>');
     }
     if (holo) {
       out.push('<polygon points="-40,0 20,0 140,150 80,150" fill="url(#' + id + 'sh)"/>');
@@ -3413,7 +3735,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var t = D.TYPE_MAP[type]; var color = t ? (D.STAT_META[t.stat] || {}).color : '#fff';
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="' + (size || 16) + '" height="' + (size || 16) + '" class="ticon" style="color:' + color + '" aria-label="' + esc(type) + '">' + (TYPE_ICON[type] || TYPE_ICON['キック']) + '</svg>';
   }
-  BL.ART = { svg: svg, emblem: emblem, typeIcon: typeIcon };
+  BL.ART = { svg: svg, emblem: emblem, typeIcon: typeIcon, lookOf: lookOf };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
@@ -3529,6 +3851,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       case 'naming': inner = renderNamingList(); break;
       case 'exchange': inner = renderExchange(); break;
       case 'grad': inner = renderGradDetail(); break;
+      case 'choiceResult': inner = renderChoiceResult(); break;
+      case 'export': inner = renderExport(); break;
       case 'summary': inner = '<div class="modal-head"><h2>RUN 結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">クリップボードにアクセスできない環境のため、以下を選択してコピーしてください。</p><textarea class="summary-box" id="summary-text" readonly onfocus="this.select()">' + esc(ui.modal.text) + '</textarea>'; break;
     }
     ov.innerHTML = '<div class="modal-backdrop"><div class="modal">' + inner + '</div></div>'; ov.hidden = false;
@@ -3638,6 +3962,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       '<div class="stat-line">' + D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(g.stats[s]) + '</span>'; }).join('') + '<span class="st total"><i>合計</i>' + num(BL.sumStats(g.stats)) + '</span></div>' +
       '<div class="muted">年俸 ' + yen(g.bid || 0) + ' ／ Cash ' + cash(g.cash || 0) + ' ／ 通算ゴール ' + ((g.totals || {}).goals || 0) + ' ／ 編評価 ' + esc((g.partRanks || []).join('')) + '</div>' +
       '<div class="panel skills"><h4>覚醒スキル</h4>' + (skillChips(g.skills) || '<span class="muted">なし</span>') + (g.sig ? '<span class="chip sig">★ ' + esc(D.CHARACTERS[g.charId].sig.name) + '<b>Lv.' + g.sig + '</b></span>' : '') + '</div>' +
+      ((g.choiceLog && g.choiceLog.length) ? '<h4 class="sect">選択の履歴</h4><ul class="req-list">' + g.choiceLog.map(function (c) { return '<li class="pending"><span>' + esc(ARCS[c.arc].part) + ' ' + esc(c.title) + '</span><b>' + esc(c.label) + '</b></li>'; }).join('') + '</ul>' : '') +
       (hist ? '<h4 class="sect">直近の試合</h4><ul class="req-list">' + hist + '</ul>' : '') + '</div></div>';
   }
   function renderUpgrades() {
@@ -3672,7 +3997,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + (c.flow ? ' F' : '') + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】' + (c.origin === 'mod' ? ' <small class="muted">改変版</small>' : '') + '</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') + (own.tier ? ' ★+' + own.tier : '') : '—') + '</td></tr>';
     }).join('');
     var np = Object.keys(state.meta.portraits || {}).length; var nf = BL.PORTRAITS ? Object.keys(BL.PORTRAITS).length : 0;
-    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' +
+    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + ' 枚（' + Object.keys(D.CHARACTERS).length + ' キャラ）。行をクリックで詳細。</div>' +
       '<div class="notice"><b>画像パック一括取り込み</b><span class="muted small">ファイル名をキャラID（例 isagi.png）またはキャラ名（例 潔世一.jpg）にした画像をまとめて選択すると、各キャラのポートレートとして端末内に保存する（端末保存 ' + np + ' キャラ／同梱フォルダ ' + nf + ' キャラ）。開発版では <code>assets/portraits/</code> に置いた画像を <code>node tools/build_portraits.js</code> で取り込める。</span><label class="btn ghost sm"><input type="file" accept="image/*" multiple data-portrait-bulk="1" hidden>画像を選択</label><button class="btn ghost sm" data-action="open-naming">キャラID一覧</button></div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') +
       '<table class="tbl dex"><thead><tr><th>レア</th><th>カード</th><th>タイプ</th><th>ポジション</th><th>所持</th></tr></thead><tbody>' + rows + '</tbody></table>';
@@ -3799,6 +4124,9 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? esc(ARCS[r.bestArc].part) + ' 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
       '<div class="kpi"><i>最高合計ステータス</i><b>' + num(r.bestTotal) + '</b></div><div class="kpi"><i>スカウト回数</i><b>' + r.gachaPulls + '</b></div><div class="kpi"><i>FIFA W杯 優勝</i><b>' + r.wcTitles + '</b></div></div>' +
       '<button class="btn ghost" data-action="open-rules">ルール・仕様を読む</button>' +
+      '<div class="notice"><b>バックアップ</b><span class="muted small">セーブ（カード・卒業生・強化・殿堂・進行中の RUN を含む全データ）と画像パック（端末保存のポートレート）を JSON で書き出し／読み込み。インポートは現在のデータを完全に上書きする。</span>' +
+      '<button class="btn ghost sm" data-action="open-export" data-arg="save">セーブを書き出す</button><label class="btn ghost sm"><input type="file" accept="application/json,.json" data-import-save="1" hidden>セーブを読み込む</label>' +
+      '<button class="btn ghost sm" data-action="open-export" data-arg="portraits">画像パックを書き出す</button><label class="btn ghost sm"><input type="file" accept="application/json,.json" data-import-portraits="1" hidden>画像パックを読み込む</label></div>' +
       (hist ? '<h4 class="sect">RUN 履歴</h4><table class="tbl"><thead><tr><th>#</th><th>カード</th><th>結果</th><th>合計</th><th>年俸</th><th>順位</th></tr></thead><tbody>' + hist + '</tbody></table>' : '') + '</div>';
   }
   function renderRules() {
@@ -3834,6 +4162,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       case 'arcIntro': return renderArcIntro();
       case 'policySelect': return renderPolicySelect();
       case 'clubSelect': return renderClubSelect();
+      case 'storyChoice': return renderStoryChoice();
       case 'training': case 'event': return BL.isFinal(run) ? renderTrainingFinal() : renderTraining();
       case 'match': return renderMatch(run.match, runMatchCtx());
       case 'matchResult': return (run.match && run.match.showResult) ? renderMatch(run.match, runMatchCtx()) : renderMatchResult();
@@ -3864,10 +4193,40 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     return '';
   }
 
+  function rivalHero(charId, size, kicker) {
+    var rival = charId ? BL.rivalCard(charId) : null; if (!rival) return '';
+    return '<div class="run-hero rival-hero" style="--rc:' + rc(rival.rar) + '"><div class="rh-art" data-action="card-detail" data-arg="' + rival.id + '">' + art(rival, size || 110) + '</div><div class="rh-meta"><i>' + esc(kicker || '次の相手') + '</i><b>' + esc(D.CHARACTERS[rival.char].name) + '</b><small>' + esc(D.CHARACTERS[rival.char].tag) + '</small></div></div>';
+  }
+  function renderStoryChoice() {
+    var run = state.run; var cc = BL.currentChoice(run); if (!cc) return ''; var arc = BL.arcOf(run); var seg = cc.seg; var ch = cc.choice;
+    var opts = ch.options.map(function (o, i) {
+      var gam = o.fx && o.fx.roll ? '<em class="risk">成功率 ' + Math.round(o.fx.roll.p * 100) + '% のギャンブル</em>' : '';
+      var dep = o.fx && o.fx.ifFlag ? '<em class="dep">過去の選択（' + esc(o.fx.ifFlag.flag) + '）で効果が変わる' + (run.flags[o.fx.ifFlag.flag] ? '：条件を満たしている' : '：条件を満たしていない') + '</em>' : '';
+      return '<button class="btn choice story-opt" data-action="choose-story" data-arg="' + i + '"><span>' + (i + 1) + '. ' + esc(o.label) + '</span><small>' + esc(o.desc || '') + ' ' + gam + dep + '</small></button>';
+    }).join('');
+    return '<section class="screen story choice"><div class="story-kicker">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><h2 class="story-title">' + esc(ch.title) + '<small>分岐：選択は即時保存され、この編の残り（場合によっては次の編）に影響する。</small></h2>' +
+      '<div class="choice-stage">' + runHero(run, 110) + (seg.match && seg.match.rival ? '<div class="vs-mark">VS</div>' + rivalHero(seg.match.rival, 110, '次の相手：' + (seg.match.enemy || '')) : '') + '</div>' +
+      '<div class="story-body"><p>' + esc(ch.text) + '</p></div><div class="choices">' + opts + '</div>' +
+      '<p class="hint">選択履歴は卒業生に引き継がれ、殿堂・戦績に記録される。キー 1〜3 でも選択可。</p></section>';
+  }
+  function renderChoiceResult() {
+    var r = ui.modal.result;
+    return '<div class="event choice"><div class="ev-kicker">分岐 — ' + esc(r.title) + '</div><h2>' + esc(r.label) + '</h2><p class="ev-text ' + (r.rollWin === false ? 'bad' : '') + '">' + esc(r.text) + '</p>' +
+      (r.effects.length ? '<div class="ev-fx">' + r.effects.map(function (e) { return '<span class="tag">' + esc(e) + '</span>'; }).join('') + '</div>' : '') + '<div class="modal-foot"><button class="btn primary" data-action="close-choice">続ける</button></div></div>';
+  }
+  function renderExport() {
+    var kind = ui.modal.kind; var text = kind === 'portraits' ? BL.exportPortraits(state) : BL.exportSave(state);
+    var fname = kind === 'portraits' ? 'bluelock_portraits.json' : 'bluelock_save.json';
+    var href = 'data:application/json;charset=utf-8,' + encodeURIComponent(text);
+    return '<div class="modal-head"><h2>' + (kind === 'portraits' ? '画像パックのエクスポート' : 'セーブデータのエクスポート') + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
+      '<p class="muted small">下のテキストを保存するか、ダウンロードする（' + Math.round(text.length / 1024) + ' KB）。別の端末・ブラウザで「インポート」すると復元できる。Artifact 表示ではダウンロードが無効化されるため、テキストをコピーして保存すること。</p>' +
+      '<textarea class="summary-box" readonly onfocus="this.select()">' + esc(text) + '</textarea>' +
+      '<div class="modal-foot"><a class="btn ghost" href="' + href + '" download="' + fname + '">ダウンロード</a><button class="btn primary" data-action="copy-text" data-arg="' + kind + '">コピー</button></div>';
+  }
   function renderArcIntro() {
     var run = state.run; var arc = BL.arcOf(run);
     var paras = arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
-    var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { return '<li><b>' + esc(s.name) + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></li>'; }).join('');
+    var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { var rv = s.match.rival ? BL.rivalCard(s.match.rival) : null; return '<li class="with-rival">' + (rv ? '<span class="seg-rival">' + art(rv, 44) + '</span>' : '') + '<span><b>' + esc(s.name) + (s.choice ? ' <em class="tag">分岐</em>' : '') + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></span></li>'; }).join('');
     return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + ' — PART ' + arc.n + ' / ' + ARCS.length + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' + runHero(run, 120) +
       '<div class="story-body">' + paras + '</div><div class="panel"><h4>この編の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">育成方針を選ぶ</button></div></section>';
@@ -3899,7 +4258,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   }
   function nextMatchPanel(mdef, preview) {
     var optPrev = preview.map(function (o) { return '<div class="opt-prev' + (o.wall ? ' wall' : '') + '"><b>' + o.key + '</b><span class="bar"><i style="width:' + Math.round(o.p) + '%;background:' + (D.OPTIONS[o.key] || { color: '#fff' }).color + '"></i></span><em>' + (o.wall ? '0%（壁）' : pct(o.p)) + '</em><small>' + o.stats.join('+') + ' ' + num(o.power) + '/' + num(o.rate) + '</small></div>'; }).join('');
-    return '<div class="panel next-match"><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div>' +
+    var rv = mdef.rival ? BL.rivalCard(mdef.rival) : null;
+    return '<div class="panel next-match"><div class="nm-head">' + (rv ? '<span class="nm-rival" data-action="card-detail" data-arg="' + rv.id + '">' + art(rv, 72) + '</span>' : '') + '<div><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div></div></div>' +
       '<div class="opt-prevs">' + optPrev + '</div><div class="muted small">原作：' + esc(mdef.canon || '') + '</div></div>';
   }
   function trainHeader(run, arc, seg, mdef) {
@@ -4015,8 +4375,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var body = (m.showResult && m.lastResult) ? renderClimaxResult(m, ctx) : (m.current ? (m.current.players ? renderClimaxFinal(m, ctx) : renderClimax(m, ctx)) : '');
     var flow = (m.current && !m.showResult && (m.current.flow || (m.current.players && m.current.players.some(function (pe) { return pe.flow && pe.avail; }))));
     var meArt = ctx.final ? '<span class="thumb">' + BL.ART.emblem('JPN', '#2f80ff', 48) + '</span>' : (ctx.card ? '<span class="thumb">' + art(ctx.card, 48) + '</span>' : '');
+    var rivalCard = m.rival ? BL.rivalCard(m.rival) : null;
+    var enArt = rivalCard ? '<span class="thumb rival">' + art(rivalCard, 48) + '</span>' : '<span class="thumb">' + BL.ART.emblem(ctx.enemy.replace(/^[^ ]+ /, ''), '#ff2a4a', 48) + '</span>';
     return '<section class="screen match' + (flow ? ' in-flow' : '') + '"><header class="match-head"><div class="mh-title">' + esc(ctx.title) + '<small>' + esc(ctx.sub) + '</small></div>' +
-      '<div class="score"><div class="side me">' + meArt + '<i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i><span class="thumb">' + BL.ART.emblem(ctx.enemy.replace(/^[^ ]+ /, ''), '#ff2a4a', 48) + '</span></div></div>' +
+      '<div class="score"><div class="side me">' + meArt + '<i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i>' + enArt + '</div></div>' +
       '<div class="dots">' + dots + '</div><div class="need">' + esc(ctx.needText) + '</div></header>' + body + '</section>';
   }
   function optionButton(o, actionName, extraAttr) {
@@ -4031,7 +4393,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var opts = cur.options.map(function (o) { return optionButton(o, ctx.kind === 'wc' ? 'wc-climax' : 'climax'); }).join('');
     return '<div class="climax-wrap">' + (m.idx === 0 && ctx.intro ? '<div class="match-intro">' + esc(ctx.intro) + '</div>' : '') +
       (cur.flow ? '<div class="flow-banner">FLOW — 覚醒。全選択肢 +20pt / 成功時スキル確定覚醒</div>' : '') +
-      '<div class="highlight"><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + '</span><p>' + esc(hl) + '</p></div><div class="climax-opts">' + opts + '</div>' +
+      '<div class="highlight">' + rivalStrip(m, ctx) + '<div><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + '</span><p>' + esc(hl) + '</p></div></div><div class="climax-opts">' + opts + '</div>' +
       '<p class="hint">選択した瞬間に判定・保存される。運による最低保証は無い。キー A/B/C/D でも選択可。</p></div>';
   }
   /** 決戦：起用選手 × 選択肢 */
@@ -4045,8 +4407,12 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     }).join('');
     return '<div class="climax-wrap">' + (m.idx === 0 && ctx.intro ? '<div class="match-intro">' + esc(ctx.intro) + '</div>' : '') +
       (cur.players.some(function (pe) { return pe.flow && pe.avail; }) ? '<div class="flow-banner">FLOW — 覚醒した選手がいる。その選手の全選択肢 +20pt / 成功時スキル確定覚醒</div>' : '') +
-      '<div class="highlight"><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + ' — 起用する選手と選択肢を選べ</span><p>' + esc(hl) + '</p></div><div class="squad-climax">' + rows + '</div>' +
+      '<div class="highlight">' + rivalStrip(m, ctx) + '<div><span class="hl-kicker">Climax ' + (m.idx + 1) + ' / ' + m.n + ' — 起用する選手と選択肢を選べ</span><p>' + esc(hl) + '</p></div></div><div class="squad-climax">' + rows + '</div>' +
       '<p class="hint">選択した瞬間に判定・保存される。同じ選手は決戦を通じて ' + BL.usesCap(run) + ' 回まで起用できる（全 18 局面）。</p></div>';
+  }
+  function rivalStrip(m, ctx) {
+    var rv = m.rival ? BL.rivalCard(m.rival) : null; if (!rv) return '';
+    return '<div class="rival-strip" style="--rc:' + rc(rv.rar) + '"><span class="thumb">' + art(rv, 72) + '</span><div><i>対戦相手</i><b>' + esc(D.CHARACTERS[rv.char].name) + '</b><small>' + esc(ctx.lead || '') + '</small></div></div>';
   }
   function renderClimaxResult(m, ctx) {
     var r = m.lastResult;
@@ -4199,6 +4565,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     'buy-upgrade': function (arg) { var res = BL.buyUpgrade(state, arg); if (!res.ok) { toast({ gems: 'Ego Gems が足りない', max: '最大 Lv' }[res.reason] || '購入できない', 'warn'); return; } sfx('buy'); toast(res.def.name + ' Lv.' + res.lv + '（💎 -' + res.cost + '）', 'ok'); render(); },
     'star-up': function (arg) { var res = BL.starUp(state, arg); if (!res.ok) { toast({ pieces: 'ピースが足りない', max: 'このカードの星上げは上限', top: '既に ★8' }[res.reason] || '星上げできない', 'warn'); return; } sfx('rare'); toast('星上げ → ' + stars(res.rar) + '（🧩 -' + res.cost + '）', 'ok'); render(); },
     'story-next': function () { BL.continueStory(state); sfx('click'); afterWeekAction(); },
+    'choose-story': function (arg) { var res = BL.chooseStory(state, parseInt(arg, 10)); if (!res.ok) return; sfx(res.rollWin === false ? 'lost' : 'event'); ui.modal = { type: 'choiceResult', result: res }; render(); },
+    'close-choice': function () { ui.modal = null; afterWeekAction(); },
+    'open-export': function (arg) { ui.modal = { type: 'export', kind: arg }; render(); },
+    'copy-text': function () { var ta = document.querySelector('.modal textarea'); if (!ta) return; var done = function () { toast('コピーした', 'ok'); }; var fb = function () { ta.focus(); ta.select(); toast('選択したテキストをコピーしてください', 'warn'); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, fb); else fb(); },
     'choose-club': function (arg) { BL.chooseClub(state, arg); sfx('click'); afterWeekAction(); },
     'train': function (arg) {
       if (ui.busy || !clickGuard()) return; var res = BL.train(state, arg); if (!res.ok) return;
@@ -4290,7 +4660,27 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     for (var id in D.CHARACTERS) if (D.CHARACTERS[id].name === base || D.CHARACTERS[id].name.replace(/[・ ]/g, '') === base.replace(/[・ ]/g, '')) return id;
     return null;
   }
+  function readTextFile(file, cb) { var r = new FileReader(); r.onload = function () { cb(String(r.result || '')); }; r.onerror = function () { cb(null); }; r.readAsText(file); }
   document.addEventListener('change', function (e) {
+    var imp = e.target; if (imp && imp.matches && imp.matches('input[type=file][data-import-save]')) {
+      var f0 = imp.files && imp.files[0]; if (!f0) return;
+      readTextFile(f0, function (txt) {
+        if (txt === null) { toast('ファイルを読めない', 'warn'); return; }
+        var res = BL.importSave(txt); if (!res.ok) { toast(res.reason === 'parse' ? 'JSON として読めない' : 'セーブデータの形式ではない', 'warn'); return; }
+        state = res.state; BL.SFX.setEnabled(state.meta.sfx !== false); ui.modal = null; ui.inLobby = !!(state.run || state.wc); ui.screen = 'game'; ui.lobbyTab = 'records';
+        toast('セーブデータを読み込んだ', 'ok'); render();
+      });
+      return;
+    }
+    if (imp && imp.matches && imp.matches('input[type=file][data-import-portraits]')) {
+      var f1 = imp.files && imp.files[0]; if (!f1) return;
+      readTextFile(f1, function (txt) {
+        if (txt === null) { toast('ファイルを読めない', 'warn'); return; }
+        var res = BL.importPortraits(state, txt); if (!res.ok) { toast('画像パックの形式ではない', 'warn'); return; }
+        toast('画像 ' + res.count + ' 件を読み込んだ', 'ok'); render();
+      });
+      return;
+    }
     var bulk = e.target; if (bulk && bulk.matches && bulk.matches('input[type=file][data-portrait-bulk]')) {
       var files = Array.prototype.slice.call(bulk.files || []); var okN = 0, ngN = 0, pending = files.length;
       if (!pending) return;
@@ -4313,6 +4703,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     if (e.key === 'Escape' && ui.modal && ui.modal.type !== 'event') { ui.modal = null; render(); return; }
     if (ui.modal || ui.screen === 'title' || ui.inLobby || !state.run) return;
     var run = state.run; var k = e.key.toUpperCase();
+    if (run.phase === 'storyChoice') { var ci = ['1', '2', '3', '4'].indexOf(e.key); if (ci >= 0) actions['choose-story'](String(ci)); return; }
     if (run.phase === 'training') {
       var idx = ['1', '2', '3', '4', '5'].indexOf(e.key); if (idx >= 0) { actions.train(D.STATS[idx]); return; }
       if (k === 'R') { actions.rest(); return; } if (k === 'S') { actions['open-store'](); return; }

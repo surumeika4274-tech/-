@@ -69,7 +69,7 @@
       meta: {
         gems: P.INITIAL_GEMS, roster: roster, hof: [],
         achievements: {}, pendingAch: [],
-        records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0 },
+        records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0, choices: 0 },
         history: [], sfx: true, portraits: {}, pieces: 0,
         grads: [], upgrades: {}, mastery: {}, squadPick: [],
         createdAt: Date.now()
@@ -252,6 +252,7 @@
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
     if (player.policy) { var pol = policyById(player.policy); if (pol) merge({ growth: pol.growth }); }
     if (player.upg) merge(upgradeFx(player.upg));
+    if (player.storyFx) merge(player.storyFx);
     if (player.masteryLv) { var mg = { growth: {} }; for (var i = 0; i < D.STATS.length; i++) mg.growth[D.STATS[i]] = P.MASTERY_GROWTH * player.masteryLv; merge(mg); }
     if (player.partnerId && card) { var ch = chemistryFor(card.char, cardById(player.partnerId), player.partnerTier || 0); if (ch) { merge(ch.fx); if (ch.pairFx) merge(ch.pairFx); } }
     return m;
@@ -317,7 +318,7 @@
 
   /** 節の試合定義を解決（NEL は所属クラブと対戦順から相手を決定） */
   function resolveMatch(run, arc, seg) {
-    var m = clone(seg.match);
+    var m = clone(seg.match); m.segId = seg.id;
     if (m.rule === 'nel') {
       var club = clubById(run.club) || D.NEL_CLUBS[0];
       var oppIdx = arc.segments.filter(function (s) { return s.match.rule === 'nel'; }).indexOf(seg);
@@ -328,10 +329,16 @@
       m.rate = { A: Math.round(m.base * opp.profile.A), B: Math.round(m.base * opp.profile.B), C: Math.round(m.base * opp.profile.C), D: Math.round(m.base * opp.profile.D) };
       m.intro = text.intro; m.highlights = text.highlights; m.canon = opp.canon;
       m.win = opp.name + ' を破った。スカウトの入札額が跳ね上がる。'; m.lose = opp.name + ' に敗れた。それでも入札は続く——ゴールがすべてだ。';
-      m.oppClub = opp.id;
+      m.oppClub = opp.id; if (text.rival) m.rival = text.rival;
     }
+    /* ストーリー分岐による敵レート補正・指名条件補正 */
+    var sr = run.segRate && run.segRate[seg.id];
+    if (sr) { var keys = ['A', 'B', 'C', 'D']; for (var ki = 0; ki < keys.length; ki++) { var kk = keys[ki]; if (m.rate[kk] == null) continue; var mult = (typeof sr === 'number') ? sr : (sr.all || 1) * (sr[kk] || 1); m.rate[kk] = Math.round(m.rate[kk] * mult); } }
+    if (m.nominateInt && run.nominateMult) m.nominateInt = Math.round(m.nominateInt * run.nominateMult);
     return m;
   }
+  /** 試合画面に出すライバルの代表カード（そのキャラの最高レア） */
+  BL.rivalCard = function (charId) { var best = null; for (var i = 0; i < BL.CARDS.length; i++) { var c = BL.CARDS[i]; if (c.char !== charId) continue; if (!best || Number(c.rar) > Number(best.rar)) best = c; } return best; };
   BL.resolveMatch = resolveMatch;
   BL.currentMatchDef = function (run) { var seg = segOf(run); return seg ? resolveMatch(run, arcOf(run), seg) : null; };
 
@@ -615,7 +622,7 @@
   BL.previewOptionsFor = function (run, i) { var m = BL.currentMatchDef(run); return m ? computeOptions(playerView(run, i), m, { note: run.note, flow: false }) : []; };
 
   function newMatchState(mdef, note) {
-    return { name: mdef.name, enemy: mdef.enemy, lead: mdef.lead, rule: mdef.rule, n: mdef.n, rate: mdef.rate, options: mdef.options || null,
+    return { name: mdef.name, enemy: mdef.enemy, lead: mdef.lead, rule: mdef.rule, n: mdef.n, rate: mdef.rate, options: mdef.options || null, rival: mdef.rival || null, segId: mdef.segId || null,
              intro: mdef.intro, highlights: mdef.highlights, canon: mdef.canon, winText: mdef.win, loseText: mdef.lose, nominateInt: mdef.nominateInt || 0, final: !!mdef.final,
              note: !!note, idx: 0, me: 0, en: 0, wins: 0, losses: 0, results: [], current: null, showResult: false, ended: false,
              cold: false, draw: false, won: false, flows: 0, flowSuccess: 0 };
@@ -832,18 +839,68 @@
     return { ok: true, phase: run.phase };
   };
 
+  function segAvailable(run, seg) {
+    var c = seg.cond ? [].concat(seg.cond) : []; for (var i = 0; i < c.length; i++) if (!run.flags[c[i]]) return false;
+    var sk = seg.skipIf ? [].concat(seg.skipIf) : []; for (var j = 0; j < sk.length; j++) if (run.flags[sk[j]]) return false;
+    return true;
+  }
+  function startSegment(state, seg) {
+    var run = state.run; var arc = arcOf(run);
+    run.weeksLeft = seg.weeks; run.phase = 'training'; rollHot(run);
+    pushLog(run, '【' + arc.title + '】' + seg.name + '——公式戦まで ' + seg.weeks + ' 週。');
+    if (seg.weeks <= 0) beginMatch(state);
+  }
   function enterSegment(state) {
     var run = state.run; var arc = arcOf(run);
     while (run.seg < arc.segments.length) {
       var seg = arc.segments[run.seg];
-      if (seg.cond && !run.flags[seg.cond]) { run.seg += 1; continue; }
-      run.weeksLeft = seg.weeks; run.phase = 'training'; rollHot(run);
-      pushLog(run, '【' + arc.title + '】' + seg.name + '——公式戦まで ' + seg.weeks + ' 週。');
-      if (seg.weeks <= 0) beginMatch(state);
-      return;
+      if (!segAvailable(run, seg)) { run.seg += 1; continue; }
+      if (seg.choice && !(run.choices && run.choices[seg.id] !== undefined)) { run.phase = 'storyChoice'; return; }
+      startSegment(state, seg); return;
     }
     evaluateArc(state);
   }
+  /* ------------------------------------------------------------ story choices */
+  function applyChoiceFx(state, run, fx, seg, out) {
+    if (!fx) return;
+    var i;
+    if (fx.ifFlag) { applyChoiceFx(state, run, run.flags[fx.ifFlag.flag] ? fx.ifFlag.then : fx.ifFlag.else, seg, out); }
+    if (fx.flags) for (i = 0; i < fx.flags.length; i++) run.flags[fx.flags[i]] = true;
+    var sf = run.storyFx;
+    if (fx.opt) for (var k in fx.opt) { sf.opt[k] = (sf.opt[k] || 0) + fx.opt[k]; out.push('Option ' + k + ' +' + fx.opt[k] + '%'); }
+    if (fx.favOpt) { var card = cardById(run.cardId); var fav = card ? charOf(card).fav : 'A'; sf.opt[fav] = (sf.opt[fav] || 0) + fx.favOpt; out.push('Option ' + fav + ' +' + fx.favOpt + '%'); }
+    if (fx.all) { sf.all += fx.all; out.push('全選択肢 +' + fx.all + '%'); }
+    if (fx.growth) for (var g in fx.growth) { sf.growth[g] += fx.growth[g]; out.push(g + ' 成長 +' + Math.round(fx.growth[g] * 100) + '%'); }
+    if (fx.flowP) { sf.flowP += fx.flowP; out.push('FLOW 突入率 +' + Math.round(fx.flowP * 100) + '%'); }
+    if (fx.hpCost) { sf.hpCost += fx.hpCost; out.push('練習HP消費 ' + (fx.hpCost > 0 ? '+' : '') + fx.hpCost); }
+    if (fx.bidMult) { sf.bidMult *= fx.bidMult; out.push('年俸 ×' + fx.bidMult); }
+    if (fx.rateMult) { var cur = run.segRate[seg.id]; run.segRate[seg.id] = (typeof cur === 'number' ? cur : 1) * fx.rateMult; out.push('敵レート ×' + fx.rateMult); }
+    if (fx.rateMultKeys) { var o = run.segRate[seg.id]; if (typeof o !== 'object' || !o) o = { all: (typeof o === 'number' ? o : 1) }; for (var rk in fx.rateMultKeys) { o[rk] = (o[rk] || 1) * fx.rateMultKeys[rk]; out.push('Option ' + rk + ' レート ×' + fx.rateMultKeys[rk]); } run.segRate[seg.id] = o; }
+    if (fx.nominateMult) { run.nominateMult = (run.nominateMult || 1) * fx.nominateMult; out.push('指名 INT ×' + fx.nominateMult); }
+    if (fx.stat || fx.hp || fx.cond || fx.protein) { var tgt = { stat: fx.stat, hp: fx.hp, cond: fx.cond, protein: fx.protein }; var eff = applyFx(state, run, tgt, null); for (i = 0; i < eff.length; i++) out.push(eff[i]); }
+    if (fx.cash) { run.cash = Math.max(0, run.cash + fx.cash); out.push('Cash ' + (fx.cash >= 0 ? '+' : '') + '¥' + fx.cash.toLocaleString()); }
+    if (fx.ach) unlock(state, fx.ach);
+  }
+  BL.chooseStory = function (state, idx) {
+    var run = state.run;
+    if (!run || run.phase !== 'storyChoice') return { ok: false };
+    var seg = arcOf(run).segments[run.seg]; var ch = seg && seg.choice; var opt = ch && ch.options[idx];
+    if (!opt) return { ok: false, reason: 'option' };
+    var res = { ok: true, title: ch.title, label: opt.label, text: opt.result || '', effects: [] };
+    if (opt.fx && opt.fx.roll) {
+      var win = rng() < opt.fx.roll.p; res.rollWin = win; res.text = win ? opt.fx.roll.winText : opt.fx.roll.loseText;
+      applyChoiceFx(state, run, win ? opt.fx.roll.win : opt.fx.roll.lose, seg, res.effects);
+      if (win) unlock(state, 'gamble_win');
+    } else applyChoiceFx(state, run, opt.fx, seg, res.effects);
+    run.choices[seg.id] = idx; run.choiceLog.push({ arc: run.arc, seg: seg.id, title: ch.title, label: opt.label });
+    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10');
+    pushLog(run, '【分岐】' + ch.title + ' → ' + opt.label + (res.effects.length ? '（' + res.effects.join(' / ') + '）' : ''));
+    run.lastChoice = res;
+    startSegment(state, seg);
+    BL.save(state);
+    return res;
+  };
+  BL.currentChoice = function (run) { if (!run || run.phase !== 'storyChoice') return null; var seg = arcOf(run).segments[run.seg]; return seg ? { seg: seg, choice: seg.choice } : null; };
 
   /* ------------------------------------------------------------ graduates */
   function gradById(state, id) { for (var i = 0; i < state.meta.grads.length; i++) if (state.meta.grads[i].id === id) return state.meta.grads[i]; return null; }
@@ -859,6 +916,7 @@
     g.bid = run.bid; g.cash = run.cash; g.partRanks = (run.partRanks || []).slice(); g.rank = run.rank || 300;
     g.advisorId = run.advisorId; g.partnerId = run.partnerId || null; g.club = run.club || g.club || null;
     g.policies = (g.policies || []).concat([run.policy]); g.updatedAt = Date.now(); g.runs = (g.runs || 0) + 1;
+    g.flags = clone(run.flags || {}); g.choiceLog = (run.choiceLog || []).slice(-30);
     for (var k in run.totals) if (run.totals.hasOwnProperty(k)) g.totals[k] = (g.totals[k] || 0) + run.totals[k];
     g.history = (g.history || []).concat(run.history); if (g.history.length > 40) g.history = g.history.slice(-40);
     ev.graduated = true; ev.gradId = g.id; ev.part = g.part;
@@ -1018,7 +1076,8 @@
       match: null, matchResult: null, evalResult: null, gameover: null, log: [], flags: {}, history: [],
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
       totals: { goals: 0, climaxWins: 0, flows: 0, events: 0, purchases: 0, weeksTrained: 0, weeksRested: 0, matches: 0, matchWins: 0, pairEvents: 0 },
-      upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs
+      upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs,
+      choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
     };
   }
   /** opts: { cardId } → 第一編を新規開始 ／ { gradId } → 卒業生で次の編を開始。partnerId は任意（相棒）。旧 API startRun(state, cardId, advisorId) も受け付ける */
@@ -1049,6 +1108,7 @@
     run.skills = grad ? clone(grad.skills) : {}; run.sig = grad ? (grad.sig || 0) : 0; run.partRanks = grad ? (grad.partRanks || []).slice() : [];
     run.bid = grad ? (grad.bid || 0) : 0; run.cash = grad ? (grad.cash || 0) : 0;
     run.partnerId = partner ? partner.id : null; run.partnerChar = partner ? partner.char : null; run.partnerTier = pown ? (pown.tier || 0) : 0;
+    if (grad) { run.flags = clone(grad.flags || {}); run.choiceLog = (grad.choiceLog || []).slice(); }
     state.run = run; state.meta.records.runs = state.meta.records.runs; run.runNo = state.meta.records.runs;
     var chem = partner ? chemistryFor(card.char, partner, run.partnerTier) : null;
     pushLog(run, BL.cardName(card) + (grad ? '（' + ARCS[arcIdx - 1].part + ' 卒業）' : '') + ' の育成を開始（アドバイザー：' + adv.name + (partner ? ' ／ 相棒：' + BL.cardName(partner) + (chem && chem.pair ? '＝化学反応「' + chem.name + '」' : '') : '') + '）。');
@@ -1191,6 +1251,24 @@
     if (v >= 1e8) { var oku = Math.floor(v / 1e8); var man = Math.round((v % 1e8) / 1e4); return oku + '億' + (man ? man.toLocaleString() + '万' : '') + '円'; }
     if (v >= 1e4) return Math.round(v / 1e4).toLocaleString() + '万円';
     return v.toLocaleString() + '円';
+  };
+  /** セーブのエクスポート／インポート（JSON 文字列。インポートは検証・移行のうえ上書き保存し、新しい state を返す） */
+  BL.exportSave = function (state) { return JSON.stringify(state); };
+  BL.importSave = function (json) {
+    var st; try { st = JSON.parse(json); } catch (e) { return { ok: false, reason: 'parse' }; }
+    if (!st || typeof st !== 'object' || !st.meta || !st.meta.roster) return { ok: false, reason: 'format' };
+    if (st.v !== SAVE_VERSION) st = migrate(st);
+    var fresh = newState().meta;
+    for (var k in fresh) if (fresh.hasOwnProperty(k) && st.meta[k] === undefined) st.meta[k] = fresh[k];
+    for (var r in fresh.records) if (st.meta.records[r] === undefined) st.meta.records[r] = fresh.records[r];
+    BL.save(st); return { ok: true, state: st };
+  };
+  BL.exportPortraits = function (state) { return JSON.stringify({ portraits: state.meta.portraits || {} }); };
+  BL.importPortraits = function (state, json) {
+    var o; try { o = JSON.parse(json); } catch (e) { return { ok: false, reason: 'parse' }; }
+    var src = (o && o.portraits) || o; if (!src || typeof src !== 'object') return { ok: false, reason: 'format' };
+    var n = 0; for (var id in src) { if (!D.CHARACTERS[id] || typeof src[id] !== 'string' || src[id].indexOf('data:image/') !== 0) continue; var r = BL.setPortrait(state, id, src[id]); if (r.ok) n++; }
+    return { ok: true, count: n };
   };
   BL.toggleSfx = function (state) { state.meta.sfx = !state.meta.sfx; BL.save(state); return state.meta.sfx; };
   /** 利用者が権利を持つ画像をキャラのポートレートとして端末内に保存（data URL、上限 60KB／枚・合計 3MB） */
