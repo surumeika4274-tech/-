@@ -9,8 +9,8 @@
   var D = BL.DATA;
   var P = D.PARAMS;
   var ARCS = BL.STORY.arcs;
-  var SAVE_KEY = 'bl_pwc_egoist_save_v3';
-  var SAVE_VERSION = 3;
+  var SAVE_KEY = 'bl_pwc_egoist_save_v4';
+  var SAVE_VERSION = 4;
 
   var rng = Math.random;
   BL.setRng = function (fn) { rng = fn; };
@@ -60,7 +60,7 @@
         gems: P.INITIAL_GEMS, roster: roster, hof: [],
         achievements: {}, pendingAch: [],
         records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0 },
-        history: [], sfx: true, portraits: {}, createdAt: Date.now()
+        history: [], sfx: true, portraits: {}, pieces: 0, createdAt: Date.now()
       },
       run: null, wc: null
     };
@@ -140,6 +140,7 @@
     }
     if (player.advisorId) { var adv = advisorById(player.advisorId); if (adv) merge(adv.fx); }
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
+    if (player.policy) { for (var pi = 0; pi < D.POLICIES.length; pi++) if (D.POLICIES[pi].id === player.policy) merge({ growth: D.POLICIES[pi].growth }); }
     return m;
   }
   BL.playerMods = playerMods;
@@ -523,10 +524,23 @@
     run.match.showResult = false; BL.save(state);
   };
 
+  /** 圧倒度：その試合の最良選択肢の比率 r が 1 を超える分だけ入札額を上乗せ（r=3 で ×1.5 上限）。FLOW 帯（25〜40%）に入らないほど強い選手が年俸で不利にならないための補正 */
+  function dominanceMult(run, m) {
+    var opts = computeOptions(run, m, {}); var best = 0;
+    for (var i = 0; i < opts.length; i++) if (opts[i].ratio > best) best = opts[i].ratio;
+    return 1 + P.BID_DOMINANCE * clamp(best - 1, 0, 2);
+  }
+  BL.dominanceMult = dominanceMult;
   function bidMultiplier(run) { var agg = aggregateSkills(run); var mods = playerMods(run); return (1 + P.BID_SKILL_STEP * agg.count + agg.bid) * mods.bidMult; }
   BL.bidMultiplier = bidMultiplier;
 
-  var RANK_PAR = [90, 170, 630, 2300, 5600, 19000];
+  var RANK_PAR = [170, 700, 2500, 6000, 20000];
+  function partRank(run) {
+    var ratio = sumStats(run.stats) / RANK_PAR[Math.min(run.arc, RANK_PAR.length - 1)];
+    for (var i = 0; i < D.PART_RANKS.length; i++) if (ratio >= D.PART_RANKS[i].r) return D.PART_RANKS[i].k;
+    return 'D';
+  }
+  BL.partRank = partRank;
   function blRank(run) {
     var total = sumStats(run.stats); var par = RANK_PAR[Math.min(run.arc, RANK_PAR.length - 1)];
     return clamp(Math.round(300 * Math.pow(par / Math.max(1, total), 2)), 1, 300);
@@ -538,7 +552,7 @@
     var run = state.run; var m = run.match; var arc = arcOf(run);
     var mods = playerMods(run); var agg = aggregateSkills(run);
     var goals = m.me;
-    var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
+    var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * dominanceMult(run, m) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
     var cashGain = Math.round((goals * arc.cashPerGoal + (m.won ? arc.cashWin : 0)) * mods.cashMult * agg.cashMult);
     run.bid += bidGain; run.cash += cashGain;
     run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1;
@@ -562,6 +576,7 @@
     /* ルール別の帰結 */
     var rule = m.rule;
     if (rule === 'single' && !m.won) { mr.outcome = 'eliminated'; mr.detail = '試練に失敗——脱落'; }
+    else if (rule === 'single' && m.won && /オニごっこ/.test(m.name)) unlock(state, 'pass_entry');
     else if ((rule === 'mustWin' || rule === 'tryout') && !m.won) { mr.outcome = 'eliminated'; mr.detail = m.cold ? 'コールド負け：勝利条件の達成が数学的に不可能となり試合打ち切り' : '敗北——除籍'; }
     else if (rule === 'perfect' && m.wins < m.n) { mr.outcome = 'eliminated'; mr.detail = '完全勝利ならず——世界一には届かなかった'; }
     else if (rule === 'stage3_rin' && !m.won) { mr.outcome = 'branch'; mr.detail = '蜂楽を奪われた。潔と凪、2人で2ndステージへ'; run.flags.rinLoss = true; }
@@ -623,13 +638,16 @@
     if (!checks.length) checks.push({ label: arc.title + ' 突破', value: '達成', ok: true });
     var survived = true; for (var i = 0; i < checks.length; i++) if (!checks[i].ok) survived = false;
     var isFinal = run.arc === ARCS.length - 1;
-    var ev = { arc: run.arc, title: arc.title, checks: checks, survived: survived, isFinal: isFinal, gems: 0, total: Math.round(total), bid: run.bid, wins: as.wins, goals: as.goals, rank: blRank(run) };
+    var pr = partRank(run);
+    run.partRanks = run.partRanks || []; run.partRanks[run.arc] = pr;
+    if (pr === 'SS') unlock(state, 'part_ss');
+    var ev = { arc: run.arc, title: arc.title, part: arc.part, checks: checks, survived: survived, isFinal: isFinal, gems: 0, total: Math.round(total), bid: run.bid, wins: as.wins, goals: as.goals, rank: blRank(run), partRank: pr };
     if (survived) {
-      ev.gems = arc.n === 0 ? 100 : P.GEMS_SURVIVE;
+      ev.gems = P.GEMS_SURVIVE;
       if (isFinal) { ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear'); }
       state.meta.gems += ev.gems;
       if (run.arc > state.meta.records.bestArc) state.meta.records.bestArc = run.arc;
-      var achMap = { entry: 'pass_entry', first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
+      var achMap = { first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
       if (achMap[arc.id]) unlock(state, achMap[arc.id]);
       pushLog(run, '【査定】' + arc.title + ' 生存。Ego Gems +' + ev.gems);
     } else {
@@ -651,8 +669,10 @@
       else {
         run.arc += 1; run.seg = 0; run.match = null; run.matchResult = null; run.evalResult = null;
         run.arcState = { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false };
+        run.policy = null;
         run.phase = 'arcIntro';
-        pushLog(run, '第' + arcOf(run).n + '章「' + arcOf(run).title + '」開始。');
+        if (arcOf(run).id === 'wc') unlock(state, 'five_parts');
+        pushLog(run, arcOf(run).part + '「' + arcOf(run).title + '」開始。');
       }
     } else {
       run.gameover = { reason: 'cutoff', detail: '足切り条件未達', gems: ev.gems, arc: run.arc, total: Math.round(sumStats(run.stats)), skills: aggregateSkills(run).count, bid: run.bid };
@@ -665,9 +685,24 @@
   BL.continueStory = function (state) {
     var run = state.run;
     if (!run || run.phase !== 'arcIntro') return { ok: false };
-    var arc = arcOf(run);
-    if (arc.chooseClub && !run.club) { run.phase = 'clubSelect'; BL.save(state); return { ok: true, phase: 'clubSelect' }; }
+    if (!run.policy) { run.phase = 'policySelect'; BL.save(state); return { ok: true, phase: 'policySelect' }; }
+    afterPolicy(state);
+    BL.save(state);
+    return { ok: true, phase: run.phase };
+  };
+  function afterPolicy(state) {
+    var run = state.run; var arc = arcOf(run);
+    if (arc.chooseClub && !run.club) { run.phase = 'clubSelect'; return; }
     enterSegment(state);
+  }
+  BL.choosePolicy = function (state, policyId) {
+    var run = state.run;
+    if (!run || run.phase !== 'policySelect') return { ok: false };
+    var ok = false; for (var i = 0; i < D.POLICIES.length; i++) if (D.POLICIES[i].id === policyId) ok = true;
+    if (!ok) return { ok: false, reason: 'policy' };
+    run.policy = policyId;
+    pushLog(run, '【育成方針】' + policyId + ' を選択。');
+    afterPolicy(state);
     BL.save(state);
     return { ok: true, phase: run.phase };
   };
@@ -712,7 +747,7 @@
     if (run.phase !== 'gameover' && run.phase !== 'clear') return;
     var card = cardById(run.cardId);
     state.meta.history.unshift({ card: BL.cardName(card), rar: card.rar, arc: run.arc, arcTitle: arcOf(run).title, cleared: run.phase === 'clear',
-      reason: run.gameover ? run.gameover.reason : 'clear', total: Math.round(sumStats(run.stats)), bid: run.bid, rank: run.rank || 300, at: Date.now(), runNo: run.runNo });
+      reason: run.gameover ? run.gameover.reason : 'clear', total: Math.round(sumStats(run.stats)), bid: run.bid, rank: run.rank || 300, partRanks: (run.partRanks || []).slice(), at: Date.now(), runNo: run.runNo });
     if (state.meta.history.length > 20) state.meta.history.length = 20;
     state.run = null; BL.save(state);
   };
@@ -729,7 +764,7 @@
     state.run = {
       cardId: cardId, charId: card.char, advisorId: adv.id, club: null,
       arc: 0, seg: 0, weeksLeft: 0,
-      stats: prof.stats, growth: prof.growth, lb: owned.dupes || 0, hp: 100, cond: 'normal', skills: {}, sig: 0,
+      stats: prof.stats, growth: prof.growth, lb: owned.dupes || 0, hp: 100, cond: 'normal', skills: {}, sig: 0, policy: null, partRanks: [],
       bid: 0, cash: 0, phase: 'arcIntro', protein: false, note: false, event: null, lastEventId: null,
       match: null, matchResult: null, evalResult: null, gameover: null, log: [], flags: {}, history: [],
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
@@ -757,15 +792,37 @@
       var rar = rollRarity(); var pool = [];
       for (var j = 0; j < BL.CARDS.length; j++) if (BL.CARDS[j].rar === rar) pool.push(BL.CARDS[j]);
       var card = pick(pool); var entry = state.meta.roster[card.id]; var isNew = !entry;
-      if (isNew) state.meta.roster[card.id] = { dupes: 0, obtainedAt: Date.now() }; else entry.dupes += 1;
+      var piecesGain = 0;
+      if (isNew) state.meta.roster[card.id] = { dupes: 0, obtainedAt: Date.now() }; else { entry.dupes += 1; piecesGain = D.PIECES.gain[card.rar] || 0; state.meta.pieces = (state.meta.pieces || 0) + piecesGain; }
       if (state.meta.roster[card.id].dupes >= 10) unlock(state, 'lb_10');
-      results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type });
+      results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type, pieces: piecesGain });
     }
     state.meta.records.gachaPulls += n;
     if (state.meta.records.gachaPulls >= 50) unlock(state, 'gacha_50');
     if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
     BL.save(state);
     return { ok: true, results: results, cost: cost };
+  };
+
+  /** エゴ・ピース交換：任意のカードをピースで獲得（未所持なら新規、所持済みなら限界突破） */
+  BL.exchange = function (state, cardId) {
+    var card = cardById(cardId); if (!card) return { ok: false, reason: 'card' };
+    var cost = D.PIECES.cost[card.rar];
+    if ((state.meta.pieces || 0) < cost) return { ok: false, reason: 'pieces' };
+    state.meta.pieces -= cost;
+    var entry = state.meta.roster[cardId]; var isNew = !entry;
+    if (isNew) state.meta.roster[cardId] = { dupes: 0, obtainedAt: Date.now() }; else entry.dupes += 1;
+    unlock(state, 'exchange_1');
+    if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
+    BL.save(state);
+    return { ok: true, isNew: isNew, dupes: state.meta.roster[cardId].dupes, cost: cost };
+  };
+  /** おまかせ練習：次の試合の最良選択肢に対応する属性のうち、主獲得量が大きい方を選ぶ */
+  BL.recommendStat = function (run) {
+    var opts = BL.previewOptions(run); if (!opts.length) return 'SHT';
+    var best = opts[0]; for (var i = 0; i < opts.length; i++) if (opts[i].ratio > best.ratio) best = opts[i];
+    var g0 = BL.previewGain(run, best.stats[0])[best.stats[0]], g1 = BL.previewGain(run, best.stats[1])[best.stats[1]];
+    return g0 >= g1 ? best.stats[0] : best.stats[1];
   };
 
   /* ------------------------------------------------------------ World Cup (endgame) */

@@ -23,6 +23,7 @@ while (state.run && guard++ < 3000) {
   const run = state.run;
   switch (run.phase) {
     case 'arcIntro': console.log('\n#### 第' + BL.arcOf(run).n + '章 ' + BL.arcOf(run).title); BL.continueStory(state); break;
+    case 'policySelect': BL.choosePolicy(state, process.env.POLICY || 'balance'); break;
     case 'clubSelect': BL.chooseClub(state, process.argv[5] || 'de'); break;
     case 'training':
       if (run.hp < 30 || (run.hp < 50 && run.weeksLeft > 1)) { BL.rest(state); break; }

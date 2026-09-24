@@ -43,6 +43,7 @@ for (const c of cards) {
       const run = state.run;
       switch (run.phase) {
         case 'arcIntro': BL.continueStory(state); break;
+        case 'policySelect': BL.choosePolicy(state, ['shoot','tactic','speed','balance'][Math.floor(rnd() * 4)]); break;
         case 'clubSelect': BL.chooseClub(state, 'de'); break;
         case 'training':
           if (run.hp < 30 || (run.hp < 50 && run.weeksLeft > 1)) { BL.rest(state); break; }

@@ -28,6 +28,9 @@ function policyTrain(state) {
   if (run.weeksLeft === 1 && !run.note && run.cash >= BL.itemPrice(D.ITEMS[2], run)) BL.buy(state, 'note');
   return BL.train(state, bestTrainStat(run));
 }
+/* 人間の判断に合わせ、カードの主タイプに沿った育成方針を選ぶ（POLICY 環境変数で固定可） */
+const POLICY_BY_TYPE = { 'キック': 'shoot', 'フィジカル': 'shoot', 'スピード': 'speed', 'テクニック': 'tactic', '賢さ': 'tactic', 'スタミナ': 'balance', 'コンディション': 'balance' };
+function policyFor(run) { if (process.env.POLICY) return process.env.POLICY; const c = BL.cardById(run.cardId); return POLICY_BY_TYPE[c && c.type] || 'balance'; }
 function bestOption(opts) { let b = opts[0]; for (const o of opts) if (o.p > b.p) b = o; return b; }
 
 function playRun(cardId, dupes, advisor) {
@@ -39,6 +42,7 @@ function playRun(cardId, dupes, advisor) {
     const run = state.run;
     switch (run.phase) {
       case 'arcIntro': BL.continueStory(state); break;
+      case 'policySelect': BL.choosePolicy(state, policyFor(run)); break;
       case 'clubSelect': BL.chooseClub(state, 'de'); break;
       case 'training': policyTrain(state); break;
       case 'event': BL.resolveEvent(state, Math.floor(rnd() * 2)); break;
@@ -70,16 +74,16 @@ if (require.main === module) {
   // 1レアリティにつき同キャラの重複カードは1枚に絞る（計測量削減）。CARDS=all で全カード
   if (process.env.CARDS !== 'all') { const seen = new Set(); cards = cards.filter(c => { const k = c.rar + ':' + c.char; if (seen.has(k)) return false; seen.add(k); return true; }); }
   console.log('runs/card =', N, 'cards =', cards.length, 'dupes =', dupes);
-  console.log('card'.padEnd(34), 'rar', ' typ', '  a0'.padStart(6), 'a1'.padStart(6), 'a2'.padStart(6), 'a3'.padStart(6), 'a4'.padStart(6), 'a5'.padStart(6), '  clear%');
+  console.log('card'.padEnd(34), 'rar', ' typ', '  第一'.padStart(6), '第二'.padStart(6), '第三'.padStart(6), '第四'.padStart(6), '第五'.padStart(6), '  clear%');
   const agg = {};
   for (const c of cards) {
     const surv = [0, 0, 0, 0, 0, 0]; let clears = 0;
-    for (let i = 0; i < N; i++) { const r = playRun(c.id, dupes); for (let k = 0; k < 6; k++) if (r.arcReached >= k + 1) surv[k]++; if (r.cleared) clears++; }
+    for (let i = 0; i < N; i++) { const r = playRun(c.id, dupes); for (let k = 0; k < 5; k++) if (r.arcReached >= k + 1) surv[k]++; if (r.cleared) clears++; }
     const name = (BL.cardName(c)).slice(0, 18);
     const pad = 34 - [...name].reduce((a, ch) => a + (ch.charCodeAt(0) > 255 ? 2 : 1), 0);
     console.log(name + ' '.repeat(Math.max(1, pad)), c.rar.padEnd(3), c.type.slice(0, 2), ...surv.map(v => (100 * v / N).toFixed(1).padStart(6)), (100 * clears / N).toFixed(2).padStart(8));
-    const a = agg[c.rar] = agg[c.rar] || { n: 0, s: [0, 0, 0, 0, 0, 0], c: 0 };
-    a.n += N; for (let k = 0; k < 6; k++) a.s[k] += surv[k]; a.c += clears;
+    const a = agg[c.rar] = agg[c.rar] || { n: 0, s: [0, 0, 0, 0, 0], c: 0 };
+    a.n += N; for (let k = 0; k < 5; k++) a.s[k] += surv[k]; a.c += clears;
   }
   console.log('\n--- by rarity ---');
   for (const r of D.RARITY_ORDER) { const a = agg[r]; if (!a) continue; console.log(('★' + r).padEnd(8), ...a.s.map(v => (100 * v / a.n).toFixed(1).padStart(6)), (100 * a.c / a.n).toFixed(2).padStart(8)); }

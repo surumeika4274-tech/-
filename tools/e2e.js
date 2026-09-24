@@ -49,9 +49,14 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); console.log
   st = await S(); assert(st.run && st.run.phase === 'arcIntro' && st.run.advisorId === 'anri', 'run started at arc intro');
   assert(!!st.meta.achievements.first_run, 'first_run achievement');
   await page.screenshot({ path: OUT + '/09_arcintro.png', fullPage: true });
-  /* entry test: story-next → match immediately (0 weeks) */
-  await page.click('[data-action="story-next"]'); await wait(1700);
-  st = await S(); assert(st.run.phase === 'match' && st.run.match.rule === 'single' && st.run.match.current.options.length === 3, 'entry single climax with custom options');
+  /* v5: story-next → 育成方針選択 → 入寮テスト（0週）が第一編の先頭節 */
+  await page.click('[data-action="story-next"]'); await wait(300);
+  st = await S(); assert(st.run.phase === 'policySelect', 'policy select shown after arc intro');
+  assert((await page.$$('[data-action="choose-policy"]')).length === 4, '4 policies offered');
+  await page.screenshot({ path: OUT + '/09b_policy.png', fullPage: true });
+  await page.click('[data-action="choose-policy"][data-arg="balance"]'); await wait(1700);
+  st = await S(); assert(st.run.policy === 'balance', 'policy stored on run');
+  assert(st.run.phase === 'match' && st.run.match.rule === 'single' && st.run.match.current.options.length === 3, 'entry single climax with custom options');
   await page.screenshot({ path: OUT + '/10_entry_match.png', fullPage: true });
   /* force success for test determinism: set option p to 100 */
   await page.evaluate(() => { const s = BL_UI.state(); s.run.match.current.options.forEach(o => { o.p = 100; o.pct = 100; }); BL.save(s); BL_UI.render(); });
@@ -60,13 +65,9 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); console.log
   await page.click('[data-action="climax-next"]'); await wait(100);
   st = await S(); assert(st.run.phase === 'matchResult' && st.run.matchResult.outcome === 'advance', 'match result screen');
   await page.screenshot({ path: OUT + '/11_matchresult.png', fullPage: true });
-  await page.click('[data-action="match-next"]'); await wait(100);
-  st = await S(); assert(st.run.phase === 'evaluation' && st.run.evalResult.survived, 'arc0 evaluation survived');
-  await page.screenshot({ path: OUT + '/12_eval.png', fullPage: true });
-  await page.click('[data-action="eval-next"]'); await wait(1500);
-  st = await S(); assert(st.run.phase === 'arcIntro' && st.run.arc === 1, 'arc1 intro');
-  await page.click('[data-action="story-next"]'); await wait(200);
-  st = await S(); assert(st.run.phase === 'training' && st.run.weeksLeft === 3, 'arc1 seg1 training 3 weeks');
+  await page.click('[data-action="match-next"]'); await wait(1700);
+  st = await S(); assert(st.run.phase === 'training' && st.run.arc === 0 && st.run.seg === 1 && st.run.weeksLeft === 3, 'first arc: seg z_x training 3 weeks (no evaluation after entry test)');
+  assert(st.run.history.length === 1 && st.run.history[0].won, 'entry test recorded in match history');
   await page.screenshot({ path: OUT + '/13_training.png', fullPage: true });
 
   /* keyboard shortcut training + condition + event handling */
@@ -92,13 +93,18 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); console.log
       if (ph === 'matchResult') { if (st.run.match && st.run.match.showResult) { await page.click('[data-action="climax-next"]'); await wait(60); continue; } await page.click('[data-action="match-next"]'); await wait(1700); continue; }
       if (ph === 'evaluation') { await page.click('[data-action="eval-next"]'); await wait(1500); continue; }
       if (ph === 'arcIntro') { await page.evaluate(() => { const s = BL_UI.state(); Object.keys(s.run.stats).forEach(k => { s.run.stats[k] *= 4; }); BL.save(s); }); await page.click('[data-action="story-next"]'); await wait(200); continue; }
+      if (ph === 'policySelect') { await page.click('[data-action="choose-policy"][data-arg="balance"]'); await wait(200); continue; }
       if (ph === 'clubSelect') { await page.screenshot({ path: OUT + '/16_club.png', fullPage: true }); await page.click('[data-action="choose-club"][data-arg="fr"]'); await wait(200); continue; }
       if (ph === 'gameover' || ph === 'clear') return;
     }
   }
-  await playUntil(s => s.run.arc === 2 && s.run.phase === 'training');
-  st = await S(); assert(st.run.arc === 2, 'reached arc 2 (二次選考)');
+  await playUntil(s => s.run.phase === 'evaluation');
+  st = await S(); assert(st.run.phase === 'evaluation' && st.run.evalResult.survived && st.run.evalResult.partRank, 'first arc evaluation survived with part rank');
+  await page.screenshot({ path: OUT + '/12_eval.png', fullPage: true });
+  await playUntil(s => s.run.arc === 1 && s.run.phase === 'training');
+  st = await S(); assert(st.run.arc === 1, 'reached arc 1 (二次選考)');
   assert(!!st.meta.achievements.pass_first, 'pass_first achievement');
+  assert(st.run.partRanks && st.run.partRanks.length === 1, 'part rank recorded');
   /* force a loss at s_rin1 to test branch: play until s_rin1 match then set p=0 */
   await playUntil(s => s.run.phase === 'match' && s.run.match.rule === 'stage3_rin');
   st = await S(); assert(st.run.match.rule === 'stage3_rin', 'at 3rd stage vs Rin');
@@ -112,12 +118,13 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); console.log
   st = await S(); assert(st.run.phase === 'match' && /2ndステージ/.test(st.run.match.name), '2v2 segment inserted immediately (0 weeks)');
   await page.screenshot({ path: OUT + '/15_2v2.png', fullPage: true });
   /* continue to NEL club select and then to WC group */
-  await playUntil(s => s.run.arc === 4 && s.run.phase === 'training');
+  await playUntil(s => s.run.arc === 3 && s.run.phase === 'training');
   st = await S(); assert(st.run.club === 'fr', 'club chosen (PXG)');
   assert(/P・X・G/.test(BL_name(st)), 'NEL match resolved vs opponent');
   function BL_name(s) { return s.run.log.join(' '); }
-  await playUntil(s => s.run.arc === 5 && s.run.phase === 'training');
-  st = await S(); assert(st.run.arc === 5 && st.meta.achievements.pass_nel, 'reached WC arc + pass_nel');
+  await playUntil(s => s.run.arc === 4 && s.run.phase === 'training');
+  st = await S(); assert(st.run.arc === 4 && st.meta.achievements.pass_nel, 'reached WC arc + pass_nel');
+  assert(st.run.partRanks.length === 4, 'four part ranks before the final part');
   await playUntil(s => !s.run || s.run.phase === 'clear');
   st = await S(); assert(st.run && st.run.phase === 'clear', 'cleared the run (forced)');
   await page.screenshot({ path: OUT + '/17_clear.png', fullPage: true });

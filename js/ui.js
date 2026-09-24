@@ -20,8 +20,16 @@
   function cash(v) { return '¥' + Math.round(v).toLocaleString(); }
   function rc(r) { return D.RARITY[r].color; }
   function sfx(n) { if (state.meta.sfx !== false) BL.SFX.play(n); }
-  function typeIcon(t) { return (D.TYPE_MAP[t] || {}).icon || ''; }
+  function typeIcon(t) { return BL.ART.typeIcon(t, 14); }
   function art(card, size) { return BL.ART.svg(card, { portrait: (state.meta.portraits || {})[card.char] || null, size: size || 120 }); }
+  /* 育成中の選手を大きく見せる帯（編導入・方針選択・査定・除籍・世界一で共通） */
+  function runHero(run, size) {
+    var card = BL.cardById(run.cardId); if (!card) return '';
+    var pol = run.policy ? D.POLICIES.filter(function (p) { return p.id === run.policy; })[0] : null;
+    var ranks = (run.partRanks || []).map(function (r, i) { return r ? '<em class="pr ' + r + '">' + (i + 1) + ':' + r + '</em>' : ''; }).join('');
+    return '<div class="run-hero" style="--rc:' + rc(card.rar) + '"><div class="rh-art" data-action="card-detail" data-arg="' + card.id + '">' + art(card, size || 120) + '</div>' +
+      '<div class="rh-meta"><i>' + stars(card.rar) + ' ' + esc(D.RARITY[card.rar].name) + '</i><b>' + esc(BL.cardName(card)) + '</b><small>' + esc(card.type) + ' / ' + esc((card.pos || []).join('・')) + (pol ? ' / 方針：' + esc(pol.name) : '') + (run.lb ? ' / 限界突破 +' + run.lb : '') + '</small>' + (ranks ? '<div class="rh-ranks">' + ranks + '</div>' : '') + '</div></div>';
+  }
   function charOfRun(run) { return D.CHARACTERS[run.charId]; }
 
   function toast(msg, kind) {
@@ -51,6 +59,7 @@
     app.innerHTML = html;
     renderOverlay();
     document.body.classList.toggle('flow', isFlowActive());
+    document.body.setAttribute('data-part', state.run && !ui.inLobby ? String(BL.arcOf(state.run).n) : (state.wc && !ui.inLobby ? 'wc' : '0'));
     window.scrollTo(0, 0);
     if ($('.bid-num')) countUp();
     flushAchievements();
@@ -73,6 +82,8 @@
       case 'rules': inner = renderRules(); break;
       case 'advisor': inner = renderAdvisorPick(); break;
       case 'story': inner = renderStoryModal(); break;
+      case 'naming': inner = renderNamingList(); break;
+      case 'exchange': inner = renderExchange(); break;
       case 'summary': inner = '<div class="modal-head"><h2>RUN 結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">クリップボードにアクセスできない環境のため、以下を選択してコピーしてください。</p><textarea class="summary-box" id="summary-text" readonly onfocus="this.select()">' + esc(ui.modal.text) + '</textarea>'; break;
     }
     ov.innerHTML = '<div class="modal-backdrop"><div class="modal">' + inner + '</div></div>'; ov.hidden = false;
@@ -95,12 +106,22 @@
     var tabs = [['roster', '所持選手'], ['gacha', 'スカウト'], ['dex', '図鑑'], ['hof', '殿堂 / W杯'], ['ach', '実績'], ['records', '戦績・ルール']];
     var tabHtml = tabs.map(function (t) { return '<button class="tab' + (ui.lobbyTab === t[0] ? ' active' : '') + '" data-action="lobby-tab" data-arg="' + t[0] + '">' + t[1] + '</button>'; }).join('');
     var body = { roster: renderRoster, gacha: renderGacha, dex: renderDex, hof: renderHof, ach: renderAchievements, records: renderRecords }[ui.lobbyTab]();
+    var feat = featuredCard();
+    var hero = feat ? '<div class="home-hero"><div class="hero-art" data-action="card-detail" data-arg="' + feat.id + '">' + art(feat, 150) + '</div><div class="hero-text"><div class="hero-kicker">' + (state.run ? '育成中' : '推しストライカー') + '</div><h2>' + esc(D.CHARACTERS[feat.char].name) + '<small>【' + esc(feat.title) + '】 ' + stars(feat.rar) + ' ' + typeIcon(feat.type) + '</small></h2>' +
+      (state.run ? '<div class="muted">' + esc(BL.arcOf(state.run).part) + ' ' + esc(BL.arcOf(state.run).title) + ' ／ 公式戦まで ' + state.run.weeksLeft + ' 週 ／ 合計 ' + num(BL.sumStats(state.run.stats)) + '</div><button class="btn primary" data-action="resume-run">育成を再開</button>' : '<div class="muted">' + esc(D.CHARACTERS[feat.char].passive.name) + '：' + esc(D.CHARACTERS[feat.char].passive.desc) + '</div><button class="btn primary" data-action="pick-card" data-arg="' + feat.id + '">この選手で育成開始</button>') +
+      '</div></div>' : '';
     return '<section class="screen lobby">' + disclaimerBar() +
       '<header class="lobby-head"><div class="lobby-title"><span class="accent">BLUE LOCK</span> PWC — ロビー</div>' +
-      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
-      '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
+      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
+      hero + '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
   }
 
+  function featuredCard() {
+    if (state.run) return BL.cardById(state.run.cardId);
+    var ids = Object.keys(state.meta.roster); if (!ids.length) return null;
+    var best = null; ids.forEach(function (id) { var c = BL.cardById(id); if (c && (!best || Number(c.rar) > Number(best.rar))) best = c; });
+    return best;
+  }
   function cardCardHtml(card, own, opts) {
     var c = D.CHARACTERS[card.char]; var prof = BL.cardProfile(card, own ? own.dupes : 0);
     var statLine = D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(prof.stats[s]) + '</span>'; }).join('');
@@ -138,8 +159,26 @@
       var own = state.meta.roster[c.id]; var ch = D.CHARACTERS[c.char];
       return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + (c.flow ? ' F' : '') + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】' + (c.origin === 'mod' ? ' <small class="muted">改変版</small>' : '') + '</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') : '—') + '</td></tr>';
     }).join('');
-    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' + rarityFilterBar(ui.rosterFilter, 'roster-filter') +
+    var np = Object.keys(state.meta.portraits || {}).length;
+    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' +
+      '<div class="notice"><b>画像パック一括取り込み</b><span class="muted small">ファイル名をキャラID（例 isagi.png）またはキャラ名（例 潔世一.jpg）にした画像をまとめて選択すると、各キャラのポートレートとして端末内に保存する（設定済み ' + np + ' キャラ）。</span><label class="btn ghost sm"><input type="file" accept="image/*" multiple data-portrait-bulk="1" hidden>画像を選択</label><button class="btn ghost sm" data-action="open-naming">キャラID一覧</button></div>' +
+      rarityFilterBar(ui.rosterFilter, 'roster-filter') +
       '<table class="tbl dex"><thead><tr><th>レア</th><th>カード</th><th>タイプ</th><th>ポジション</th><th>所持</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+  function renderNamingList() {
+    var rows = Object.keys(D.CHARACTERS).map(function (id) { return '<tr><td><code>' + id + '</code></td><td>' + esc(D.CHARACTERS[id].name) + '</td><td>' + ((state.meta.portraits || {})[id] ? '設定済み' : '—') + '</td></tr>'; }).join('');
+    return '<div class="modal-head"><h2>キャラID一覧（画像ファイル名用）</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">ファイル名（拡張子を除く）が ID またはキャラ名と一致する画像を取り込む。1枚 60KB・合計 3MB まで（端末内で 160×200 に縮小）。</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>キャラ</th><th>画像</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function renderExchange() {
+    var pieces = state.meta.pieces || 0;
+    var cards = BL.CARDS.filter(function (c) { return ui.rosterFilter === 'all' || c.rar === ui.rosterFilter; });
+    var rows = cards.map(function (c) {
+      var own = state.meta.roster[c.id]; var cost = D.PIECES.cost[c.rar];
+      return '<tr><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + '</td><td><b>' + esc(D.CHARACTERS[c.char].name) + '</b> 【' + esc(c.title) + '】</td><td>' + (own ? '所持 +' + own.dupes : '未所持') + '</td><td class="num">🧩 ' + cost + '</td><td><button class="btn primary sm" data-action="exchange" data-arg="' + c.id + '"' + (pieces < cost ? ' disabled' : '') + '>交換</button></td></tr>';
+    }).join('');
+    return '<div class="modal-head"><h2>ピース交換所 <small class="muted">🧩 ' + num(pieces) + '</small></h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
+      '<p class="muted small">限界突破時に段階別ピース（★1 2 … ★8 150）を獲得。交換コストは ★1 30 / ★2 50 / ★3 90 / ★4 200 / ★5 400 / ★6 800 / ★7 1,600 / ★8 3,200。未所持なら新規、所持済みなら限界突破。</p>' +
+      rarityFilterBar(ui.rosterFilter, 'exchange-filter') + '<div class="tbl-wrap"><table class="tbl"><tbody>' + rows + '</tbody></table></div>';
   }
   function renderCardDetail() {
     var card = BL.cardById(ui.modal.cardId); if (!card) return '';
@@ -180,12 +219,13 @@
     return '<div class="gacha-panel"><div class="gacha-cta"><div><div class="muted">所持 Ego Gems</div><div class="big-num">💎 ' + num(m.gems) + '</div></div>' +
       '<div class="gacha-btns"><button class="btn primary" data-action="gacha" data-arg="1"' + (m.gems < P.GACHA_SINGLE ? ' disabled' : '') + '>単発スカウト<small>' + P.GACHA_SINGLE + ' Gems</small></button>' +
       '<button class="btn gold" data-action="gacha" data-arg="10"' + (m.gems < P.GACHA_TEN ? ' disabled' : '') + '>10連スカウト<small>' + P.GACHA_TEN + ' Gems</small></button></div></div>' +
-      '<p class="muted small">天井・確定枠は存在しない。8段階の提供割合は仕様書どおり（0.2 / 0.8 / 2 / 5 / 12 / 25 / 30 / 25%）。各カードの段階は、キャラの原作の格と PWC でのレアリティから割り当て（詳細は図鑑・README）。</p>' +
+      '<p class="muted small">天井・確定枠は存在しない。8段階の提供割合は仕様書どおり（0.2 / 0.8 / 2 / 5 / 12 / 25 / 30 / 25%）。所持済みカードの再排出は限界突破に加えて<b>エゴ・ピース</b>を付与し、ピースは交換所で任意のカードと交換できる。</p>' +
+      '<div class="exchange-cta"><span>🧩 所持ピース <b>' + num(m.pieces || 0) + '</b></span><button class="btn gold sm" data-action="open-exchange">ピース交換所</button></div>' +
       '<table class="tbl"><thead><tr><th>レア</th><th>クラス</th><th>提供割合</th><th>収録</th></tr></thead><tbody>' + rateRows + '</tbody></table></div>';
   }
   function renderGachaResult() {
     var res = ui.modal.results.map(function (r, i) {
-      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms" data-action="card-detail" data-arg="' + r.id + '"><div class="pull-art">' + art(BL.cardById(r.id), 96) + '</div><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-t">' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
+      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms" data-action="card-detail" data-arg="' + r.id + '"><div class="pull-art">' + art(BL.cardById(r.id), 96) + '</div><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-t">' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes + (r.pieces ? ' 🧩+' + r.pieces : '')) + '</div></div>';
     }).join('');
     var costN = ui.modal.n === 10 ? P.GACHA_TEN : P.GACHA_SINGLE;
     return '<div class="modal-head"><h2>スカウト結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="pulls">' + res + '</div>' +
@@ -217,10 +257,10 @@
   }
   function renderRecords() {
     var r = state.meta.records;
-    var hist = state.meta.history.map(function (h) { return '<tr><td>#' + h.runNo + '</td><td style="color:' + rc(h.rar) + '">' + esc(h.card) + '</td><td>' + (h.cleared ? '🏆 世界一' : '第' + ARCS[h.arc].n + '章 ' + esc(h.arcTitle) + ' で除籍') + '</td><td>' + num(h.total) + '</td><td>' + yen(h.bid) + '</td><td>' + h.rank + '位</td></tr>'; }).join('');
+    var hist = state.meta.history.map(function (h) { return '<tr><td>#' + h.runNo + '</td><td style="color:' + rc(h.rar) + '">' + esc(h.card) + '</td><td>' + (h.cleared ? '🏆 世界一' : esc(ARCS[h.arc].part) + ' ' + esc(h.arcTitle) + ' で除籍') + '</td><td>' + num(h.total) + '</td><td>' + yen(h.bid) + '</td><td>' + h.rank + '位' + (h.partRanks && h.partRanks.length ? ' / ' + h.partRanks.join('') : '') + '</td></tr>'; }).join('');
     return '<div class="records"><div class="kpis">' +
       '<div class="kpi"><i>周回数</i><b>' + r.runs + '</b></div><div class="kpi"><i>除籍回数</i><b>' + r.eliminations + '</b></div><div class="kpi"><i>世界一達成</i><b>' + r.clears + '</b></div>' +
-      '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? '第' + ARCS[r.bestArc].n + '章 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
+      '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? esc(ARCS[r.bestArc].part) + ' 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
       '<div class="kpi"><i>最高合計ステータス</i><b>' + num(r.bestTotal) + '</b></div><div class="kpi"><i>スカウト回数</i><b>' + r.gachaPulls + '</b></div><div class="kpi"><i>FIFA W杯 優勝</i><b>' + r.wcTitles + '</b></div></div>' +
       '<button class="btn ghost" data-action="open-rules">ルール・仕様を読む</button>' +
       (hist ? '<h4 class="sect">RUN 履歴</h4><table class="tbl"><thead><tr><th>#</th><th>カード</th><th>結果</th><th>合計</th><th>年俸</th><th>順位</th></tr></thead><tbody>' + hist + '</tbody></table>' : '') + '</div>';
@@ -229,7 +269,7 @@
     var arcRows = ARCS.map(function (a) {
       var segs = a.segments.map(function (s) { return esc(s.name) + '（' + s.weeks + '週' + (s.match.rule === 'single' ? '・単発' : '') + '）'; }).join(' → ');
       var cut = []; if (a.cut.statReq) cut.push('合計 ' + a.cut.statReq); if (a.cut.leagueWins) cut.push('リーグ ' + a.cut.leagueWins + ' 勝'); if (a.cut.finalMustWin) cut.push('最終戦勝利'); if (a.cut.bidReq) cut.push('年俸 ' + yen(a.cut.bidReq));
-      return '<tr><td>第' + a.n + '章 ' + esc(a.title) + '</td><td>' + segs + '</td><td>' + (cut.join(' / ') || '—') + '</td></tr>';
+      return '<tr><td>' + esc(a.part) + ' ' + esc(a.title) + '</td><td>' + segs + '</td><td>' + (cut.join(' / ') || '—') + '</td></tr>';
     }).join('');
     return '<div class="modal-head"><h2>ルール</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="rules">' +
       '<h4>進行</h4><ul><li>練習・休養は1クリックで即座に1週を消費。確認ダイアログは無い。すべての行動はクリックした瞬間に LocalStorage へ上書き保存され、リロードしてもやり直しは不可能。</li>' +
@@ -253,6 +293,7 @@
     var run = state.run;
     switch (run.phase) {
       case 'arcIntro': return renderArcIntro();
+      case 'policySelect': return renderPolicySelect();
       case 'clubSelect': return renderClubSelect();
       case 'training': case 'event': return renderTraining();
       case 'match': return renderMatch(run.match, runMatchCtx());
@@ -287,9 +328,14 @@
     var run = state.run; var arc = BL.arcOf(run);
     var paras = arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
     var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { return '<li><b>' + esc(s.name) + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></li>'; }).join('');
-    return '<section class="screen story"><div class="story-kicker">CHAPTER ' + arc.n + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' +
-      '<div class="story-body">' + paras + '</div><div class="panel"><h4>この章の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
-      '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">' + (arc.chooseClub ? '所属クラブを選ぶ' : '進む') + '</button></div></section>';
+    return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + ' — PART ' + arc.n + ' / ' + ARCS.length + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' + runHero(run, 120) +
+      '<div class="story-body">' + paras + '</div><div class="panel"><h4>この編の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
+      '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">育成方針を選ぶ</button></div></section>';
+  }
+  function renderPolicySelect() {
+    var run = state.run; var arc = BL.arcOf(run);
+    var list = D.POLICIES.map(function (p) { return '<button class="btn choice" data-action="choose-policy" data-arg="' + p.id + '"><span>' + esc(p.name) + '</span><small>' + esc(p.desc) + '</small></button>'; }).join('');
+    return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + '</div><h2 class="story-title">育成方針を選択<small>この編の練習に適用される成長補正。編ごとに選び直す（' + ARCS.length + '回の育成それぞれに方針を持つ）。</small></h2>' + runHero(run, 110) + '<div class="choices">' + list + '</div></section>';
   }
   function renderClubSelect() {
     var list = D.NEL_CLUBS.map(function (c) {
@@ -326,15 +372,15 @@
     var logHtml = run.log.slice(-6).reverse().map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('');
     var adv = BL.advisorById(run.advisorId); var club = run.club ? BL.clubById(run.club) : null;
     return '<section class="screen training"><header class="chapter-head' + (run.weeksLeft <= 1 ? ' urgent' : '') + '">' +
-      '<div class="ch-title">第' + arc.n + '章：' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + '</div>' +
+      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc((D.POLICIES.filter(function (x) { return x.id === run.policy; })[0] || {}).name || '') : '') + '</div>' +
       '<div class="head-btns"><button class="btn ghost sm" data-action="open-story">ストーリー</button><button class="btn ghost sm" data-action="to-lobby">ロビー</button></div></header>' +
       '<div class="train-grid"><div class="col"><div class="panel player">' +
-      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="thumb" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 64) + '</span><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
+      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="thumb" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 84) + '</span><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
       '<div class="hp ' + hpClass(run.hp) + '"><div class="hp-label"><span>肉体健全度 HP</span><b>' + run.hp + '%</b><em>' + hpLabel(run.hp) + '</em></div><div class="hp-bar"><i style="width:' + run.hp + '%"></i></div></div>' +
       '<div class="money"><span class="cond" style="color:' + cond.color + '">' + cond.icon + ' ' + cond.label + '</span><span>BLランク <b>' + (run.rank || 300) + '位</b></span><span>年俸 <b>' + yen(run.bid) + '</b></span><span>Cash <b>' + cash(run.cash) + '</b></span><span>💎 <b>' + num(state.meta.gems) + '</b></span></div>' +
       (run.protein || run.note ? '<div class="buffs">' + (run.protein ? '<span class="tag gold">🥤 次回練習×2</span>' : '') + (run.note ? '<span class="tag gold">📓 次試合 +10%</span>' : '') + '</div>' : '') + '</div>' +
       '<div class="panel stats">' + statRows + '<div class="stat-total">合計 <b>' + num(total) + '</b> <small>スキル乗数 ×' + (1 + P.SKILL_STEP * agg.count).toFixed(2) + ' / 環境倍率 ×' + arc.envMult + ' / HP効率 ×' + BL.hpEfficiency(run.hp) + ' / コンディション ×' + cond.mult + '</small></div></div>' +
-      '<div class="cmd-row"><button class="btn rest" data-action="rest"><span>休養</span><small>1週消費・HP +' + (P.REST_HEAL + BL.playerMods(run).restBonus) + '%</small></button><button class="btn store" data-action="open-store"><span>購買部</span><small>週消費なし・Cash ' + cash(run.cash) + '</small></button></div>' +
+      '<div class="cmd-row three"><button class="btn auto" data-action="auto-train"><span>おまかせ練習</span><small>次の試合に最適な属性（' + BL.recommendStat(run) + '）</small></button><button class="btn rest" data-action="rest"><span>休養</span><small>1週消費・HP +' + (P.REST_HEAL + BL.playerMods(run).restBonus) + '%</small></button><button class="btn store" data-action="open-store"><span>購買部</span><small>週消費なし・Cash ' + cash(run.cash) + '</small></button></div>' +
       '<p class="hint">練習：HP 約' + BL.expectedHpCost(run) + '% 消費。HP30%未満で練習を強行すると ' + Math.round(BL.injuryChance(run) * 100) + '% の確率で選手生命が終了する。ショートカット：1〜5 練習 / R 休養 / S 購買部</p></div>' +
       '<div class="col"><div class="panel next-match"><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div>' +
       '<div class="opt-prevs">' + optPrev + '</div><div class="muted small">原作：' + esc(mdef.canon || '') + '</div></div>' +
@@ -357,7 +403,7 @@
   }
   function renderStoryModal() {
     var run = state.run; var arc = BL.arcOf(run); var mdef = BL.currentMatchDef(run);
-    return '<div class="modal-head"><h2>第' + arc.n + '章 ' + esc(arc.title) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="story-body small">' + arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>' +
+    return '<div class="modal-head"><h2>' + esc(arc.part) + ' ' + esc(arc.title) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="story-body small">' + arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>' +
       (mdef ? '<div class="passive big"><b>次の試合：' + esc(mdef.name) + '</b><br>' + esc(mdef.intro || '') + '<br><small class="muted">' + esc(mdef.canon || '') + '</small></div>' : '');
   }
   function renderStore() {
@@ -411,19 +457,20 @@
     if (m.rule === 'single') text = r.success ? '——切り抜けた。' : '——届かなかった。';
     var endInfo = '';
     if (m.ended) { if (m.cold) endInfo = '<div class="cold">コールド負け — 勝利条件の達成が数学的に不可能。試合は打ち切られた。</div>'; else if (m.draw) endInfo = '<div class="cold">同点 — 延長戦なし。即時敗北。</div>'; else endInfo = '<div class="end ' + (m.won ? 'won' : 'lost') + '">試合終了 ' + m.me + ' - ' + m.en + ' ' + (m.won ? '勝利' : '敗北') + '</div>'; }
+    var cut = (r.success && ctx.card) ? '<div class="cutin"><div class="cutin-lines"></div><div class="cutin-art">' + art(ctx.card, 150) + '</div></div>' : '';
     var skill = r.skill ? '<div class="awaken" style="--c:' + D.STAT_META[r.skill.family].color + '"><i>スキル覚醒</i><b>' + esc(r.skill.name) + ' Lv.' + r.skill.lv + '</b><small>' + esc(r.skill.desc) + '</small></div>' : '';
     var sig = r.sig ? '<div class="awaken sigaw" style="--c:' + D.STAT_META[r.sig.family].color + '"><i>固有エゴ覚醒</i><b>' + esc(r.sig.name) + ' Lv.' + r.sig.lv + '</b><small>' + esc(r.sig.desc) + '</small></div>' : '';
     var nextAction = ctx.kind === 'wc' ? 'wc-next' : 'climax-next';
     var nextLabel = m.ended ? (ctx.kind === 'wc' ? '結果へ' : '試合結果へ') : '次の局面へ';
     return '<div class="result-wrap ' + (r.success ? 'success' : 'fail') + '"><div class="res-kicker">Climax ' + (r.idx + 1) + ' — ' + r.key + ' ' + esc(r.name) + ' (' + r.p + '%)' + (r.flow ? ' [FLOW]' : '') + '</div>' +
-      '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
+      cut + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="' + nextAction + '">' + nextLabel + '</button></div></div>';
   }
   function renderMatchResult() {
     var run = state.run; var mr = run.matchResult; var arc = BL.arcOf(run);
     var cls = mr.outcome === 'eliminated' ? 'elim' : (mr.won ? 'won' : 'lost');
     var label = { advance: mr.won ? '次へ' : '次へ（試合単位の除籍なし）', branch: '2ndステージへ（2対2）', nominated: '凛の指名で突破 — 次へ', eliminated: '除籍処分を受ける' }[mr.outcome];
-    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">第' + arc.n + '章 ' + esc(arc.title) + '</div><h2 class="mr-name">' + esc(mr.name) + '</h2></header>' +
+    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + '</div><h2 class="mr-name">' + esc(mr.name) + '</h2></header>' +
       '<div class="mr-score ' + cls + '"><b>' + mr.me + ' - ' + mr.en + '</b><span>' + (mr.cold ? 'コールド負け' : mr.draw ? '引き分け＝敗北' : mr.won ? '勝利' : '敗北') + '</span></div>' +
       '<p class="res-text center">' + esc(mr.text || '') + '</p>' + (mr.detail ? '<div class="' + (mr.outcome === 'eliminated' ? 'cold' : 'notice') + '">' + esc(mr.detail) + '</div>' : '') +
       '<div class="eval-grid"><div class="panel bid"><h4>年俸（入札）査定</h4><div class="bid-num" data-count="' + mr.bidTotal + '" data-from="' + (mr.bidTotal - mr.bidGain) + '">' + yen(mr.bidTotal - mr.bidGain) + '</div><div class="muted">今回 +' + yen(mr.bidGain) + '（ゴール ' + mr.goals + ' × 査定倍率 ×' + BL.bidMultiplier(run).toFixed(2) + (mr.wins === mr.n && mr.n > 1 ? ' × MVP1.5' : '') + '）</div>' +
@@ -437,22 +484,23 @@
     var run = state.run; var ev = run.evalResult;
     var checks = ev.checks.map(function (c) { return '<li class="' + (c.ok ? 'ok' : 'ng') + '"><span>' + esc(c.label) + '</span><b>' + esc(String(c.value)) + '</b></li>'; }).join('');
     var verdict = ev.survived ? '<div class="verdict survive">' + (ev.isFinal ? '世界一達成 — 殿堂入り' : '生存 — 次章へ') + '<small>Ego Gems +' + ev.gems + '</small></div>' : '<div class="verdict elim">除籍<small>補償 Ego Gems +' + ev.gems + '</small></div>';
-    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">第' + ARCS[ev.arc].n + '章 ' + esc(ev.title) + ' — 査定・選別</div><div class="muted">合計ステータス ' + num(ev.total) + ' / 年俸 ' + yen(ev.bid) + ' / BLランキング ' + ev.rank + '位</div></header>' +
+    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">' + esc(ARCS[ev.arc].part) + ' ' + esc(ev.title) + ' — 査定・選別</div><div class="muted">合計ステータス ' + num(ev.total) + ' / 年俸 ' + yen(ev.bid) + ' / BLランキング ' + ev.rank + '位</div></header>' + runHero(run, 120) +
+      '<div class="part-rank ' + (ev.partRank || 'D') + '"><i>編評価</i><b>' + esc(ev.partRank || 'D') + '</b><small>合計ステータス ÷ 編基準値で判定（SS ≥ 3.0 / S ≥ 2.2 / A ≥ 1.6 / B ≥ 1.2 / C ≥ 0.9）</small></div>' +
       '<div class="panel"><h4>足切りサバイバル判定</h4><ul class="req-list big">' + checks + '</ul></div>' + verdict +
-      '<div class="modal-foot center"><button class="btn ' + (ev.survived ? 'primary' : 'danger') + ' lg" data-action="eval-next">' + (ev.survived ? (ev.isFinal ? '殿堂へ' : '次章へ') : '除籍処分を受ける') + '</button></div></section>';
+      '<div class="modal-foot center"><button class="btn ' + (ev.survived ? 'primary' : 'danger') + ' lg" data-action="eval-next">' + (ev.survived ? (ev.isFinal ? '殿堂へ' : '次の編へ') : '除籍処分を受ける') + '</button></div></section>';
   }
   function renderGameover() {
     var run = state.run; var g = run.gameover; var card = BL.cardById(run.cardId);
     var reason = { injury: '故障 — 選手生命の終了', cold: 'コールド負け', lost: '敗北', cutoff: '足切り' }[g.reason] || '除籍';
-    return '<section class="screen gameover"><div class="go-big">除籍</div><div class="go-sub">ELIMINATED</div><div class="go-box"><div class="go-reason">' + esc(reason) + '</div><p>' + esc(g.detail) + '</p>' +
-      '<div class="muted">' + esc(BL.cardName(card)) + ' ／ 第' + ARCS[g.arc].n + '章「' + esc(ARCS[g.arc].title) + '」で脱落 ／ 合計 ' + num(g.total) + ' ／ スキル ' + g.skills + ' ／ 年俸 ' + yen(g.bid) + ' ／ BLランキング ' + (run.rank || 300) + '位</div>' +
+    return '<section class="screen gameover"><div class="go-big">除籍</div><div class="go-sub">ELIMINATED</div><div class="go-box">' + runHero(run, 110) + '<div class="go-reason">' + esc(reason) + '</div><p>' + esc(g.detail) + '</p>' +
+      '<div class="muted">' + esc(BL.cardName(card)) + ' ／ ' + esc(ARCS[g.arc].part) + '「' + esc(ARCS[g.arc].title) + '」で脱落 ／ 合計 ' + num(g.total) + ' ／ スキル ' + g.skills + ' ／ 年俸 ' + yen(g.bid) + ' ／ BLランキング ' + (run.rank || 300) + '位</div>' +
       '<div class="go-gems">補償 Ego Gems <b>+' + g.gems + '</b> → 所持 ' + num(state.meta.gems) + '</div><p class="muted">育成データは完全に抹消される。やり直しは存在しない。</p></div>' +
       '<div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn danger lg" data-action="close-run">ロビーへ強制送還</button></div></section>';
   }
   function renderClear() {
     var run = state.run; var card = BL.cardById(run.cardId);
     var st = D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(run.stats[s]) + '</span>'; }).join('');
-    return '<section class="screen clear"><div class="clear-kicker">U-20 WORLD CUP CHAMPION</div><div class="clear-big">世界一</div><div class="go-box gold"><h3>' + stars(card.rar) + ' ' + esc(BL.cardName(card)) + ' — 殿堂入り</h3><div class="stat-line">' + st + '</div>' +
+    return '<section class="screen clear"><div class="clear-kicker">U-20 WORLD CUP CHAMPION</div><div class="clear-big">世界一</div><div class="go-box gold">' + runHero(run, 140) + '<h3>' + stars(card.rar) + ' ' + esc(BL.cardName(card)) + ' — 殿堂入り</h3><div class="stat-line">' + st + '</div>' +
       '<div class="muted">最終年俸 ' + yen(run.bid) + ' ／ スキル ' + BL.aggregateSkills(run).count + ' ／ 通算ゴール ' + run.totals.goals + ' ／ ' + run.totals.matchWins + '勝' + (run.totals.matches - run.totals.matchWins) + '敗</div>' +
       '<p>この選手は殿堂入りとして永続保存され、メインメニューから「FIFAワールドカップ（成人A代表・世界決戦モード）」へ出撃できる。</p></div><div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn gold lg" data-action="close-run">ロビーへ</button></div></section>';
   }
@@ -564,6 +612,12 @@
     },
     'close-run': function () { BL.closeRun(state); ui.lobbyTab = 'roster'; ui.inLobby = false; render(); },
     'portrait-remove': function (arg) { BL.setPortrait(state, arg, null); toast('画像を削除した', 'ok'); render(); },
+    'open-naming': function () { ui.modal = { type: 'naming' }; render(); },
+    'open-exchange': function () { ui.modal = { type: 'exchange' }; render(); },
+    'exchange-filter': function (arg) { ui.rosterFilter = arg; render(); },
+    'exchange': function (arg) { var res = BL.exchange(state, arg); if (!res.ok) { toast(res.reason === 'pieces' ? 'ピースが足りない' : '交換できない', 'warn'); return; } sfx('rare'); toast((res.isNew ? '新規獲得' : '限界突破 +' + res.dupes) + '（🧩 -' + res.cost + '）', 'ok'); render(); },
+    'choose-policy': function (arg) { BL.choosePolicy(state, arg); sfx('click'); afterWeekAction(); },
+    'auto-train': function () { if (!state.run || state.run.phase !== 'training') return; actions.train(BL.recommendStat(state.run)); },
     'copy-summary': function () {
       if (!state.run) return; var text = BL.runSummary(state.run);
       var done = function () { toast('結果をクリップボードにコピーした', 'ok'); };
@@ -585,7 +639,43 @@
   }
   document.addEventListener('click', onClick);
   /* ポートレート画像の取り込み：端末内で 160×200 に縮小して保存 */
+  function importPortraitFile(charId, file, done) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var cv = document.createElement('canvas'); var W = 160, H = 200; cv.width = W; cv.height = H; var cx = cv.getContext('2d');
+          var s = Math.max(W / img.width, H / img.height); var dw = img.width * s, dh = img.height * s;
+          cx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+          var q = 0.82, url = cv.toDataURL('image/jpeg', q);
+          while (url.length > 60 * 1024 && q > 0.3) { q -= 0.1; url = cv.toDataURL('image/jpeg', q); }
+          done(BL.setPortrait(state, charId, url));
+        } catch (err) { done({ ok: false, reason: 'decode' }); }
+      };
+      img.onerror = function () { done({ ok: false, reason: 'decode' }); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function charIdFromFilename(name) {
+    var base = name.replace(/\.[^.]+$/, '').trim();
+    if (D.CHARACTERS[base]) return base;
+    for (var id in D.CHARACTERS) if (D.CHARACTERS[id].name === base || D.CHARACTERS[id].name.replace(/[・ ]/g, '') === base.replace(/[・ ]/g, '')) return id;
+    return null;
+  }
   document.addEventListener('change', function (e) {
+    var bulk = e.target; if (bulk && bulk.matches && bulk.matches('input[type=file][data-portrait-bulk]')) {
+      var files = Array.prototype.slice.call(bulk.files || []); var okN = 0, ngN = 0, pending = files.length;
+      if (!pending) return;
+      var finish = function () { if (--pending === 0) { toast('取り込み ' + okN + ' 件 / 不一致・失敗 ' + ngN + ' 件', okN ? 'ok' : 'warn'); render(); } };
+      files.forEach(function (f) {
+        var cid = charIdFromFilename(f.name);
+        if (!cid) { ngN++; finish(); return; }
+        importPortraitFile(cid, f, function (res) { if (res.ok) okN++; else ngN++; finish(); });
+      });
+      return;
+    }
     var input = e.target; if (!input || !input.matches || !input.matches('input[type=file][data-portrait]')) return;
     var charId = input.getAttribute('data-portrait'); var file = input.files && input.files[0]; if (!file) return;
     var reader = new FileReader();

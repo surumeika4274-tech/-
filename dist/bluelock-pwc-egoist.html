@@ -424,6 +424,62 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   .detail-art { flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
 }
 
+/* ============================================================ v5: PWC 風演出 */
+.ticon { vertical-align: -3px; }
+.home-hero { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; background: linear-gradient(135deg, rgba(47,128,255,.16), rgba(5,7,15,.2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin: 4px 0 14px; }
+.hero-art { cursor: pointer; }
+.hero-kicker { letter-spacing: .3em; color: var(--accent2); font-family: var(--font-d); font-size: .8rem; }
+.hero-text h2 { font-size: 1.6rem; margin: 4px 0 6px; }
+.hero-text h2 small { display: block; font-size: .85rem; color: var(--muted); font-weight: 400; }
+.hero-text .btn { margin-top: 10px; }
+.exchange-cta { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.tbl-wrap { max-height: 60vh; overflow: auto; }
+.cmd-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.btn.auto { padding: 14px; font-size: 1.05rem; border-color: var(--accent2); }
+.btn.auto:hover:not(:disabled) { background: rgba(77,210,255,.12); }
+.part-rank { display: flex; align-items: center; gap: 14px; justify-content: center; margin: 10px 0; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.part-rank i { font-style: normal; color: var(--muted); letter-spacing: .2em; font-size: .8rem; }
+.part-rank b { font-family: var(--font-d); font-size: 2.6rem; line-height: 1; }
+.part-rank small { color: var(--muted); font-size: .7rem; max-width: 320px; }
+.part-rank.SS b { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
+.part-rank.S b { color: var(--gold); text-shadow: 0 0 20px var(--gold); }
+.part-rank.A b { color: var(--accent2); }
+.part-rank.B b { color: var(--ok); }
+.part-rank.C b, .part-rank.D b { color: var(--muted); }
+/* ゴール時カットイン */
+.cutin { position: relative; width: min(100%, 420px); height: 170px; overflow: hidden; border-radius: 12px; background: linear-gradient(90deg, #05070f, #12224a 50%, #05070f); }
+.cutin-lines { position: absolute; inset: 0; background: repeating-linear-gradient(100deg, transparent 0 14px, rgba(77,210,255,.25) 14px 16px, transparent 16px 30px); animation: lines .6s linear infinite; }
+@keyframes lines { from { background-position: 0 0; } to { background-position: 60px 0; } }
+.cutin-art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-6deg); animation: slidein .5s cubic-bezier(.2,.9,.3,1.1) both; filter: drop-shadow(0 0 18px rgba(77,210,255,.8)); }
+.cutin-art svg { width: 130px; height: auto; }
+@keyframes slidein { from { transform: translate(-160%, -50%) rotate(-6deg); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-6deg); opacity: 1; } }
+.fail .cutin { display: none; }
+/* 編ごとの背景 */
+body[data-part="1"] { background: radial-gradient(1200px 600px at 50% -10%, #12224a 0%, var(--bg) 60%); }
+body[data-part="2"] { background: radial-gradient(1200px 600px at 50% -10%, #1c1450 0%, var(--bg) 60%); }
+body[data-part="3"] { background: radial-gradient(1200px 600px at 50% -10%, #0e3a3a 0%, var(--bg) 60%); }
+body[data-part="4"] { background: radial-gradient(1200px 600px at 50% -10%, #3a1b1b 0%, var(--bg) 60%); }
+body[data-part="5"] { background: radial-gradient(1200px 600px at 50% -10%, #3a2e0e 0%, var(--bg) 60%); }
+body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a0e2e 0%, var(--bg) 60%); }
+@media (prefers-reduced-motion: reduce) { .cutin-lines, .cutin-art, .blackout, .verdict, .go-big, .clear-big { animation: none !important; } }
+@media (max-width: 520px) { .home-hero { grid-template-columns: 110px 1fr; } .cmd-row.three { grid-template-columns: 1fr; } }
+
+/* ---- v5.1 育成中の選手帯（編導入・方針選択・査定・除籍・世界一） ---- */
+.run-hero { display: flex; align-items: center; gap: 16px; margin: 12px auto; padding: 10px 14px; max-width: 720px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--rc, #4a8dff) 18%, #0b1020), #0b1020 70%); text-align: left; }
+.run-hero .rh-art { flex: 0 0 auto; cursor: pointer; }
+.run-hero .rh-art svg { display: block; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+.run-hero .rh-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.run-hero .rh-meta i { font-style: normal; font-size: 12px; letter-spacing: .08em; color: var(--rc, #9cc4ff); }
+.run-hero .rh-meta b { font-size: 20px; font-weight: 800; line-height: 1.2; }
+.run-hero .rh-meta small { color: var(--muted); font-size: 12px; }
+.run-hero .rh-ranks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.run-hero .rh-ranks .pr { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font-family: 'Oswald', sans-serif; }
+.run-hero .rh-ranks .pr.SS, .run-hero .rh-ranks .pr.S { border-color: #ffd54a; color: #ffd54a; }
+.run-hero .rh-ranks .pr.A { border-color: #7cff6b; color: #7cff6b; }
+.run-hero .rh-ranks .pr.D { border-color: #ff4d4d; color: #ff8c8c; }
+.go-box .run-hero, .clear .run-hero { margin-bottom: 12px; }
+@media (max-width: 520px) { .run-hero { gap: 10px; padding: 8px 10px; } .run-hero .rh-art svg { width: 88px; height: auto; } .run-hero .rh-meta b { font-size: 17px; } }
+
 </style>
 </head>
 <body>
@@ -694,6 +750,18 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
                 passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } }
   };
 
+  /* 育成方針：各編の冒頭で選択。編の間だけ成長補正に加算される（5回の育成それぞれに方針を持たせる） */
+  var POLICIES = [
+    { id: 'shoot',   name: '決定力特化', desc: 'SHT・PHY 成長 +12%、他 −4%。Option A の伸びが速い。', growth: { SHT: 0.12, PHY: 0.12, SPD: -0.04, TEC: -0.04, INT: -0.04 } },
+    { id: 'tactic',  name: '戦術特化',   desc: 'INT・TEC 成長 +12%、他 −4%。Option B／D と早期のメタビジョン解放向き。', growth: { INT: 0.12, TEC: 0.12, SHT: -0.04, SPD: -0.04, PHY: -0.04 } },
+    { id: 'speed',   name: '快速特化',   desc: 'SPD・INT 成長 +12%、他 −4%。Option C と年俸（スピード系スキル）向き。', growth: { SPD: 0.12, INT: 0.12, SHT: -0.04, TEC: -0.04, PHY: -0.04 } },
+    { id: 'balance', name: 'バランス',   desc: '全属性 成長 +4%。合計ステータスの足切りに強い。', growth: { SHT: 0.04, SPD: 0.04, TEC: 0.04, INT: 0.04, PHY: 0.04 } }
+  ];
+  /* エゴ・ピース：所持済みカードの再排出（限界突破）時に段階に応じて獲得。交換所で任意のカードと交換できる（PWC のピース／星上げに対応する救済） */
+  var PIECES = { gain: { '1': 2, '2': 3, '3': 5, '4': 10, '5': 20, '6': 40, '7': 80, '8': 150 }, cost: { '1': 30, '2': 50, '3': 90, '4': 200, '5': 400, '6': 800, '7': 1600, '8': 3200 } };
+  /* 編末ランク：合計ステータス ÷ 編基準値 */
+  var PART_RANKS = [{ r: 3.0, k: 'SS' }, { r: 2.2, k: 'S' }, { r: 1.6, k: 'A' }, { r: 1.2, k: 'B' }, { r: 0.9, k: 'C' }, { r: 0, k: 'D' }];
+
   /* ポジション適性：カード第1ポジションに応じて対応する選択肢に +2%（PWC のポジション情報を反映） */
   var POS_AFFINITY = { CF: 'A', CB: 'A', OMF: 'B', RMF: 'B', LMF: 'B', DMF: 'D', RWG: 'C', LWG: 'C', RSB: 'C', LSB: 'C' };
 
@@ -831,7 +899,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     { id: 'ev_reo', rival: 'reo', title: '御影玲王「金なら出す」',
       text: '玲王が札束を見せつける。「オレの実験に付き合え。悪いようにはしない」',
       choices: [
-        { label: '契約を受ける', fx: { cashPerArc: 20000, bidPerArc: 2e6 }, result: 'Cash と年俸評価がわずかに上昇した。' },
+        { label: '契約を受ける', fx: { cashPerArc: 20000, bidPerArc: 200000 }, result: 'Cash と年俸評価がわずかに上昇した。' },
         { label: '断る', fx: { stat: { INT: 0.3, PHY: 0.3 } }, result: '「金で買えないものもある」。自分を貫いた。' } ] },
     { id: 'ev_condition', rival: null, title: '異常なコンディション低下',
       text: '朝、身体が鉛のように重い。疲労が蓄積している。',
@@ -991,7 +1059,10 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     { id: 'gacha_50',     name: 'スカウト50回',         desc: 'スカウトを累計 50 回行った',                  gems: 200 },
     { id: 'lb_10',        name: '完凸への道',           desc: '同一カードの限界突破が 10 に達した',          gems: 300 },
     { id: 'collect_50',   name: 'コレクター',           desc: '50 種類のカードを所持した',                   gems: 400 },
-    { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 }
+    { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 },
+    { id: 'part_ss',      name: '編評価 SS',            desc: '編末ランクで SS を獲得した',                  gems: 300 },
+    { id: 'exchange_1',   name: 'ピース交換',           desc: 'エゴ・ピースでカードを交換した',              gems: 100 },
+    { id: 'five_parts',   name: '五編踏破',             desc: '第五編・決戦に到達した',                      gems: 400 }
   ];
 
   /* ------------------------------------------------------- 調整パラメータ */
@@ -1013,7 +1084,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     SIG_TH: 220,                            /* 固有覚醒：主属性がこの値以上で Climax 成功 → 覚醒 */
     GACHA_SINGLE: 150, GACHA_TEN: 1500,
     INITIAL_GEMS: 1500,
-    GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
+    BID_DOMINANCE: 0.25, GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
     MVP_BID_MULT: 1.5, FLOW_BID_MULT: 1.2, BID_SKILL_STEP: 0.04,
     COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60,
     FLOW_CARD_P: 0.15, FLOW_CARD_BONUS: 5,   /* ★4FLOW 由来カード：FLOW 突入率 +15% / FLOW ボーナス +5pt */
@@ -1024,7 +1095,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
-    CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
+    CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',
@@ -1317,19 +1388,21 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   function R(base, a, b, c, d) { return { A: Math.round(base * a), B: Math.round(base * b), C: Math.round(base * c), D: Math.round(base * d) }; }
 
   var ARCS = [
-    /* ============================================================ 第0章 入寮テスト */
-    { id: 'entry', n: 0, title: '入寮テスト', sub: 'オニごっこ — 136秒の生存', envMult: 1.0, bidPerGoal: 0, cashPerGoal: 0, cashWin: 0,
+    /* ============================================================ 第一編 一次選考（入寮テスト含む） */
+    { id: 'first', n: 1, part: '第一編', title: '一次選考', sub: '入寮テスト → チームZ 5チーム総当たりリーグ', envMult: 1.0, bidPerGoal: 3e5, cashPerGoal: 20000, cashWin: 20000,
       intro: [
-        '日本フットボール連合の極秘計画「青い監獄（ブルーロック）」。招集された高校生FW300人を前に、絵心甚八は言い放つ。',
-        '「世界一のストライカーを一人作る。それ以外は全員、日本代表になる資格を永久に失う」',
-        '最初の試験は「オニごっこ」。12人が1つのボールをぶつけ合い、制限時間136秒で最後にボールを持っていた者が脱落する。',
-        '同じ部屋には、U-18日本代表のエース・吉良涼介がいる——。'
+        '日本フットボール連合の極秘計画「青い監獄（ブルーロック）」。招集された高校生FW300人を前に、絵心甚八は言い放つ。「世界一のストライカーを一人作る。それ以外は全員、日本代表になる資格を永久に失う」',
+        '最初の試験は「オニごっこ」。12人が1つのボールをぶつけ合い、136秒で最後にボールを持っていた者が脱落する。同じ部屋には U-18 日本代表のエース・吉良涼介がいる——。',
+        '275人は25チーム（各11人）に分かれ、5チームごとのブロックで総当たり戦を行う。ブロック上位2チームが二次選考へ進む。',
+        'お前が配属されたのはブロックの最下層「チームZ」。蜂楽廻、千切豹馬、國神錬介、我牙丸吟、雷市陣吾、五十嵐栗夢、久遠渉、伊右衛門送人、今村遊大、成早朝日——ランク最下位の寄せ集めだ。',
+        '相手はX（馬狼照英）、Y（二子一揮）、W（鰐間兄弟）、V（凪誠士郎・御影玲王・剣城斬鉄）。',
+        '生存条件：4試合で2勝以上、かつ最終戦 vs チームV に勝利すること。'
       ],
-      cut: { statReq: 0 },
+      cut: { statReq: 280, leagueWins: 2, finalMustWin: true },
       segments: [
         { id: 'tag', name: 'オニごっこ', weeks: 0,
           match: { name: '入寮テスト「オニごっこ」', enemy: '同室の11人', lead: '吉良涼介 / 蜂楽廻 / 千切豹馬 ほか', rule: 'single', n: 1,
-            rate: R(38, 1.0, 1.0, 0.95, 0.95),
+            rate: R(42, 1.0, 1.0, 0.95, 0.95),
             options: {
               A: { name: '体を張って最後の一人に押し付ける', stats: ['PHY', 'SHT'], flavor: '残り3秒。ボールを持った吉良を体で止め、至近距離から当てる。' },
               B: { name: '死角を読み、最後の瞬間にパスを通す', stats: ['INT', 'TEC'], flavor: '誰がどこにいるか、全員の視線の外を計算する。' },
@@ -1339,22 +1412,10 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
             intro: 'ルールは単純。136秒後、ボールを持っていた者が「オニ」＝脱落。全員がボールを避け、押し付け合う。',
             highlights: ['残り3秒。吉良涼介がボールを持ち、こちらへ蹴り出す体勢——お前の判断は。'],
             win: '最後の一人は、お前ではなかった。「オニ」——脱落者の名が呼ばれる。お前は青い監獄に入寮した。',
-            lose: '136秒。ブザーが鳴った瞬間、ボールはお前の手の中にあった。「オニ」。青い監獄は、お前を必要としなかった。' } }
-      ] },
-
-    /* ============================================================ 第1章 一次選考 */
-    { id: 'first', n: 1, title: '一次選考', sub: 'チームZ — 5チーム総当たりリーグ', envMult: 1.0, bidPerGoal: 3e6, cashPerGoal: 20000, cashWin: 20000,
-      intro: [
-        '275人は25チーム（各11人）に分かれ、5チームごとのブロックで総当たり戦を行う。ブロック上位2チームが二次選考へ進む。',
-        'お前が配属されたのはブロックの最下層「チームZ」。蜂楽廻、千切豹馬、國神錬介、我牙丸吟、雷市陣吾、五十嵐栗夢、久遠渉、伊右衛門送人、今村遊大、成早朝日——ランク最下位の寄せ集めだ。',
-        '相手はX（馬狼照英）、Y（二子一揮）、W（鰐間兄弟）、V（凪誠士郎・御影玲王・剣城斬鉄）。',
-        '生存条件：4試合で2勝以上、かつ最終戦 vs チームV に勝利すること。'
-      ],
-      cut: { statReq: 250, leagueWins: 2, finalMustWin: true },
-      segments: [
+            lose: '136秒。ブザーが鳴った瞬間、ボールはお前の手の中にあった。「オニ」。青い監獄は、お前を必要としなかった。' } },
         { id: 'z_x', name: '第1戦 vs チームX', weeks: 3,
           match: { name: '第1戦 チームZ vs チームX', enemy: 'チームX', lead: '馬狼照英（「王様」）', rule: 'league', n: 3, final: false,
-            rate: R(101, 1.06, 1.0, 0.96, 0.94),
+            rate: R(122, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：1-5 敗北。馬狼がハットトリック級の独演。潔は「自分で決める」ことの意味を思い知る。',
             intro: 'チームXは馬狼照英のワンマンチーム。全員が「王様」にボールを預け、馬狼が一人で決める。',
             highlights: [
@@ -1363,9 +1424,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
               'ラスト5分。馬狼は既に3点を奪っている。だが最後の一撃を放つのは、お前だ——。'
             ],
             win: '王様のチームを撃破した。馬狼が舌打ちする。「…奴隷が」', lose: '馬狼の独演の前に沈んだ。Xの勝利。だが総当たりは続く。' } },
-        { id: 'z_y', name: '第2戦 vs チームY', weeks: 2,
+        { id: 'z_y', name: '第2戦 vs チームY', weeks: 3,
           match: { name: '第2戦 チームZ vs チームY', enemy: 'チームY', lead: '二子一揮 / 大川響鬼', rule: 'league', n: 3, final: false,
-            rate: R(140, 1.0, 1.06, 0.96, 0.98),
+            rate: R(178, 1.0, 1.06, 0.96, 0.98),
             canon: '原作：2-1 勝利。久遠渉がYに情報を売った裏切りが発覚。それでもZは勝ち切った。',
             intro: 'チームYは二子一揮が「影の支配者」としてゲームを組み立てる戦術的なチーム。試合前、久遠がZの情報をYに売り渡していた。',
             highlights: [
@@ -1374,9 +1435,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
               'ラスト3分。「裏切り者ごと勝つ」。國神が叫ぶ。最後のボールがお前の足元へ——。'
             ],
             win: '裏切りを飲み込んで勝った。久遠は何も言えずに俯いた。', lose: '二子の支配に沈んだ。裏切りの傷だけが残る。' } },
-        { id: 'z_w', name: '第3戦 vs チームW', weeks: 2,
+        { id: 'z_w', name: '第3戦 vs チームW', weeks: 3,
           match: { name: '第3戦 チームZ vs チームW', enemy: 'チームW', lead: '鰐間淳壱 / 鰐間計助', rule: 'league', n: 3, final: false,
-            rate: R(193, 0.98, 1.0, 1.06, 0.96),
+            rate: R(249, 0.98, 1.0, 1.06, 0.96),
             canon: '原作：4-4 引き分け。「怪我が怖いのか」と挑発された千切豹馬が神速を解放。',
             intro: 'チームWは鰐間兄弟の以心伝心コンビが軸。試合中、鰐間が千切の古傷を嘲笑う——。',
             highlights: [
@@ -1387,7 +1448,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
             win: '千切の神速と共に押し切った。Wの兄弟が呆然と立ち尽くす。', lose: '鰐間兄弟の連携に押し切られた。だが千切は覚醒した。' } },
         { id: 'z_v', name: '最終戦 vs チームV', weeks: 3,
           match: { name: '最終戦 チームZ vs チームV', enemy: 'チームV', lead: '凪誠士郎 / 御影玲王 / 剣城斬鉄', rule: 'league', n: 3, final: true,
-            rate: R(271, 1.02, 1.0, 0.98, 0.94),
+            rate: R(345, 1.02, 1.0, 0.98, 0.94),
             canon: '原作：5-4 勝利。蜂楽・國神・千切・我牙丸・潔（ダイレクトシュート）の5得点。凪が覚醒し、潔が最後に決めた。',
             intro: '一次選考最終戦。ブロック首位のVに勝てば2位で突破、負ければ全員脱落。凪誠士郎の神トラップと玲王の戦術、剣城の速さが立ちはだかる。',
             highlights: [
@@ -1399,18 +1460,18 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       ] },
 
     /* ============================================================ 第2章 二次選考 */
-    { id: 'second', n: 2, title: '二次選考', sub: 'ライバルリー・バトル — 5点先取・敗者は奪われる', envMult: 2.5, bidPerGoal: 8e6, cashPerGoal: 40000, cashWin: 40000,
+    { id: 'second', n: 2, part: '第二編', title: '二次選考', sub: 'ライバルリー・バトル — 5点先取・敗者は奪われる', envMult: 2.5, bidPerGoal: 8e5, cashPerGoal: 40000, cashWin: 40000,
       intro: [
         '一次選考を突破した125人は5つのステージからなる二次選考へ。',
         '1stステージ：90分以内にBLUE LOCK MANから100ゴールを奪う。2ndステージ：2対2。3rdステージ：3対3。4thステージ：4対4。5点先取。',
         '勝者は敗者から1人を奪い、敗者は人数を減らして下のステージへ落ちる。最後の一人になれば脱落。',
         '凪誠士郎が御影玲王と袂を分かち、お前と蜂楽の3人でチームを組んだ。'
       ],
-      cut: { statReq: 600 },
+      cut: { statReq: 700 },
       segments: [
         { id: 's_blm', name: '1stステージ BLUE LOCK MAN', weeks: 2,
           match: { name: '1stステージ「100ゴール」', enemy: 'BLUE LOCK MAN', lead: '自動迎撃GKマシン', rule: 'single', n: 1,
-            rate: R(390, 1.0, 1.02, 1.05, 1.0),
+            rate: R(466, 1.0, 1.02, 1.05, 1.0),
             options: {
               A: { name: '力ずくで撃ち抜き続ける', stats: ['SHT', 'PHY'], flavor: '90分間、体力の限界まで撃ち続ける。' },
               B: { name: '軌道を計算して逆を突く', stats: ['INT', 'TEC'], flavor: 'マシンの反応パターンを解析し、届かないコースだけを撃つ。' },
@@ -1420,9 +1481,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
             intro: '巨大なGKマシン「BLUE LOCK MAN」。90分以内に100ゴール。一人ずつの耐久試験だ。',
             highlights: ['残り30秒。99ゴール。マシンの腕が反応する。最後の一発——。'],
             win: '100ゴール目がネットを揺らした。残り数秒。1stステージ突破。', lose: '99ゴール。ブザー。あと一本が届かなかった——脱落。' } },
-        { id: 's_rin1', name: '3rdステージ vs 糸師凛', weeks: 2,
+        { id: 's_rin1', name: '3rdステージ vs 糸師凛', weeks: 3,
           match: { name: '3rdステージ 潔・蜂楽・凪 vs 凛・蟻生・時光', enemy: '糸師凛チーム', lead: '糸師凛 / 蟻生十兵衛 / 時光青志', rule: 'stage3_rin', n: 3,
-            rate: R(577, 1.02, 1.0, 0.98, 0.96),
+            rate: R(728, 1.02, 1.0, 0.98, 0.96),
             canon: '原作：2-5 敗北。蜂楽廻を奪われ、潔と凪は2人になった。',
             intro: '初戦の相手は青い監獄ランキング1位・糸師凛。2位の蟻生、3位の時光を従える最強チーム。負ければ一人を奪われる。',
             highlights: [
@@ -1433,7 +1494,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
             win: '原作を覆した。凛のチームを破り、時光青志を奪った。凛が初めてお前を「敵」と認識する。', lose: '2-5。凛が指名したのは蜂楽だった。「お前は要らない」。潔と凪、2人だけが残された。' } },
         { id: 's_2v2', name: '2ndステージ 2対2', weeks: 0, cond: 'rinLoss',
           match: { name: '2ndステージ 潔・凪 vs 馬狼・成早', enemy: '馬狼・成早ペア', lead: '馬狼照英 / 成早朝日', rule: 'mustWin', n: 3,
-            rate: R(502, 1.06, 1.0, 0.96, 0.94),
+            rate: R(633, 1.06, 1.0, 0.96, 0.94),
             canon: '原作：5-4 勝利。馬狼を獲得。成早朝日は最後の一人となり脱落。',
             intro: '2人になった。負ければ次はない。相手は「王様」馬狼と、金への執念で走る成早。',
             highlights: [
@@ -1442,9 +1503,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
               '4-4。次の1点で全てが決まる。凪の神トラップから、ボールがお前へ——。'
             ],
             win: '5-4。王様を奪った。馬狼は「使ってやる」と吐き捨て、お前のチームに加わった。成早朝日は脱落した。', lose: '馬狼に食い尽くされた。最後の一人——脱落。' } },
-        { id: 's_reo', name: '3rdステージ vs 國神・千切・玲王', weeks: 2,
+        { id: 's_reo', name: '3rdステージ vs 國神・千切・玲王', weeks: 3,
           match: { name: '3rdステージ 潔・凪・馬狼 vs 國神・千切・玲王', enemy: '國神・千切・玲王チーム', lead: '國神錬介 / 千切豹馬 / 御影玲王', rule: 'mustWin', n: 3,
-            rate: R(698, 1.0, 1.04, 1.04, 0.98),
+            rate: R(939, 1.0, 1.04, 1.04, 0.98),
             canon: '原作：5-4 勝利。千切豹馬を獲得。玲王は凪を取り戻そうと執念を燃やした。',
             intro: 'かつての仲間、國神と千切。そして凪を奪われた玲王。「凪を返せ」——玲王の執念が燃える。',
             highlights: [
@@ -1453,9 +1514,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
               '4-4。千切がもう一度走る。國神がもう一度撃つ。だがゴールを決めるのは、王様でも天才でもなく——。'
             ],
             win: '5-4。千切豹馬を奪った。玲王は立ち尽くし、國神は「またな」と笑った。', lose: '玲王の執念に敗れた。奪われ、削られ、二次選考はここで終わる。' } },
-        { id: 's_rin2', name: '4thステージ vs 糸師凛', weeks: 2,
+        { id: 's_rin2', name: '4thステージ vs 糸師凛', weeks: 3,
           match: { name: '4thステージ 潔・凪・馬狼・千切 vs 凛・蟻生・時光・蜂楽', enemy: '糸師凛チーム', lead: '糸師凛 / 蟻生十兵衛 / 時光青志 / 蜂楽廻', rule: 'stage4_rin', n: 3,
-            rate: R(1023, 1.02, 1.0, 1.0, 0.95), nominateInt: 420,
+            rate: R(1381, 1.02, 1.0, 1.0, 0.95), nominateInt: 420,
             canon: '原作：4-5 敗北。だが凛が潔を指名し、潔は最初のクリア者となった。',
             intro: '再戦。蜂楽は凛のチームで怪物として牙を剥く。勝てばトップチームとしてクリア。負けても——凛が「欲しい」と思えば、指名で生き残れる。',
             highlights: [
@@ -1467,18 +1528,18 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       ] },
 
     /* ============================================================ 第3章 三次選考 */
-    { id: 'third', n: 3, title: '三次選考', sub: 'トライアウト → U-20日本代表戦', envMult: 6.0, bidPerGoal: 2e7, cashPerGoal: 80000, cashWin: 80000,
+    { id: 'third', n: 3, part: '第三編', title: '三次選考', sub: 'トライアウト → U-20日本代表戦', envMult: 6.0, bidPerGoal: 2e6, cashPerGoal: 80000, cashWin: 80000,
       intro: [
         '二次選考を突破した35人。三次選考はU-20日本代表との「対抗戦」に向けた適性試験（トライアウト）だ。',
         'トップ6（糸師凛・士道龍聖・烏旅人・乙夜影汰・雪宮剣優・凪誠士郎）が選ぶ5人組で5点先取の試合を繰り返し、レギュラー11人＋ベンチ12人の計23人が選ばれる。',
         '負ければ青い監獄は解体、勝てば青い監獄がそのままU-20日本代表になる——。',
         '相手はU-20日本代表。世界最高峰のMF糸師冴、悪魔・士道龍聖、主将オリヴァ・愛空、閃堂秋人。'
       ],
-      cut: { statReq: 1500 },
+      cut: { statReq: 1800 },
       segments: [
-        { id: 't_tryout', name: 'トライアウト 5点先取', weeks: 3,
+        { id: 't_tryout', name: 'トライアウト 5点先取', weeks: 4,
           match: { name: '三次選考トライアウト（5点先取）', enemy: 'トップ6選抜', lead: '糸師凛 / 士道龍聖 / 烏旅人 / 乙夜影汰 / 雪宮剣優', rule: 'tryout', n: 3,
-            rate: R(1547, 1.0, 1.02, 1.02, 0.96),
+            rate: R(1967, 1.0, 1.02, 1.02, 0.96),
             canon: '原作：A1 vs B1 は 5-4（凛2・士道2・潔1 / 烏2・乙夜1・千切1）。23人の代表枠に潔が選出。',
             intro: '烏の「弱点を突く」眼、乙夜の忍術、雪宮の1on1。トップ6の圧力の中で、23人に残れるか。',
             highlights: [
@@ -1487,9 +1548,9 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
               '4-4。ラストボール。トップ6の全員がお前を見ている——決めろ。'
             ],
             win: '23人に選ばれた。絵心が告げる。「ここからが本番だ。負ければ青い監獄は消える」', lose: 'トライアウトで届かなかった。23人の名にお前はいない——脱落。' } },
-        { id: 't_u20', name: 'U-20日本代表戦', weeks: 3,
+        { id: 't_u20', name: 'U-20日本代表戦', weeks: 4,
           match: { name: '青い監獄イレブン vs U-20日本代表', enemy: 'U-20日本代表', lead: '糸師冴 / 士道龍聖 / オリヴァ・愛空 / 閃堂秋人', rule: 'mustWin', n: 3,
-            rate: R(2390, 1.04, 1.06, 1.0, 0.98),
+            rate: R(3149, 1.04, 1.06, 1.0, 0.98),
             canon: '原作：4-3 勝利。冴(7分)→凪(30分)→凛(41分)→士道(53分・58分)→馬狼(74分)→潔(90+1分 ダイレクトシュート)。',
             intro: '青い監獄の存続を懸けた一戦。前半7分、冴が「美しく壊す」と言わんばかりに先制。ここから逆転しなければ、全ては終わる。',
             highlights: [
@@ -1501,19 +1562,19 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       ] },
 
     /* ============================================================ 第4章 新英雄大戦 */
-    { id: 'nel', n: 4, title: '新英雄大戦', sub: 'ネオ・エゴイストリーグ — 5ヵ国クラブ総当たり・入札', envMult: 12.0, bidPerGoal: 6e7, cashPerGoal: 150000, cashWin: 150000, chooseClub: true,
+    { id: 'nel', n: 4, part: '第四編', title: '新英雄大戦', sub: 'ネオ・エゴイストリーグ — 5ヵ国クラブ総当たり・入札', envMult: 12.0, bidPerGoal: 6e6, cashPerGoal: 150000, cashWin: 150000, chooseClub: true,
       intro: [
         'U-20日本代表となった青い監獄は、世界5大クラブのユースと合流する「新英雄大戦」に投げ込まれる。',
         'ドイツ：バスタード・ミュンヘン（ノエル・ノア）、イングランド：マンシャイン・シティ（クリス・プリンス）、イタリア：ユーヴァース（マルク・スナッフィー）、フランス：P・X・G（ジュリアン・ロキ）、スペイン：FCバルチャ（ラヴィーニョ）。',
         '各国のマスターの下で総当たり戦を戦い、世界中のクラブスカウトが「入札（年俸）」を付ける。上位23名だけがU-20ワールドカップの日本代表になれる。',
         '原作の入札1位は糸師凛と潔世一の2.4億円。24位の凪誠士郎（2,400万円）は落選した。'
       ],
-      cut: { bidReq: 5e8 },
+      cut: { bidReq: 1.6e8 },
       segments: [
-        { id: 'n1', name: '第1戦', weeks: 3, match: { name: '新英雄大戦 第1戦', rule: 'nel', n: 3, base: 3779 } },
-        { id: 'n2', name: '第2戦', weeks: 3, match: { name: '新英雄大戦 第2戦', rule: 'nel', n: 3, base: 5791 } },
-        { id: 'n3', name: '第3戦', weeks: 3, match: { name: '新英雄大戦 第3戦', rule: 'nel', n: 3, base: 8255 } },
-        { id: 'n4', name: '最終戦', weeks: 3, match: { name: '新英雄大戦 最終戦', rule: 'nel', n: 3, base: 11341 } }
+        { id: 'n1', name: '第1戦', weeks: 3, match: { name: '新英雄大戦 第1戦', rule: 'nel', n: 3, base: 4556 } },
+        { id: 'n2', name: '第2戦', weeks: 3, match: { name: '新英雄大戦 第2戦', rule: 'nel', n: 3, base: 6690 } },
+        { id: 'n3', name: '第3戦', weeks: 3, match: { name: '新英雄大戦 第3戦', rule: 'nel', n: 3, base: 9433 } },
+        { id: 'n4', name: '最終戦', weeks: 3, match: { name: '新英雄大戦 最終戦', rule: 'nel', n: 3, base: 12735 } }
       ],
       /* 対戦相手クラブごとの語り（クラブIDで参照） */
       opponents: {
@@ -1530,53 +1591,53 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       } },
 
     /* ============================================================ 第5章 U-20 ワールドカップ */
-    { id: 'wc', n: 5, title: 'U-20ワールドカップ', sub: 'BL.JAPAN — グループA → 決勝トーナメント', envMult: 26.0, bidPerGoal: 1.5e8, cashPerGoal: 250000, cashWin: 250000,
+    { id: 'wc', n: 5, part: '第五編・決戦', title: 'U-20ワールドカップ', sub: 'BL.JAPAN — グループA → 決勝トーナメント', envMult: 26.0, bidPerGoal: 1.5e7, cashPerGoal: 250000, cashWin: 250000,
       intro: [
         '新英雄大戦を生き残った23名にSIDE-Bの2名と糸師冴を加えた「BL.JAPAN」がU-20ワールドカップに臨む。',
         '64ヵ国が16グループに分かれ、各グループ上位2チームが32チームの決勝トーナメントへ進む。日本はグループA：ナイジェリア、フランス、イングランド。',
         '原作では開幕戦でナイジェリアに4-0（蜂楽・玲王・凛・潔）、フランスにロキの2発などで2-4と敗れ、イングランド戦は勝利以外に決勝トーナメントへの道がない状況（連載中）。',
-        '決勝トーナメント以降は原作未到達の「if」。世界一まで、あと6試合。'
+        '決勝トーナメント以降は原作未到達の「if」。世界一まで、あと6試合。五つの編を生き抜いた者だけが、ここに立てる。'
       ],
       cut: { statReq: 0 },
       segments: [
         { id: 'w_nga', name: 'グループA 第1戦 vs ナイジェリア', weeks: 2,
           match: { name: 'グループA 日本 vs ナイジェリア', enemy: 'ナイジェリア代表', lead: 'オナジ / クッソ / ベロ', rule: 'group', n: 3,
-            rate: R(12467, 1.04, 0.98, 1.02, 0.96),
+            rate: R(15158, 1.04, 0.98, 1.02, 0.96),
             canon: '原作：4-0 勝利。蜂楽（3分40秒）・玲王・凛・潔（後半46分）。後半途中から5-4-1へ変更。',
             intro: 'W杯開幕戦。相手は身体能力で襲いかかるナイジェリア。蜂楽が開始3分40秒で先制する原作の展開を、今度はお前が塗り替える。',
             highlights: ['前半3分。蜂楽の怪物ドリブルで先制。ナイジェリアの反撃が始まる。クッソのゲームメイクの外側で、お前が動く——。', '後半20分。玲王と凛の得点で試合は決まりかけている。だがスカウトはまだお前を見ていない——。', '後半46分。世界デビュー戦の締めくくり。ゴールでこの試合に名を刻め——。'],
             win: '快勝。世界の舞台でお前の名が初めて呼ばれた。', lose: '開幕戦で躓いた。グループ突破への道が急に険しくなった。' } },
         { id: 'w_fra', name: 'グループA 第2戦 vs フランス', weeks: 2,
           match: { name: 'グループA 日本 vs フランス', enemy: 'フランス代表', lead: 'ジュリアン・ロキ / シャルル・シュヴァリエ / ユーゴー', rule: 'group', n: 3,
-            rate: R(19277, 1.02, 1.04, 1.08, 1.0),
+            rate: R(23106, 1.02, 1.04, 1.08, 1.0),
             canon: '原作：2-4 敗北。シュヴァリエ（前半1分）、ユーゴー、ロキ×2。日本は氷織・馬狼が得点。',
             intro: '前半1分、シュヴァリエの電光石火で先制されるのが原作の展開。ロキの神速が最終ラインを蹂躙する。世界最強の一角。',
             highlights: ['前半1分。シュヴァリエの先制弾。ユーゴーが続く。0-2。氷織の冷静な一撃で反撃の狼煙——。', '後半15分。馬狼が王様として1点を返す。ロキが加速する。神童の速さに追いつけるのは——。', '後半45分。ロキがもう一度走る。日本にも最後のチャンスがある。世界最速の男の前で、決めろ——。'],
             win: '原作で敗れたフランスを破った。ロキが笑う。「面白い」', lose: 'フランスに敗れた。原作通りの結果。最終戦は勝利以外に道がない。' } },
         { id: 'w_eng', name: 'グループA 最終戦 vs イングランド', weeks: 2,
           match: { name: 'グループA 日本 vs イングランド', enemy: 'イングランド代表', lead: 'テディ・ナイト / アチャンポン / チャイルズ', rule: 'group', n: 3,
-            rate: R(21078, 1.06, 1.0, 1.0, 0.98),
+            rate: R(25415, 1.06, 1.0, 1.0, 0.98),
             canon: '原作：連載中（第355話〜）。前半にテディ・ナイトが先制、雪宮が同点弾。日本は勝利以外に決勝トーナメントへ進めない。',
             intro: 'グループ最終戦。イングランドは新世代世界11傑テディ・ナイトを擁する。原作では1-1の展開が続いている。ここから先は、お前が書く。',
             highlights: ['前半。テディ・ナイトの一撃で先制される。雪宮の1on1で同点。イングランドの守備は世界標準——。', '後半20分。アチャンポンの司令塔を封じ、烏がボールを奪う。カウンターの空間が見える——。', 'ラストプレー。勝利以外は敗退。世界がお前の一撃を待っている——。'],
             win: '勝った。グループAを突破し、決勝トーナメントへ。', lose: 'イングランドに届かなかった。' } },
         { id: 'w_qf', name: '準々決勝 vs ドイツ', weeks: 2,
           match: { name: '準々決勝 日本 vs ドイツ', enemy: 'ドイツ代表', lead: 'ミヒャエル・カイザー / アレクシス・ネス', rule: 'mustWin', n: 3,
-            rate: R(25016, 1.06, 1.04, 1.0, 1.0),
+            rate: R(30162, 1.06, 1.04, 1.0, 1.0),
             canon: 'if：原作未到達。皇帝カイザーと魔術師ネスがドイツ代表として立ちはだかる。',
             intro: '決勝トーナメント。皇帝カイザーとの再戦。「お前を殺すためにここに来た」——。',
             highlights: ['前半。カイザーインパクトで先制される。皇帝は本気だ——。', '後半。ネスの魔術を読み切った。皇帝の視線の外に空間が生まれる——。', 'ラスト。皇帝とお前、どちらが「主役」か。世界が見ている——。'],
             win: '皇帝を超えた。カイザーが吐き捨てる。「…認めない」', lose: '皇帝に沈められた。' } },
         { id: 'w_sf', name: '準決勝 vs スペイン', weeks: 2,
           match: { name: '準決勝 日本 vs スペイン', enemy: 'スペイン代表', lead: 'レオナルド・ルナ / ラヴィーニョの弟子たち', rule: 'mustWin', n: 3,
-            rate: R(30934, 1.02, 1.1, 1.02, 1.04),
+            rate: R(37420, 1.02, 1.1, 1.02, 1.04),
             canon: 'if：原作未到達。技術の王国スペインが待つ。',
             intro: '準決勝。世界最高の技術を誇るスペイン。「遊び」の中に殺意がある。',
             highlights: ['前半。ルナの貴公子の技巧に翻弄される。ボールが回り続ける——。', '後半。奪った瞬間に空間が開く。スペインの守備は技術で崩すしかない——。', 'ラスト。世界一まであと二つ。決めろ——。'],
             win: '技術の王国を破った。決勝へ。', lose: 'スペインの技術に沈んだ。' } },
         { id: 'w_final', name: '決勝 vs フランス', weeks: 2,
           match: { name: 'U-20ワールドカップ決勝 日本 vs フランス', enemy: 'フランス代表', lead: 'ジュリアン・ロキ / シャルル・シュヴァリエ', rule: 'perfect', n: 3,
-            rate: R(45454, 1.04, 1.04, 1.1, 1.02),
+            rate: R(54299, 1.04, 1.04, 1.1, 1.02),
             canon: 'if：原作未到達。グループで敗れたフランスとの再戦。3対0 の完全勝利のみが世界一。',
             intro: '世界一を懸けた決勝。許されるのは3対0の完全勝利のみ。一度の失敗が終わりを意味する。相手は神童ロキ率いるフランス。',
             highlights: ['前半10分。ロキが「見せてみろ」と言わんばかりに待ち構える。世界最速の壁——。', '後半5分。シュヴァリエの罠を掻い潜り、ペナルティエリアへ侵入——。', '後半45分。世界一の座まで、あと一撃。お前のエゴが世界を塗り替える——。'],
@@ -1600,8 +1661,8 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   var D = BL.DATA;
   var P = D.PARAMS;
   var ARCS = BL.STORY.arcs;
-  var SAVE_KEY = 'bl_pwc_egoist_save_v3';
-  var SAVE_VERSION = 3;
+  var SAVE_KEY = 'bl_pwc_egoist_save_v4';
+  var SAVE_VERSION = 4;
 
   var rng = Math.random;
   BL.setRng = function (fn) { rng = fn; };
@@ -1651,7 +1712,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
         gems: P.INITIAL_GEMS, roster: roster, hof: [],
         achievements: {}, pendingAch: [],
         records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0 },
-        history: [], sfx: true, portraits: {}, createdAt: Date.now()
+        history: [], sfx: true, portraits: {}, pieces: 0, createdAt: Date.now()
       },
       run: null, wc: null
     };
@@ -1731,6 +1792,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     }
     if (player.advisorId) { var adv = advisorById(player.advisorId); if (adv) merge(adv.fx); }
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
+    if (player.policy) { for (var pi = 0; pi < D.POLICIES.length; pi++) if (D.POLICIES[pi].id === player.policy) merge({ growth: D.POLICIES[pi].growth }); }
     return m;
   }
   BL.playerMods = playerMods;
@@ -2114,10 +2176,23 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     run.match.showResult = false; BL.save(state);
   };
 
+  /** 圧倒度：その試合の最良選択肢の比率 r が 1 を超える分だけ入札額を上乗せ（r=3 で ×1.5 上限）。FLOW 帯（25〜40%）に入らないほど強い選手が年俸で不利にならないための補正 */
+  function dominanceMult(run, m) {
+    var opts = computeOptions(run, m, {}); var best = 0;
+    for (var i = 0; i < opts.length; i++) if (opts[i].ratio > best) best = opts[i].ratio;
+    return 1 + P.BID_DOMINANCE * clamp(best - 1, 0, 2);
+  }
+  BL.dominanceMult = dominanceMult;
   function bidMultiplier(run) { var agg = aggregateSkills(run); var mods = playerMods(run); return (1 + P.BID_SKILL_STEP * agg.count + agg.bid) * mods.bidMult; }
   BL.bidMultiplier = bidMultiplier;
 
-  var RANK_PAR = [90, 170, 630, 2300, 5600, 19000];
+  var RANK_PAR = [170, 700, 2500, 6000, 20000];
+  function partRank(run) {
+    var ratio = sumStats(run.stats) / RANK_PAR[Math.min(run.arc, RANK_PAR.length - 1)];
+    for (var i = 0; i < D.PART_RANKS.length; i++) if (ratio >= D.PART_RANKS[i].r) return D.PART_RANKS[i].k;
+    return 'D';
+  }
+  BL.partRank = partRank;
   function blRank(run) {
     var total = sumStats(run.stats); var par = RANK_PAR[Math.min(run.arc, RANK_PAR.length - 1)];
     return clamp(Math.round(300 * Math.pow(par / Math.max(1, total), 2)), 1, 300);
@@ -2129,7 +2204,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var run = state.run; var m = run.match; var arc = arcOf(run);
     var mods = playerMods(run); var agg = aggregateSkills(run);
     var goals = m.me;
-    var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
+    var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * dominanceMult(run, m) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
     var cashGain = Math.round((goals * arc.cashPerGoal + (m.won ? arc.cashWin : 0)) * mods.cashMult * agg.cashMult);
     run.bid += bidGain; run.cash += cashGain;
     run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1;
@@ -2153,6 +2228,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     /* ルール別の帰結 */
     var rule = m.rule;
     if (rule === 'single' && !m.won) { mr.outcome = 'eliminated'; mr.detail = '試練に失敗——脱落'; }
+    else if (rule === 'single' && m.won && /オニごっこ/.test(m.name)) unlock(state, 'pass_entry');
     else if ((rule === 'mustWin' || rule === 'tryout') && !m.won) { mr.outcome = 'eliminated'; mr.detail = m.cold ? 'コールド負け：勝利条件の達成が数学的に不可能となり試合打ち切り' : '敗北——除籍'; }
     else if (rule === 'perfect' && m.wins < m.n) { mr.outcome = 'eliminated'; mr.detail = '完全勝利ならず——世界一には届かなかった'; }
     else if (rule === 'stage3_rin' && !m.won) { mr.outcome = 'branch'; mr.detail = '蜂楽を奪われた。潔と凪、2人で2ndステージへ'; run.flags.rinLoss = true; }
@@ -2214,13 +2290,16 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     if (!checks.length) checks.push({ label: arc.title + ' 突破', value: '達成', ok: true });
     var survived = true; for (var i = 0; i < checks.length; i++) if (!checks[i].ok) survived = false;
     var isFinal = run.arc === ARCS.length - 1;
-    var ev = { arc: run.arc, title: arc.title, checks: checks, survived: survived, isFinal: isFinal, gems: 0, total: Math.round(total), bid: run.bid, wins: as.wins, goals: as.goals, rank: blRank(run) };
+    var pr = partRank(run);
+    run.partRanks = run.partRanks || []; run.partRanks[run.arc] = pr;
+    if (pr === 'SS') unlock(state, 'part_ss');
+    var ev = { arc: run.arc, title: arc.title, part: arc.part, checks: checks, survived: survived, isFinal: isFinal, gems: 0, total: Math.round(total), bid: run.bid, wins: as.wins, goals: as.goals, rank: blRank(run), partRank: pr };
     if (survived) {
-      ev.gems = arc.n === 0 ? 100 : P.GEMS_SURVIVE;
+      ev.gems = P.GEMS_SURVIVE;
       if (isFinal) { ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear'); }
       state.meta.gems += ev.gems;
       if (run.arc > state.meta.records.bestArc) state.meta.records.bestArc = run.arc;
-      var achMap = { entry: 'pass_entry', first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
+      var achMap = { first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
       if (achMap[arc.id]) unlock(state, achMap[arc.id]);
       pushLog(run, '【査定】' + arc.title + ' 生存。Ego Gems +' + ev.gems);
     } else {
@@ -2242,8 +2321,10 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       else {
         run.arc += 1; run.seg = 0; run.match = null; run.matchResult = null; run.evalResult = null;
         run.arcState = { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false };
+        run.policy = null;
         run.phase = 'arcIntro';
-        pushLog(run, '第' + arcOf(run).n + '章「' + arcOf(run).title + '」開始。');
+        if (arcOf(run).id === 'wc') unlock(state, 'five_parts');
+        pushLog(run, arcOf(run).part + '「' + arcOf(run).title + '」開始。');
       }
     } else {
       run.gameover = { reason: 'cutoff', detail: '足切り条件未達', gems: ev.gems, arc: run.arc, total: Math.round(sumStats(run.stats)), skills: aggregateSkills(run).count, bid: run.bid };
@@ -2256,9 +2337,24 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   BL.continueStory = function (state) {
     var run = state.run;
     if (!run || run.phase !== 'arcIntro') return { ok: false };
-    var arc = arcOf(run);
-    if (arc.chooseClub && !run.club) { run.phase = 'clubSelect'; BL.save(state); return { ok: true, phase: 'clubSelect' }; }
+    if (!run.policy) { run.phase = 'policySelect'; BL.save(state); return { ok: true, phase: 'policySelect' }; }
+    afterPolicy(state);
+    BL.save(state);
+    return { ok: true, phase: run.phase };
+  };
+  function afterPolicy(state) {
+    var run = state.run; var arc = arcOf(run);
+    if (arc.chooseClub && !run.club) { run.phase = 'clubSelect'; return; }
     enterSegment(state);
+  }
+  BL.choosePolicy = function (state, policyId) {
+    var run = state.run;
+    if (!run || run.phase !== 'policySelect') return { ok: false };
+    var ok = false; for (var i = 0; i < D.POLICIES.length; i++) if (D.POLICIES[i].id === policyId) ok = true;
+    if (!ok) return { ok: false, reason: 'policy' };
+    run.policy = policyId;
+    pushLog(run, '【育成方針】' + policyId + ' を選択。');
+    afterPolicy(state);
     BL.save(state);
     return { ok: true, phase: run.phase };
   };
@@ -2303,7 +2399,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     if (run.phase !== 'gameover' && run.phase !== 'clear') return;
     var card = cardById(run.cardId);
     state.meta.history.unshift({ card: BL.cardName(card), rar: card.rar, arc: run.arc, arcTitle: arcOf(run).title, cleared: run.phase === 'clear',
-      reason: run.gameover ? run.gameover.reason : 'clear', total: Math.round(sumStats(run.stats)), bid: run.bid, rank: run.rank || 300, at: Date.now(), runNo: run.runNo });
+      reason: run.gameover ? run.gameover.reason : 'clear', total: Math.round(sumStats(run.stats)), bid: run.bid, rank: run.rank || 300, partRanks: (run.partRanks || []).slice(), at: Date.now(), runNo: run.runNo });
     if (state.meta.history.length > 20) state.meta.history.length = 20;
     state.run = null; BL.save(state);
   };
@@ -2320,7 +2416,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     state.run = {
       cardId: cardId, charId: card.char, advisorId: adv.id, club: null,
       arc: 0, seg: 0, weeksLeft: 0,
-      stats: prof.stats, growth: prof.growth, lb: owned.dupes || 0, hp: 100, cond: 'normal', skills: {}, sig: 0,
+      stats: prof.stats, growth: prof.growth, lb: owned.dupes || 0, hp: 100, cond: 'normal', skills: {}, sig: 0, policy: null, partRanks: [],
       bid: 0, cash: 0, phase: 'arcIntro', protein: false, note: false, event: null, lastEventId: null,
       match: null, matchResult: null, evalResult: null, gameover: null, log: [], flags: {}, history: [],
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
@@ -2348,15 +2444,37 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       var rar = rollRarity(); var pool = [];
       for (var j = 0; j < BL.CARDS.length; j++) if (BL.CARDS[j].rar === rar) pool.push(BL.CARDS[j]);
       var card = pick(pool); var entry = state.meta.roster[card.id]; var isNew = !entry;
-      if (isNew) state.meta.roster[card.id] = { dupes: 0, obtainedAt: Date.now() }; else entry.dupes += 1;
+      var piecesGain = 0;
+      if (isNew) state.meta.roster[card.id] = { dupes: 0, obtainedAt: Date.now() }; else { entry.dupes += 1; piecesGain = D.PIECES.gain[card.rar] || 0; state.meta.pieces = (state.meta.pieces || 0) + piecesGain; }
       if (state.meta.roster[card.id].dupes >= 10) unlock(state, 'lb_10');
-      results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type });
+      results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type, pieces: piecesGain });
     }
     state.meta.records.gachaPulls += n;
     if (state.meta.records.gachaPulls >= 50) unlock(state, 'gacha_50');
     if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
     BL.save(state);
     return { ok: true, results: results, cost: cost };
+  };
+
+  /** エゴ・ピース交換：任意のカードをピースで獲得（未所持なら新規、所持済みなら限界突破） */
+  BL.exchange = function (state, cardId) {
+    var card = cardById(cardId); if (!card) return { ok: false, reason: 'card' };
+    var cost = D.PIECES.cost[card.rar];
+    if ((state.meta.pieces || 0) < cost) return { ok: false, reason: 'pieces' };
+    state.meta.pieces -= cost;
+    var entry = state.meta.roster[cardId]; var isNew = !entry;
+    if (isNew) state.meta.roster[cardId] = { dupes: 0, obtainedAt: Date.now() }; else entry.dupes += 1;
+    unlock(state, 'exchange_1');
+    if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
+    BL.save(state);
+    return { ok: true, isNew: isNew, dupes: state.meta.roster[cardId].dupes, cost: cost };
+  };
+  /** おまかせ練習：次の試合の最良選択肢に対応する属性のうち、主獲得量が大きい方を選ぶ */
+  BL.recommendStat = function (run) {
+    var opts = BL.previewOptions(run); if (!opts.length) return 'SHT';
+    var best = opts[0]; for (var i = 0; i < opts.length; i++) if (opts[i].ratio > best.ratio) best = opts[i];
+    var g0 = BL.previewGain(run, best.stats[0])[best.stats[0]], g1 = BL.previewGain(run, best.stats[1])[best.stats[1]];
+    return g0 >= g1 ? best.stats[0] : best.stats[1];
   };
 
   /* ------------------------------------------------------------ World Cup (endgame) */
@@ -2583,7 +2701,21 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       '<text x="30" y="37" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-weight="900" font-size="20" fill="#ffffff">' + esc(firstChar(label)) + '</text></svg>';
   }
 
-  BL.ART = { svg: svg, emblem: emblem };
+  /** タイプアイコン（SVG） */
+  var TYPE_ICON = {
+    'キック':       '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 5 L15 10 L12 15 L9 10 Z M12 15 L8 19 M12 15 L16 19" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    'スピード':     '<path d="M3 8 H15 M5 12 H18 M3 16 H13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M15 6 L21 12 L15 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    'テクニック':   '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/>',
+    '賢さ':         '<path d="M8 4 a4 4 0 0 0 -4 4 v2 a4 4 0 0 0 4 4 h1 v5 h6 v-5 h1 a4 4 0 0 0 4 -4 V8 a4 4 0 0 0 -4 -4 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8 v4 M9 10 h6" stroke="currentColor" stroke-width="1.6"/>',
+    'フィジカル':   '<path d="M4 10 h3 v-3 h3 v10 h-3 v-3 h-3 Z M20 10 h-3 v-3 h-3 v10 h3 v-3 h3 Z M10 12 h4" fill="none" stroke="currentColor" stroke-width="2"/>',
+    'スタミナ':     '<rect x="3" y="7" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="19" y="10" width="2.5" height="4" fill="currentColor"/><rect x="6" y="10" width="3" height="4" fill="currentColor"/><rect x="10" y="10" width="3" height="4" fill="currentColor"/>',
+    'コンディション': '<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2 v3 M12 19 v3 M2 12 h3 M19 12 h3 M5 5 l2 2 M17 17 l2 2 M5 19 l2 -2 M17 7 l2 -2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  };
+  function typeIcon(type, size) {
+    var t = D.TYPE_MAP[type]; var color = t ? (D.STAT_META[t.stat] || {}).color : '#fff';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="' + (size || 16) + '" height="' + (size || 16) + '" class="ticon" style="color:' + color + '" aria-label="' + esc(type) + '">' + (TYPE_ICON[type] || TYPE_ICON['キック']) + '</svg>';
+  }
+  BL.ART = { svg: svg, emblem: emblem, typeIcon: typeIcon };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
@@ -2610,8 +2742,16 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   function cash(v) { return '¥' + Math.round(v).toLocaleString(); }
   function rc(r) { return D.RARITY[r].color; }
   function sfx(n) { if (state.meta.sfx !== false) BL.SFX.play(n); }
-  function typeIcon(t) { return (D.TYPE_MAP[t] || {}).icon || ''; }
+  function typeIcon(t) { return BL.ART.typeIcon(t, 14); }
   function art(card, size) { return BL.ART.svg(card, { portrait: (state.meta.portraits || {})[card.char] || null, size: size || 120 }); }
+  /* 育成中の選手を大きく見せる帯（編導入・方針選択・査定・除籍・世界一で共通） */
+  function runHero(run, size) {
+    var card = BL.cardById(run.cardId); if (!card) return '';
+    var pol = run.policy ? D.POLICIES.filter(function (p) { return p.id === run.policy; })[0] : null;
+    var ranks = (run.partRanks || []).map(function (r, i) { return r ? '<em class="pr ' + r + '">' + (i + 1) + ':' + r + '</em>' : ''; }).join('');
+    return '<div class="run-hero" style="--rc:' + rc(card.rar) + '"><div class="rh-art" data-action="card-detail" data-arg="' + card.id + '">' + art(card, size || 120) + '</div>' +
+      '<div class="rh-meta"><i>' + stars(card.rar) + ' ' + esc(D.RARITY[card.rar].name) + '</i><b>' + esc(BL.cardName(card)) + '</b><small>' + esc(card.type) + ' / ' + esc((card.pos || []).join('・')) + (pol ? ' / 方針：' + esc(pol.name) : '') + (run.lb ? ' / 限界突破 +' + run.lb : '') + '</small>' + (ranks ? '<div class="rh-ranks">' + ranks + '</div>' : '') + '</div></div>';
+  }
   function charOfRun(run) { return D.CHARACTERS[run.charId]; }
 
   function toast(msg, kind) {
@@ -2641,6 +2781,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     app.innerHTML = html;
     renderOverlay();
     document.body.classList.toggle('flow', isFlowActive());
+    document.body.setAttribute('data-part', state.run && !ui.inLobby ? String(BL.arcOf(state.run).n) : (state.wc && !ui.inLobby ? 'wc' : '0'));
     window.scrollTo(0, 0);
     if ($('.bid-num')) countUp();
     flushAchievements();
@@ -2663,6 +2804,8 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       case 'rules': inner = renderRules(); break;
       case 'advisor': inner = renderAdvisorPick(); break;
       case 'story': inner = renderStoryModal(); break;
+      case 'naming': inner = renderNamingList(); break;
+      case 'exchange': inner = renderExchange(); break;
       case 'summary': inner = '<div class="modal-head"><h2>RUN 結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">クリップボードにアクセスできない環境のため、以下を選択してコピーしてください。</p><textarea class="summary-box" id="summary-text" readonly onfocus="this.select()">' + esc(ui.modal.text) + '</textarea>'; break;
     }
     ov.innerHTML = '<div class="modal-backdrop"><div class="modal">' + inner + '</div></div>'; ov.hidden = false;
@@ -2685,12 +2828,22 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var tabs = [['roster', '所持選手'], ['gacha', 'スカウト'], ['dex', '図鑑'], ['hof', '殿堂 / W杯'], ['ach', '実績'], ['records', '戦績・ルール']];
     var tabHtml = tabs.map(function (t) { return '<button class="tab' + (ui.lobbyTab === t[0] ? ' active' : '') + '" data-action="lobby-tab" data-arg="' + t[0] + '">' + t[1] + '</button>'; }).join('');
     var body = { roster: renderRoster, gacha: renderGacha, dex: renderDex, hof: renderHof, ach: renderAchievements, records: renderRecords }[ui.lobbyTab]();
+    var feat = featuredCard();
+    var hero = feat ? '<div class="home-hero"><div class="hero-art" data-action="card-detail" data-arg="' + feat.id + '">' + art(feat, 150) + '</div><div class="hero-text"><div class="hero-kicker">' + (state.run ? '育成中' : '推しストライカー') + '</div><h2>' + esc(D.CHARACTERS[feat.char].name) + '<small>【' + esc(feat.title) + '】 ' + stars(feat.rar) + ' ' + typeIcon(feat.type) + '</small></h2>' +
+      (state.run ? '<div class="muted">' + esc(BL.arcOf(state.run).part) + ' ' + esc(BL.arcOf(state.run).title) + ' ／ 公式戦まで ' + state.run.weeksLeft + ' 週 ／ 合計 ' + num(BL.sumStats(state.run.stats)) + '</div><button class="btn primary" data-action="resume-run">育成を再開</button>' : '<div class="muted">' + esc(D.CHARACTERS[feat.char].passive.name) + '：' + esc(D.CHARACTERS[feat.char].passive.desc) + '</div><button class="btn primary" data-action="pick-card" data-arg="' + feat.id + '">この選手で育成開始</button>') +
+      '</div></div>' : '';
     return '<section class="screen lobby">' + disclaimerBar() +
       '<header class="lobby-head"><div class="lobby-title"><span class="accent">BLUE LOCK</span> PWC — ロビー</div>' +
-      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
-      '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
+      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
+      hero + '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
   }
 
+  function featuredCard() {
+    if (state.run) return BL.cardById(state.run.cardId);
+    var ids = Object.keys(state.meta.roster); if (!ids.length) return null;
+    var best = null; ids.forEach(function (id) { var c = BL.cardById(id); if (c && (!best || Number(c.rar) > Number(best.rar))) best = c; });
+    return best;
+  }
   function cardCardHtml(card, own, opts) {
     var c = D.CHARACTERS[card.char]; var prof = BL.cardProfile(card, own ? own.dupes : 0);
     var statLine = D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(prof.stats[s]) + '</span>'; }).join('');
@@ -2728,8 +2881,26 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
       var own = state.meta.roster[c.id]; var ch = D.CHARACTERS[c.char];
       return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + (c.flow ? ' F' : '') + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】' + (c.origin === 'mod' ? ' <small class="muted">改変版</small>' : '') + '</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') : '—') + '</td></tr>';
     }).join('');
-    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' + rarityFilterBar(ui.rosterFilter, 'roster-filter') +
+    var np = Object.keys(state.meta.portraits || {}).length;
+    return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' +
+      '<div class="notice"><b>画像パック一括取り込み</b><span class="muted small">ファイル名をキャラID（例 isagi.png）またはキャラ名（例 潔世一.jpg）にした画像をまとめて選択すると、各キャラのポートレートとして端末内に保存する（設定済み ' + np + ' キャラ）。</span><label class="btn ghost sm"><input type="file" accept="image/*" multiple data-portrait-bulk="1" hidden>画像を選択</label><button class="btn ghost sm" data-action="open-naming">キャラID一覧</button></div>' +
+      rarityFilterBar(ui.rosterFilter, 'roster-filter') +
       '<table class="tbl dex"><thead><tr><th>レア</th><th>カード</th><th>タイプ</th><th>ポジション</th><th>所持</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+  function renderNamingList() {
+    var rows = Object.keys(D.CHARACTERS).map(function (id) { return '<tr><td><code>' + id + '</code></td><td>' + esc(D.CHARACTERS[id].name) + '</td><td>' + ((state.meta.portraits || {})[id] ? '設定済み' : '—') + '</td></tr>'; }).join('');
+    return '<div class="modal-head"><h2>キャラID一覧（画像ファイル名用）</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">ファイル名（拡張子を除く）が ID またはキャラ名と一致する画像を取り込む。1枚 60KB・合計 3MB まで（端末内で 160×200 に縮小）。</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>キャラ</th><th>画像</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function renderExchange() {
+    var pieces = state.meta.pieces || 0;
+    var cards = BL.CARDS.filter(function (c) { return ui.rosterFilter === 'all' || c.rar === ui.rosterFilter; });
+    var rows = cards.map(function (c) {
+      var own = state.meta.roster[c.id]; var cost = D.PIECES.cost[c.rar];
+      return '<tr><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + '</td><td><b>' + esc(D.CHARACTERS[c.char].name) + '</b> 【' + esc(c.title) + '】</td><td>' + (own ? '所持 +' + own.dupes : '未所持') + '</td><td class="num">🧩 ' + cost + '</td><td><button class="btn primary sm" data-action="exchange" data-arg="' + c.id + '"' + (pieces < cost ? ' disabled' : '') + '>交換</button></td></tr>';
+    }).join('');
+    return '<div class="modal-head"><h2>ピース交換所 <small class="muted">🧩 ' + num(pieces) + '</small></h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
+      '<p class="muted small">限界突破時に段階別ピース（★1 2 … ★8 150）を獲得。交換コストは ★1 30 / ★2 50 / ★3 90 / ★4 200 / ★5 400 / ★6 800 / ★7 1,600 / ★8 3,200。未所持なら新規、所持済みなら限界突破。</p>' +
+      rarityFilterBar(ui.rosterFilter, 'exchange-filter') + '<div class="tbl-wrap"><table class="tbl"><tbody>' + rows + '</tbody></table></div>';
   }
   function renderCardDetail() {
     var card = BL.cardById(ui.modal.cardId); if (!card) return '';
@@ -2770,12 +2941,13 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     return '<div class="gacha-panel"><div class="gacha-cta"><div><div class="muted">所持 Ego Gems</div><div class="big-num">💎 ' + num(m.gems) + '</div></div>' +
       '<div class="gacha-btns"><button class="btn primary" data-action="gacha" data-arg="1"' + (m.gems < P.GACHA_SINGLE ? ' disabled' : '') + '>単発スカウト<small>' + P.GACHA_SINGLE + ' Gems</small></button>' +
       '<button class="btn gold" data-action="gacha" data-arg="10"' + (m.gems < P.GACHA_TEN ? ' disabled' : '') + '>10連スカウト<small>' + P.GACHA_TEN + ' Gems</small></button></div></div>' +
-      '<p class="muted small">天井・確定枠は存在しない。8段階の提供割合は仕様書どおり（0.2 / 0.8 / 2 / 5 / 12 / 25 / 30 / 25%）。各カードの段階は、キャラの原作の格と PWC でのレアリティから割り当て（詳細は図鑑・README）。</p>' +
+      '<p class="muted small">天井・確定枠は存在しない。8段階の提供割合は仕様書どおり（0.2 / 0.8 / 2 / 5 / 12 / 25 / 30 / 25%）。所持済みカードの再排出は限界突破に加えて<b>エゴ・ピース</b>を付与し、ピースは交換所で任意のカードと交換できる。</p>' +
+      '<div class="exchange-cta"><span>🧩 所持ピース <b>' + num(m.pieces || 0) + '</b></span><button class="btn gold sm" data-action="open-exchange">ピース交換所</button></div>' +
       '<table class="tbl"><thead><tr><th>レア</th><th>クラス</th><th>提供割合</th><th>収録</th></tr></thead><tbody>' + rateRows + '</tbody></table></div>';
   }
   function renderGachaResult() {
     var res = ui.modal.results.map(function (r, i) {
-      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms" data-action="card-detail" data-arg="' + r.id + '"><div class="pull-art">' + art(BL.cardById(r.id), 96) + '</div><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-t">' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
+      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms" data-action="card-detail" data-arg="' + r.id + '"><div class="pull-art">' + art(BL.cardById(r.id), 96) + '</div><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-t">' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes + (r.pieces ? ' 🧩+' + r.pieces : '')) + '</div></div>';
     }).join('');
     var costN = ui.modal.n === 10 ? P.GACHA_TEN : P.GACHA_SINGLE;
     return '<div class="modal-head"><h2>スカウト結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="pulls">' + res + '</div>' +
@@ -2807,10 +2979,10 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   }
   function renderRecords() {
     var r = state.meta.records;
-    var hist = state.meta.history.map(function (h) { return '<tr><td>#' + h.runNo + '</td><td style="color:' + rc(h.rar) + '">' + esc(h.card) + '</td><td>' + (h.cleared ? '🏆 世界一' : '第' + ARCS[h.arc].n + '章 ' + esc(h.arcTitle) + ' で除籍') + '</td><td>' + num(h.total) + '</td><td>' + yen(h.bid) + '</td><td>' + h.rank + '位</td></tr>'; }).join('');
+    var hist = state.meta.history.map(function (h) { return '<tr><td>#' + h.runNo + '</td><td style="color:' + rc(h.rar) + '">' + esc(h.card) + '</td><td>' + (h.cleared ? '🏆 世界一' : esc(ARCS[h.arc].part) + ' ' + esc(h.arcTitle) + ' で除籍') + '</td><td>' + num(h.total) + '</td><td>' + yen(h.bid) + '</td><td>' + h.rank + '位' + (h.partRanks && h.partRanks.length ? ' / ' + h.partRanks.join('') : '') + '</td></tr>'; }).join('');
     return '<div class="records"><div class="kpis">' +
       '<div class="kpi"><i>周回数</i><b>' + r.runs + '</b></div><div class="kpi"><i>除籍回数</i><b>' + r.eliminations + '</b></div><div class="kpi"><i>世界一達成</i><b>' + r.clears + '</b></div>' +
-      '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? '第' + ARCS[r.bestArc].n + '章 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
+      '<div class="kpi"><i>最高到達</i><b>' + (r.bestArc >= 0 ? esc(ARCS[r.bestArc].part) + ' 突破' : '—') + '</b></div><div class="kpi"><i>BLランキング最高</i><b>' + r.bestRank + '位</b></div><div class="kpi"><i>最高年俸</i><b>' + yen(r.bestBid) + '</b></div>' +
       '<div class="kpi"><i>最高合計ステータス</i><b>' + num(r.bestTotal) + '</b></div><div class="kpi"><i>スカウト回数</i><b>' + r.gachaPulls + '</b></div><div class="kpi"><i>FIFA W杯 優勝</i><b>' + r.wcTitles + '</b></div></div>' +
       '<button class="btn ghost" data-action="open-rules">ルール・仕様を読む</button>' +
       (hist ? '<h4 class="sect">RUN 履歴</h4><table class="tbl"><thead><tr><th>#</th><th>カード</th><th>結果</th><th>合計</th><th>年俸</th><th>順位</th></tr></thead><tbody>' + hist + '</tbody></table>' : '') + '</div>';
@@ -2819,7 +2991,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var arcRows = ARCS.map(function (a) {
       var segs = a.segments.map(function (s) { return esc(s.name) + '（' + s.weeks + '週' + (s.match.rule === 'single' ? '・単発' : '') + '）'; }).join(' → ');
       var cut = []; if (a.cut.statReq) cut.push('合計 ' + a.cut.statReq); if (a.cut.leagueWins) cut.push('リーグ ' + a.cut.leagueWins + ' 勝'); if (a.cut.finalMustWin) cut.push('最終戦勝利'); if (a.cut.bidReq) cut.push('年俸 ' + yen(a.cut.bidReq));
-      return '<tr><td>第' + a.n + '章 ' + esc(a.title) + '</td><td>' + segs + '</td><td>' + (cut.join(' / ') || '—') + '</td></tr>';
+      return '<tr><td>' + esc(a.part) + ' ' + esc(a.title) + '</td><td>' + segs + '</td><td>' + (cut.join(' / ') || '—') + '</td></tr>';
     }).join('');
     return '<div class="modal-head"><h2>ルール</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="rules">' +
       '<h4>進行</h4><ul><li>練習・休養は1クリックで即座に1週を消費。確認ダイアログは無い。すべての行動はクリックした瞬間に LocalStorage へ上書き保存され、リロードしてもやり直しは不可能。</li>' +
@@ -2843,6 +3015,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var run = state.run;
     switch (run.phase) {
       case 'arcIntro': return renderArcIntro();
+      case 'policySelect': return renderPolicySelect();
       case 'clubSelect': return renderClubSelect();
       case 'training': case 'event': return renderTraining();
       case 'match': return renderMatch(run.match, runMatchCtx());
@@ -2877,9 +3050,14 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var run = state.run; var arc = BL.arcOf(run);
     var paras = arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
     var segs = arc.segments.filter(function (s) { return !s.cond; }).map(function (s) { return '<li><b>' + esc(s.name) + '</b><small>' + (s.weeks ? '公式戦まで ' + s.weeks + ' 週' : '即時') + ' — ' + esc(s.match.canon || '') + '</small></li>'; }).join('');
-    return '<section class="screen story"><div class="story-kicker">CHAPTER ' + arc.n + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' +
-      '<div class="story-body">' + paras + '</div><div class="panel"><h4>この章の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
-      '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">' + (arc.chooseClub ? '所属クラブを選ぶ' : '進む') + '</button></div></section>';
+    return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + ' — PART ' + arc.n + ' / ' + ARCS.length + '</div><h2 class="story-title">' + esc(arc.title) + '<small>' + esc(arc.sub) + '</small></h2>' + runHero(run, 120) +
+      '<div class="story-body">' + paras + '</div><div class="panel"><h4>この編の節</h4><ul class="seg-list">' + segs + '</ul></div>' +
+      '<div class="modal-foot center"><button class="btn primary lg" data-action="story-next">育成方針を選ぶ</button></div></section>';
+  }
+  function renderPolicySelect() {
+    var run = state.run; var arc = BL.arcOf(run);
+    var list = D.POLICIES.map(function (p) { return '<button class="btn choice" data-action="choose-policy" data-arg="' + p.id + '"><span>' + esc(p.name) + '</span><small>' + esc(p.desc) + '</small></button>'; }).join('');
+    return '<section class="screen story"><div class="story-kicker">' + esc(arc.part) + '</div><h2 class="story-title">育成方針を選択<small>この編の練習に適用される成長補正。編ごとに選び直す（' + ARCS.length + '回の育成それぞれに方針を持つ）。</small></h2>' + runHero(run, 110) + '<div class="choices">' + list + '</div></section>';
   }
   function renderClubSelect() {
     var list = D.NEL_CLUBS.map(function (c) {
@@ -2916,15 +3094,15 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var logHtml = run.log.slice(-6).reverse().map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('');
     var adv = BL.advisorById(run.advisorId); var club = run.club ? BL.clubById(run.club) : null;
     return '<section class="screen training"><header class="chapter-head' + (run.weeksLeft <= 1 ? ' urgent' : '') + '">' +
-      '<div class="ch-title">第' + arc.n + '章：' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + '</div>' +
+      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc((D.POLICIES.filter(function (x) { return x.id === run.policy; })[0] || {}).name || '') : '') + '</div>' +
       '<div class="head-btns"><button class="btn ghost sm" data-action="open-story">ストーリー</button><button class="btn ghost sm" data-action="to-lobby">ロビー</button></div></header>' +
       '<div class="train-grid"><div class="col"><div class="panel player">' +
-      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="thumb" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 64) + '</span><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
+      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="thumb" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 84) + '</span><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
       '<div class="hp ' + hpClass(run.hp) + '"><div class="hp-label"><span>肉体健全度 HP</span><b>' + run.hp + '%</b><em>' + hpLabel(run.hp) + '</em></div><div class="hp-bar"><i style="width:' + run.hp + '%"></i></div></div>' +
       '<div class="money"><span class="cond" style="color:' + cond.color + '">' + cond.icon + ' ' + cond.label + '</span><span>BLランク <b>' + (run.rank || 300) + '位</b></span><span>年俸 <b>' + yen(run.bid) + '</b></span><span>Cash <b>' + cash(run.cash) + '</b></span><span>💎 <b>' + num(state.meta.gems) + '</b></span></div>' +
       (run.protein || run.note ? '<div class="buffs">' + (run.protein ? '<span class="tag gold">🥤 次回練習×2</span>' : '') + (run.note ? '<span class="tag gold">📓 次試合 +10%</span>' : '') + '</div>' : '') + '</div>' +
       '<div class="panel stats">' + statRows + '<div class="stat-total">合計 <b>' + num(total) + '</b> <small>スキル乗数 ×' + (1 + P.SKILL_STEP * agg.count).toFixed(2) + ' / 環境倍率 ×' + arc.envMult + ' / HP効率 ×' + BL.hpEfficiency(run.hp) + ' / コンディション ×' + cond.mult + '</small></div></div>' +
-      '<div class="cmd-row"><button class="btn rest" data-action="rest"><span>休養</span><small>1週消費・HP +' + (P.REST_HEAL + BL.playerMods(run).restBonus) + '%</small></button><button class="btn store" data-action="open-store"><span>購買部</span><small>週消費なし・Cash ' + cash(run.cash) + '</small></button></div>' +
+      '<div class="cmd-row three"><button class="btn auto" data-action="auto-train"><span>おまかせ練習</span><small>次の試合に最適な属性（' + BL.recommendStat(run) + '）</small></button><button class="btn rest" data-action="rest"><span>休養</span><small>1週消費・HP +' + (P.REST_HEAL + BL.playerMods(run).restBonus) + '%</small></button><button class="btn store" data-action="open-store"><span>購買部</span><small>週消費なし・Cash ' + cash(run.cash) + '</small></button></div>' +
       '<p class="hint">練習：HP 約' + BL.expectedHpCost(run) + '% 消費。HP30%未満で練習を強行すると ' + Math.round(BL.injuryChance(run) * 100) + '% の確率で選手生命が終了する。ショートカット：1〜5 練習 / R 休養 / S 購買部</p></div>' +
       '<div class="col"><div class="panel next-match"><h4>次の試合：' + esc(mdef.enemy) + '</h4><div class="muted">' + esc(mdef.lead) + '</div><div class="muted small">' + esc(ruleText(mdef)) + '</div>' +
       '<div class="opt-prevs">' + optPrev + '</div><div class="muted small">原作：' + esc(mdef.canon || '') + '</div></div>' +
@@ -2947,7 +3125,7 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   }
   function renderStoryModal() {
     var run = state.run; var arc = BL.arcOf(run); var mdef = BL.currentMatchDef(run);
-    return '<div class="modal-head"><h2>第' + arc.n + '章 ' + esc(arc.title) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="story-body small">' + arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>' +
+    return '<div class="modal-head"><h2>' + esc(arc.part) + ' ' + esc(arc.title) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="story-body small">' + arc.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>' +
       (mdef ? '<div class="passive big"><b>次の試合：' + esc(mdef.name) + '</b><br>' + esc(mdef.intro || '') + '<br><small class="muted">' + esc(mdef.canon || '') + '</small></div>' : '');
   }
   function renderStore() {
@@ -3001,19 +3179,20 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     if (m.rule === 'single') text = r.success ? '——切り抜けた。' : '——届かなかった。';
     var endInfo = '';
     if (m.ended) { if (m.cold) endInfo = '<div class="cold">コールド負け — 勝利条件の達成が数学的に不可能。試合は打ち切られた。</div>'; else if (m.draw) endInfo = '<div class="cold">同点 — 延長戦なし。即時敗北。</div>'; else endInfo = '<div class="end ' + (m.won ? 'won' : 'lost') + '">試合終了 ' + m.me + ' - ' + m.en + ' ' + (m.won ? '勝利' : '敗北') + '</div>'; }
+    var cut = (r.success && ctx.card) ? '<div class="cutin"><div class="cutin-lines"></div><div class="cutin-art">' + art(ctx.card, 150) + '</div></div>' : '';
     var skill = r.skill ? '<div class="awaken" style="--c:' + D.STAT_META[r.skill.family].color + '"><i>スキル覚醒</i><b>' + esc(r.skill.name) + ' Lv.' + r.skill.lv + '</b><small>' + esc(r.skill.desc) + '</small></div>' : '';
     var sig = r.sig ? '<div class="awaken sigaw" style="--c:' + D.STAT_META[r.sig.family].color + '"><i>固有エゴ覚醒</i><b>' + esc(r.sig.name) + ' Lv.' + r.sig.lv + '</b><small>' + esc(r.sig.desc) + '</small></div>' : '';
     var nextAction = ctx.kind === 'wc' ? 'wc-next' : 'climax-next';
     var nextLabel = m.ended ? (ctx.kind === 'wc' ? '結果へ' : '試合結果へ') : '次の局面へ';
     return '<div class="result-wrap ' + (r.success ? 'success' : 'fail') + '"><div class="res-kicker">Climax ' + (r.idx + 1) + ' — ' + r.key + ' ' + esc(r.name) + ' (' + r.p + '%)' + (r.flow ? ' [FLOW]' : '') + '</div>' +
-      '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
+      cut + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="' + nextAction + '">' + nextLabel + '</button></div></div>';
   }
   function renderMatchResult() {
     var run = state.run; var mr = run.matchResult; var arc = BL.arcOf(run);
     var cls = mr.outcome === 'eliminated' ? 'elim' : (mr.won ? 'won' : 'lost');
     var label = { advance: mr.won ? '次へ' : '次へ（試合単位の除籍なし）', branch: '2ndステージへ（2対2）', nominated: '凛の指名で突破 — 次へ', eliminated: '除籍処分を受ける' }[mr.outcome];
-    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">第' + arc.n + '章 ' + esc(arc.title) + '</div><h2 class="mr-name">' + esc(mr.name) + '</h2></header>' +
+    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + '</div><h2 class="mr-name">' + esc(mr.name) + '</h2></header>' +
       '<div class="mr-score ' + cls + '"><b>' + mr.me + ' - ' + mr.en + '</b><span>' + (mr.cold ? 'コールド負け' : mr.draw ? '引き分け＝敗北' : mr.won ? '勝利' : '敗北') + '</span></div>' +
       '<p class="res-text center">' + esc(mr.text || '') + '</p>' + (mr.detail ? '<div class="' + (mr.outcome === 'eliminated' ? 'cold' : 'notice') + '">' + esc(mr.detail) + '</div>' : '') +
       '<div class="eval-grid"><div class="panel bid"><h4>年俸（入札）査定</h4><div class="bid-num" data-count="' + mr.bidTotal + '" data-from="' + (mr.bidTotal - mr.bidGain) + '">' + yen(mr.bidTotal - mr.bidGain) + '</div><div class="muted">今回 +' + yen(mr.bidGain) + '（ゴール ' + mr.goals + ' × 査定倍率 ×' + BL.bidMultiplier(run).toFixed(2) + (mr.wins === mr.n && mr.n > 1 ? ' × MVP1.5' : '') + '）</div>' +
@@ -3027,22 +3206,23 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     var run = state.run; var ev = run.evalResult;
     var checks = ev.checks.map(function (c) { return '<li class="' + (c.ok ? 'ok' : 'ng') + '"><span>' + esc(c.label) + '</span><b>' + esc(String(c.value)) + '</b></li>'; }).join('');
     var verdict = ev.survived ? '<div class="verdict survive">' + (ev.isFinal ? '世界一達成 — 殿堂入り' : '生存 — 次章へ') + '<small>Ego Gems +' + ev.gems + '</small></div>' : '<div class="verdict elim">除籍<small>補償 Ego Gems +' + ev.gems + '</small></div>';
-    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">第' + ARCS[ev.arc].n + '章 ' + esc(ev.title) + ' — 査定・選別</div><div class="muted">合計ステータス ' + num(ev.total) + ' / 年俸 ' + yen(ev.bid) + ' / BLランキング ' + ev.rank + '位</div></header>' +
+    return '<section class="screen evaluation"><header class="eval-head"><div class="ch-title">' + esc(ARCS[ev.arc].part) + ' ' + esc(ev.title) + ' — 査定・選別</div><div class="muted">合計ステータス ' + num(ev.total) + ' / 年俸 ' + yen(ev.bid) + ' / BLランキング ' + ev.rank + '位</div></header>' + runHero(run, 120) +
+      '<div class="part-rank ' + (ev.partRank || 'D') + '"><i>編評価</i><b>' + esc(ev.partRank || 'D') + '</b><small>合計ステータス ÷ 編基準値で判定（SS ≥ 3.0 / S ≥ 2.2 / A ≥ 1.6 / B ≥ 1.2 / C ≥ 0.9）</small></div>' +
       '<div class="panel"><h4>足切りサバイバル判定</h4><ul class="req-list big">' + checks + '</ul></div>' + verdict +
-      '<div class="modal-foot center"><button class="btn ' + (ev.survived ? 'primary' : 'danger') + ' lg" data-action="eval-next">' + (ev.survived ? (ev.isFinal ? '殿堂へ' : '次章へ') : '除籍処分を受ける') + '</button></div></section>';
+      '<div class="modal-foot center"><button class="btn ' + (ev.survived ? 'primary' : 'danger') + ' lg" data-action="eval-next">' + (ev.survived ? (ev.isFinal ? '殿堂へ' : '次の編へ') : '除籍処分を受ける') + '</button></div></section>';
   }
   function renderGameover() {
     var run = state.run; var g = run.gameover; var card = BL.cardById(run.cardId);
     var reason = { injury: '故障 — 選手生命の終了', cold: 'コールド負け', lost: '敗北', cutoff: '足切り' }[g.reason] || '除籍';
-    return '<section class="screen gameover"><div class="go-big">除籍</div><div class="go-sub">ELIMINATED</div><div class="go-box"><div class="go-reason">' + esc(reason) + '</div><p>' + esc(g.detail) + '</p>' +
-      '<div class="muted">' + esc(BL.cardName(card)) + ' ／ 第' + ARCS[g.arc].n + '章「' + esc(ARCS[g.arc].title) + '」で脱落 ／ 合計 ' + num(g.total) + ' ／ スキル ' + g.skills + ' ／ 年俸 ' + yen(g.bid) + ' ／ BLランキング ' + (run.rank || 300) + '位</div>' +
+    return '<section class="screen gameover"><div class="go-big">除籍</div><div class="go-sub">ELIMINATED</div><div class="go-box">' + runHero(run, 110) + '<div class="go-reason">' + esc(reason) + '</div><p>' + esc(g.detail) + '</p>' +
+      '<div class="muted">' + esc(BL.cardName(card)) + ' ／ ' + esc(ARCS[g.arc].part) + '「' + esc(ARCS[g.arc].title) + '」で脱落 ／ 合計 ' + num(g.total) + ' ／ スキル ' + g.skills + ' ／ 年俸 ' + yen(g.bid) + ' ／ BLランキング ' + (run.rank || 300) + '位</div>' +
       '<div class="go-gems">補償 Ego Gems <b>+' + g.gems + '</b> → 所持 ' + num(state.meta.gems) + '</div><p class="muted">育成データは完全に抹消される。やり直しは存在しない。</p></div>' +
       '<div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn danger lg" data-action="close-run">ロビーへ強制送還</button></div></section>';
   }
   function renderClear() {
     var run = state.run; var card = BL.cardById(run.cardId);
     var st = D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(run.stats[s]) + '</span>'; }).join('');
-    return '<section class="screen clear"><div class="clear-kicker">U-20 WORLD CUP CHAMPION</div><div class="clear-big">世界一</div><div class="go-box gold"><h3>' + stars(card.rar) + ' ' + esc(BL.cardName(card)) + ' — 殿堂入り</h3><div class="stat-line">' + st + '</div>' +
+    return '<section class="screen clear"><div class="clear-kicker">U-20 WORLD CUP CHAMPION</div><div class="clear-big">世界一</div><div class="go-box gold">' + runHero(run, 140) + '<h3>' + stars(card.rar) + ' ' + esc(BL.cardName(card)) + ' — 殿堂入り</h3><div class="stat-line">' + st + '</div>' +
       '<div class="muted">最終年俸 ' + yen(run.bid) + ' ／ スキル ' + BL.aggregateSkills(run).count + ' ／ 通算ゴール ' + run.totals.goals + ' ／ ' + run.totals.matchWins + '勝' + (run.totals.matches - run.totals.matchWins) + '敗</div>' +
       '<p>この選手は殿堂入りとして永続保存され、メインメニューから「FIFAワールドカップ（成人A代表・世界決戦モード）」へ出撃できる。</p></div><div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn gold lg" data-action="close-run">ロビーへ</button></div></section>';
   }
@@ -3154,6 +3334,12 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
     },
     'close-run': function () { BL.closeRun(state); ui.lobbyTab = 'roster'; ui.inLobby = false; render(); },
     'portrait-remove': function (arg) { BL.setPortrait(state, arg, null); toast('画像を削除した', 'ok'); render(); },
+    'open-naming': function () { ui.modal = { type: 'naming' }; render(); },
+    'open-exchange': function () { ui.modal = { type: 'exchange' }; render(); },
+    'exchange-filter': function (arg) { ui.rosterFilter = arg; render(); },
+    'exchange': function (arg) { var res = BL.exchange(state, arg); if (!res.ok) { toast(res.reason === 'pieces' ? 'ピースが足りない' : '交換できない', 'warn'); return; } sfx('rare'); toast((res.isNew ? '新規獲得' : '限界突破 +' + res.dupes) + '（🧩 -' + res.cost + '）', 'ok'); render(); },
+    'choose-policy': function (arg) { BL.choosePolicy(state, arg); sfx('click'); afterWeekAction(); },
+    'auto-train': function () { if (!state.run || state.run.phase !== 'training') return; actions.train(BL.recommendStat(state.run)); },
     'copy-summary': function () {
       if (!state.run) return; var text = BL.runSummary(state.run);
       var done = function () { toast('結果をクリップボードにコピーした', 'ok'); };
@@ -3175,7 +3361,43 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   }
   document.addEventListener('click', onClick);
   /* ポートレート画像の取り込み：端末内で 160×200 に縮小して保存 */
+  function importPortraitFile(charId, file, done) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var cv = document.createElement('canvas'); var W = 160, H = 200; cv.width = W; cv.height = H; var cx = cv.getContext('2d');
+          var s = Math.max(W / img.width, H / img.height); var dw = img.width * s, dh = img.height * s;
+          cx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+          var q = 0.82, url = cv.toDataURL('image/jpeg', q);
+          while (url.length > 60 * 1024 && q > 0.3) { q -= 0.1; url = cv.toDataURL('image/jpeg', q); }
+          done(BL.setPortrait(state, charId, url));
+        } catch (err) { done({ ok: false, reason: 'decode' }); }
+      };
+      img.onerror = function () { done({ ok: false, reason: 'decode' }); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function charIdFromFilename(name) {
+    var base = name.replace(/\.[^.]+$/, '').trim();
+    if (D.CHARACTERS[base]) return base;
+    for (var id in D.CHARACTERS) if (D.CHARACTERS[id].name === base || D.CHARACTERS[id].name.replace(/[・ ]/g, '') === base.replace(/[・ ]/g, '')) return id;
+    return null;
+  }
   document.addEventListener('change', function (e) {
+    var bulk = e.target; if (bulk && bulk.matches && bulk.matches('input[type=file][data-portrait-bulk]')) {
+      var files = Array.prototype.slice.call(bulk.files || []); var okN = 0, ngN = 0, pending = files.length;
+      if (!pending) return;
+      var finish = function () { if (--pending === 0) { toast('取り込み ' + okN + ' 件 / 不一致・失敗 ' + ngN + ' 件', okN ? 'ok' : 'warn'); render(); } };
+      files.forEach(function (f) {
+        var cid = charIdFromFilename(f.name);
+        if (!cid) { ngN++; finish(); return; }
+        importPortraitFile(cid, f, function (res) { if (res.ok) okN++; else ngN++; finish(); });
+      });
+      return;
+    }
     var input = e.target; if (!input || !input.matches || !input.matches('input[type=file][data-portrait]')) return;
     var charId = input.getAttribute('data-portrait'); var file = input.files && input.files[0]; if (!file) return;
     var reader = new FileReader();

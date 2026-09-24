@@ -91,5 +91,19 @@
       '<text x="30" y="37" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-weight="900" font-size="20" fill="#ffffff">' + esc(firstChar(label)) + '</text></svg>';
   }
 
-  BL.ART = { svg: svg, emblem: emblem };
+  /** タイプアイコン（SVG） */
+  var TYPE_ICON = {
+    'キック':       '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 5 L15 10 L12 15 L9 10 Z M12 15 L8 19 M12 15 L16 19" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    'スピード':     '<path d="M3 8 H15 M5 12 H18 M3 16 H13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M15 6 L21 12 L15 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    'テクニック':   '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/>',
+    '賢さ':         '<path d="M8 4 a4 4 0 0 0 -4 4 v2 a4 4 0 0 0 4 4 h1 v5 h6 v-5 h1 a4 4 0 0 0 4 -4 V8 a4 4 0 0 0 -4 -4 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8 v4 M9 10 h6" stroke="currentColor" stroke-width="1.6"/>',
+    'フィジカル':   '<path d="M4 10 h3 v-3 h3 v10 h-3 v-3 h-3 Z M20 10 h-3 v-3 h-3 v10 h3 v-3 h3 Z M10 12 h4" fill="none" stroke="currentColor" stroke-width="2"/>',
+    'スタミナ':     '<rect x="3" y="7" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="19" y="10" width="2.5" height="4" fill="currentColor"/><rect x="6" y="10" width="3" height="4" fill="currentColor"/><rect x="10" y="10" width="3" height="4" fill="currentColor"/>',
+    'コンディション': '<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2 v3 M12 19 v3 M2 12 h3 M19 12 h3 M5 5 l2 2 M17 17 l2 2 M5 19 l2 -2 M17 7 l2 -2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  };
+  function typeIcon(type, size) {
+    var t = D.TYPE_MAP[type]; var color = t ? (D.STAT_META[t.stat] || {}).color : '#fff';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="' + (size || 16) + '" height="' + (size || 16) + '" class="ticon" style="color:' + color + '" aria-label="' + esc(type) + '">' + (TYPE_ICON[type] || TYPE_ICON['キック']) + '</svg>';
+  }
+  BL.ART = { svg: svg, emblem: emblem, typeIcon: typeIcon };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

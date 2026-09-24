@@ -259,6 +259,18 @@
                 passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } }
   };
 
+  /* 育成方針：各編の冒頭で選択。編の間だけ成長補正に加算される（5回の育成それぞれに方針を持たせる） */
+  var POLICIES = [
+    { id: 'shoot',   name: '決定力特化', desc: 'SHT・PHY 成長 +12%、他 −4%。Option A の伸びが速い。', growth: { SHT: 0.12, PHY: 0.12, SPD: -0.04, TEC: -0.04, INT: -0.04 } },
+    { id: 'tactic',  name: '戦術特化',   desc: 'INT・TEC 成長 +12%、他 −4%。Option B／D と早期のメタビジョン解放向き。', growth: { INT: 0.12, TEC: 0.12, SHT: -0.04, SPD: -0.04, PHY: -0.04 } },
+    { id: 'speed',   name: '快速特化',   desc: 'SPD・INT 成長 +12%、他 −4%。Option C と年俸（スピード系スキル）向き。', growth: { SPD: 0.12, INT: 0.12, SHT: -0.04, TEC: -0.04, PHY: -0.04 } },
+    { id: 'balance', name: 'バランス',   desc: '全属性 成長 +4%。合計ステータスの足切りに強い。', growth: { SHT: 0.04, SPD: 0.04, TEC: 0.04, INT: 0.04, PHY: 0.04 } }
+  ];
+  /* エゴ・ピース：所持済みカードの再排出（限界突破）時に段階に応じて獲得。交換所で任意のカードと交換できる（PWC のピース／星上げに対応する救済） */
+  var PIECES = { gain: { '1': 2, '2': 3, '3': 5, '4': 10, '5': 20, '6': 40, '7': 80, '8': 150 }, cost: { '1': 30, '2': 50, '3': 90, '4': 200, '5': 400, '6': 800, '7': 1600, '8': 3200 } };
+  /* 編末ランク：合計ステータス ÷ 編基準値 */
+  var PART_RANKS = [{ r: 3.0, k: 'SS' }, { r: 2.2, k: 'S' }, { r: 1.6, k: 'A' }, { r: 1.2, k: 'B' }, { r: 0.9, k: 'C' }, { r: 0, k: 'D' }];
+
   /* ポジション適性：カード第1ポジションに応じて対応する選択肢に +2%（PWC のポジション情報を反映） */
   var POS_AFFINITY = { CF: 'A', CB: 'A', OMF: 'B', RMF: 'B', LMF: 'B', DMF: 'D', RWG: 'C', LWG: 'C', RSB: 'C', LSB: 'C' };
 
@@ -396,7 +408,7 @@
     { id: 'ev_reo', rival: 'reo', title: '御影玲王「金なら出す」',
       text: '玲王が札束を見せつける。「オレの実験に付き合え。悪いようにはしない」',
       choices: [
-        { label: '契約を受ける', fx: { cashPerArc: 20000, bidPerArc: 2e6 }, result: 'Cash と年俸評価がわずかに上昇した。' },
+        { label: '契約を受ける', fx: { cashPerArc: 20000, bidPerArc: 200000 }, result: 'Cash と年俸評価がわずかに上昇した。' },
         { label: '断る', fx: { stat: { INT: 0.3, PHY: 0.3 } }, result: '「金で買えないものもある」。自分を貫いた。' } ] },
     { id: 'ev_condition', rival: null, title: '異常なコンディション低下',
       text: '朝、身体が鉛のように重い。疲労が蓄積している。',
@@ -556,7 +568,10 @@
     { id: 'gacha_50',     name: 'スカウト50回',         desc: 'スカウトを累計 50 回行った',                  gems: 200 },
     { id: 'lb_10',        name: '完凸への道',           desc: '同一カードの限界突破が 10 に達した',          gems: 300 },
     { id: 'collect_50',   name: 'コレクター',           desc: '50 種類のカードを所持した',                   gems: 400 },
-    { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 }
+    { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 },
+    { id: 'part_ss',      name: '編評価 SS',            desc: '編末ランクで SS を獲得した',                  gems: 300 },
+    { id: 'exchange_1',   name: 'ピース交換',           desc: 'エゴ・ピースでカードを交換した',              gems: 100 },
+    { id: 'five_parts',   name: '五編踏破',             desc: '第五編・決戦に到達した',                      gems: 400 }
   ];
 
   /* ------------------------------------------------------- 調整パラメータ */
@@ -578,7 +593,7 @@
     SIG_TH: 220,                            /* 固有覚醒：主属性がこの値以上で Climax 成功 → 覚醒 */
     GACHA_SINGLE: 150, GACHA_TEN: 1500,
     INITIAL_GEMS: 1500,
-    GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
+    BID_DOMINANCE: 0.25, GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
     MVP_BID_MULT: 1.5, FLOW_BID_MULT: 1.2, BID_SKILL_STEP: 0.04,
     COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60,
     FLOW_CARD_P: 0.15, FLOW_CARD_BONUS: 5,   /* ★4FLOW 由来カード：FLOW 突入率 +15% / FLOW ボーナス +5pt */
@@ -589,7 +604,7 @@
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
-    CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
+    CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',

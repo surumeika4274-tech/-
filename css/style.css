@@ -410,3 +410,59 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
   .detail-grid { grid-template-columns: 1fr; }
   .detail-art { flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
 }
+
+/* ============================================================ v5: PWC 風演出 */
+.ticon { vertical-align: -3px; }
+.home-hero { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; background: linear-gradient(135deg, rgba(47,128,255,.16), rgba(5,7,15,.2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin: 4px 0 14px; }
+.hero-art { cursor: pointer; }
+.hero-kicker { letter-spacing: .3em; color: var(--accent2); font-family: var(--font-d); font-size: .8rem; }
+.hero-text h2 { font-size: 1.6rem; margin: 4px 0 6px; }
+.hero-text h2 small { display: block; font-size: .85rem; color: var(--muted); font-weight: 400; }
+.hero-text .btn { margin-top: 10px; }
+.exchange-cta { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.tbl-wrap { max-height: 60vh; overflow: auto; }
+.cmd-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.btn.auto { padding: 14px; font-size: 1.05rem; border-color: var(--accent2); }
+.btn.auto:hover:not(:disabled) { background: rgba(77,210,255,.12); }
+.part-rank { display: flex; align-items: center; gap: 14px; justify-content: center; margin: 10px 0; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.part-rank i { font-style: normal; color: var(--muted); letter-spacing: .2em; font-size: .8rem; }
+.part-rank b { font-family: var(--font-d); font-size: 2.6rem; line-height: 1; }
+.part-rank small { color: var(--muted); font-size: .7rem; max-width: 320px; }
+.part-rank.SS b { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
+.part-rank.S b { color: var(--gold); text-shadow: 0 0 20px var(--gold); }
+.part-rank.A b { color: var(--accent2); }
+.part-rank.B b { color: var(--ok); }
+.part-rank.C b, .part-rank.D b { color: var(--muted); }
+/* ゴール時カットイン */
+.cutin { position: relative; width: min(100%, 420px); height: 170px; overflow: hidden; border-radius: 12px; background: linear-gradient(90deg, #05070f, #12224a 50%, #05070f); }
+.cutin-lines { position: absolute; inset: 0; background: repeating-linear-gradient(100deg, transparent 0 14px, rgba(77,210,255,.25) 14px 16px, transparent 16px 30px); animation: lines .6s linear infinite; }
+@keyframes lines { from { background-position: 0 0; } to { background-position: 60px 0; } }
+.cutin-art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-6deg); animation: slidein .5s cubic-bezier(.2,.9,.3,1.1) both; filter: drop-shadow(0 0 18px rgba(77,210,255,.8)); }
+.cutin-art svg { width: 130px; height: auto; }
+@keyframes slidein { from { transform: translate(-160%, -50%) rotate(-6deg); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-6deg); opacity: 1; } }
+.fail .cutin { display: none; }
+/* 編ごとの背景 */
+body[data-part="1"] { background: radial-gradient(1200px 600px at 50% -10%, #12224a 0%, var(--bg) 60%); }
+body[data-part="2"] { background: radial-gradient(1200px 600px at 50% -10%, #1c1450 0%, var(--bg) 60%); }
+body[data-part="3"] { background: radial-gradient(1200px 600px at 50% -10%, #0e3a3a 0%, var(--bg) 60%); }
+body[data-part="4"] { background: radial-gradient(1200px 600px at 50% -10%, #3a1b1b 0%, var(--bg) 60%); }
+body[data-part="5"] { background: radial-gradient(1200px 600px at 50% -10%, #3a2e0e 0%, var(--bg) 60%); }
+body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a0e2e 0%, var(--bg) 60%); }
+@media (prefers-reduced-motion: reduce) { .cutin-lines, .cutin-art, .blackout, .verdict, .go-big, .clear-big { animation: none !important; } }
+@media (max-width: 520px) { .home-hero { grid-template-columns: 110px 1fr; } .cmd-row.three { grid-template-columns: 1fr; } }
+
+/* ---- v5.1 育成中の選手帯（編導入・方針選択・査定・除籍・世界一） ---- */
+.run-hero { display: flex; align-items: center; gap: 16px; margin: 12px auto; padding: 10px 14px; max-width: 720px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--rc, #4a8dff) 18%, #0b1020), #0b1020 70%); text-align: left; }
+.run-hero .rh-art { flex: 0 0 auto; cursor: pointer; }
+.run-hero .rh-art svg { display: block; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+.run-hero .rh-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.run-hero .rh-meta i { font-style: normal; font-size: 12px; letter-spacing: .08em; color: var(--rc, #9cc4ff); }
+.run-hero .rh-meta b { font-size: 20px; font-weight: 800; line-height: 1.2; }
+.run-hero .rh-meta small { color: var(--muted); font-size: 12px; }
+.run-hero .rh-ranks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.run-hero .rh-ranks .pr { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font-family: 'Oswald', sans-serif; }
+.run-hero .rh-ranks .pr.SS, .run-hero .rh-ranks .pr.S { border-color: #ffd54a; color: #ffd54a; }
+.run-hero .rh-ranks .pr.A { border-color: #7cff6b; color: #7cff6b; }
+.run-hero .rh-ranks .pr.D { border-color: #ff4d4d; color: #ff8c8c; }
+.go-box .run-hero, .clear .run-hero { margin-bottom: 12px; }
+@media (max-width: 520px) { .run-hero { gap: 10px; padding: 8px 10px; } .run-hero .rh-art svg { width: 88px; height: auto; } .run-hero .rh-meta b { font-size: 17px; } }
