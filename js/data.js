@@ -1,7 +1,7 @@
 /* ============================================================================
- * BLUE LOCK PWC : EGOIST ROGUELITE  —  static game data
- * 本ファイルはブラウザ(classic script)とNode(バランス検証)の両方で読めるよう
- * globalThis.BL 名前空間に定義する。
+ * BLUE LOCK PWC : EGOIST ROGUELITE  —  static game data (v2)
+ *  - 選手カードは js/cards.js（PWC 全170カード・自動生成）
+ *  - 章／節／試合（原作準拠のストーリー）は js/story.js
  * ========================================================================== */
 (function (root) {
   'use strict';
@@ -10,130 +10,187 @@
   /* ------------------------------------------------------------------ 定数 */
   var STATS = ['SHT', 'SPD', 'TEC', 'INT', 'PHY'];
   var STAT_META = {
-    SHT: { en: 'SHOOT',        jp: '決定力',  color: '#ff4d4d', desc: 'シュート球速・枠内へねじ込む絶対的な得点力' },
-    SPD: { en: 'SPEED',        jp: '俊敏性',  color: '#4dd2ff', desc: 'スプリント加速・初速・DFラインの裏へ抜ける俊敏性' },
-    TEC: { en: 'TECHNIQUE',    jp: '技術',    color: '#7cff6b', desc: 'トラップ精度・キープ・プレースキックの弾道計算' },
-    INT: { en: 'INTELLIGENCE', jp: '戦術眼',  color: '#c58bff', desc: '戦術理解・空間認識・死角の発見・選択肢の拡張' },
-    PHY: { en: 'PHYSICAL',     jp: '肉体',    color: '#ffb84d', desc: '体幹・空中戦と競り合いへの耐性・疲労耐性' }
+    SHT: { en: 'SHOOT',        jp: '決定力', color: '#ff4d4d', desc: 'シュート球速・枠内へねじ込む絶対的な得点力' },
+    SPD: { en: 'SPEED',        jp: '俊敏性', color: '#4dd2ff', desc: 'スプリント加速・初速・DFラインの裏へ抜ける俊敏性' },
+    TEC: { en: 'TECHNIQUE',    jp: '技術',   color: '#7cff6b', desc: 'トラップ精度・キープ・プレースキックの弾道計算' },
+    INT: { en: 'INTELLIGENCE', jp: '戦術眼', color: '#c58bff', desc: '戦術理解・空間認識・死角の発見・選択肢の拡張' },
+    PHY: { en: 'PHYSICAL',     jp: '肉体',   color: '#ffb84d', desc: '体幹・空中戦と競り合いへの耐性・疲労耐性' }
   };
 
-  /* 排出率 (%) : 合計 100.0 */
-  var RARITY = {
-    8: { rate: 0.2,  label: '世界最強',           color: '#ff2d55', glow: '#ff2d55' },
-    7: { rate: 0.8,  label: 'マスター・世界選抜', color: '#ffd166', glow: '#ffd166' },
-    6: { rate: 2.0,  label: '新世代世界11傑',     color: '#f78c1c', glow: '#f78c1c' },
-    5: { rate: 5.0,  label: '青い監獄 最上位',    color: '#c58bff', glow: '#c58bff' },
-    4: { rate: 12.0, label: '青い監獄 主力選抜',  color: '#4da3ff', glow: '#4da3ff' },
-    3: { rate: 25.0, label: '覚醒の主軸',         color: '#3ddc84', glow: '#3ddc84' },
-    2: { rate: 30.0, label: '発展途上の原石',     color: '#9aa4b2', glow: '#9aa4b2' },
-    1: { rate: 25.0, label: '最底辺・生存縛り',   color: '#6b7280', glow: '#6b7280' }
+  /* PWC の「タイプ」→ 本作の主属性。スタミナ／コンディションは PWC 独自タイプで、主属性に加え固有効果を持つ */
+  var TYPE_MAP = {
+    'キック':       { stat: 'SHT', icon: '⚽', desc: '決定力タイプ' },
+    'スピード':     { stat: 'SPD', icon: '💨', desc: '俊敏性タイプ' },
+    'テクニック':   { stat: 'TEC', icon: '🎯', desc: '技術タイプ' },
+    '賢さ':         { stat: 'INT', icon: '🧠', desc: '戦術眼タイプ' },
+    'フィジカル':   { stat: 'PHY', icon: '💪', desc: '肉体タイプ' },
+    'スタミナ':     { stat: 'PHY', icon: '🔋', desc: '肉体タイプ（練習HP消費 -2）', hpCost: -2 },
+    'コンディション': { stat: 'INT', icon: '🌤', desc: '戦術眼タイプ（コンディションが「普通」未満に落ちない／休養回復 +10）', condFloor: true, restBonus: 10 }
   };
 
-  /* ------------------------------------------------------------ キャラクター
-   * base    : 5大初期ステータス
-   * growth  : 成長補正倍率（練習獲得量に乗算）
-   * passive : 固有エゴ（効果は engine 側で参照）
-   *   opt   : 各選択肢の成功率に加算 (%)
-   *   all   : 全選択肢の成功率に加算 (%)
-   *   flowP : FLOW 突入率への加算
-   *   injuryP: 故障率への加算（負数で軽減）
-   *   hpCost: 練習HP消費への加算（負数で軽減）
-   *   cashMult / bidMult : 報酬倍率
-   *   thMult: スキル覚醒閾値倍率（<1 で覚醒しやすい）
-   *   eventRate: 突発イベント率への加算
+  /* ---------------------------------------------------------- レアリティ
+   * rate : ガチャ提供割合(%)。★3/★2/★1 は PWC サービス開始時の公表値（3.5 / 30 / 66.5）を基準に、
+   *        後年追加された ★4 / ★4FLOW / ★5 の枠を ★1 から割り当てた「推定値」。
+   *        （現行 PWC の ★4 以上の提供割合は公開情報で確認できなかったため、ここで調整可能にしてある）
+   * base / growth : 本作のステータス初期値スケール／成長補正の基準
    */
-  var CHARACTERS = [
-    /* ★8 ---------------------------------------------------------------- */
-    { id: 'noa', name: 'ノエル・ノア', rarity: 8, tag: '世界最高のストライカー',
-      base: { SHT: 120, SPD: 105, TEC: 115, INT: 110, PHY: 110 },
-      growth: { SHT: 1.65, SPD: 1.6, TEC: 1.65, INT: 1.6, PHY: 1.65 },
-      passive: { name: '完全無欠', desc: '全選択肢の成功率+5%。練習HP消費-2。', all: 5, hpCost: -2 } },
-    { id: 'ego_if', name: '絵心甚八（現役if）', rarity: 8, tag: 'エゴイストの設計者',
-      base: { SHT: 110, SPD: 100, TEC: 105, INT: 125, PHY: 100 },
-      growth: { SHT: 1.55, SPD: 1.5, TEC: 1.55, INT: 1.66, PHY: 1.5 },
-      passive: { name: '設計者の眼', desc: 'スキル覚醒閾値×0.9。Option D +4%。', thMult: 0.9, opt: { D: 4 } } },
-    /* ★7 ---------------------------------------------------------------- */
-    { id: 'loki', name: 'ジュリアン・ロキ', rarity: 7, tag: '世界最速',
-      base: { SHT: 90, SPD: 112, TEC: 95, INT: 88, PHY: 85 },
-      growth: { SHT: 1.4, SPD: 1.7, TEC: 1.4, INT: 1.35, PHY: 1.35 },
-      passive: { name: 'マッハスピード', desc: 'Option C 成功率+8%。', opt: { C: 8 } } },
-    { id: 'snuffy', name: 'マルク・スナッフィー', rarity: 7, tag: 'マスター',
-      base: { SHT: 95, SPD: 80, TEC: 100, INT: 106, PHY: 90 },
-      growth: { SHT: 1.4, SPD: 1.3, TEC: 1.55, INT: 1.6, PHY: 1.4 },
-      passive: { name: 'マスターの戦術眼', desc: 'Option B +6%。年俸査定×1.10。', opt: { B: 6 }, bidMult: 1.10 } },
-    /* ★6 ---------------------------------------------------------------- */
-    { id: 'kaiser', name: 'ミヒャエル・カイザー', rarity: 6, tag: '皇帝',
-      base: { SHT: 96, SPD: 78, TEC: 82, INT: 80, PHY: 72 },
-      growth: { SHT: 1.55, SPD: 1.25, TEC: 1.3, INT: 1.3, PHY: 1.2 },
-      passive: { name: 'カイザーインパクト', desc: 'Option A 成功率+7%。', opt: { A: 7 } } },
-    { id: 'sae', name: '糸師冴', rarity: 6, tag: '世界最高峰のMF',
-      base: { SHT: 70, SPD: 72, TEC: 100, INT: 92, PHY: 65 },
-      growth: { SHT: 1.2, SPD: 1.2, TEC: 1.58, INT: 1.42, PHY: 1.15 },
-      passive: { name: '絶対的ボールホルダー', desc: 'Option B 成功率+7%。', opt: { B: 7 } } },
-    /* ★5 ---------------------------------------------------------------- */
-    { id: 'rin', name: '糸師凛', rarity: 5, tag: '青い監獄 最強',
-      base: { SHT: 76, SPD: 62, TEC: 68, INT: 70, PHY: 58 },
-      growth: { SHT: 1.48, SPD: 1.2, TEC: 1.25, INT: 1.4, PHY: 1.18 },
-      passive: { name: 'フェイントの化身', desc: '全選択肢+2%、Option A +3%。', all: 2, opt: { A: 3 } } },
-    { id: 'shidou', name: '士道龍聖', rarity: 5, tag: '破滅の悦楽',
-      base: { SHT: 82, SPD: 66, TEC: 58, INT: 48, PHY: 70 },
-      growth: { SHT: 1.45, SPD: 1.2, TEC: 1.1, INT: 1.0, PHY: 1.35 },
-      passive: { name: '破滅の悦楽', desc: 'Option A +7%。ただし練習HP消費+1。', opt: { A: 7 }, hpCost: 1 } },
-    /* ★4 ---------------------------------------------------------------- */
-    { id: 'nagi', name: '凪誠士郎', rarity: 4, tag: '天才',
-      base: { SHT: 58, SPD: 45, TEC: 70, INT: 52, PHY: 44 },
-      growth: { SHT: 1.15, SPD: 1.05, TEC: 1.35, INT: 1.22, PHY: 1.0 },
-      passive: { name: '天才のトラップ', desc: 'Option B 成功率+5%。', opt: { B: 5 } } },
-    { id: 'barou', name: '馬狼照英', rarity: 4, tag: '王様',
-      base: { SHT: 62, SPD: 52, TEC: 48, INT: 40, PHY: 64 },
-      growth: { SHT: 1.25, SPD: 1.1, TEC: 1.05, INT: 1.0, PHY: 1.3 },
-      passive: { name: '王様', desc: 'Option A 成功率+5%。', opt: { A: 5 } } },
-    /* ★3 ---------------------------------------------------------------- */
-    { id: 'bachira', name: '蜂楽廻', rarity: 3, tag: '怪物',
-      base: { SHT: 42, SPD: 44, TEC: 54, INT: 40, PHY: 36 },
-      growth: { SHT: 1.02, SPD: 1.05, TEC: 1.2, INT: 1.05, PHY: 1.0 },
-      passive: { name: '中の怪物', desc: 'Option B +3%。突発イベント率+5%。', opt: { B: 3 }, eventRate: 0.05 } },
-    { id: 'chigiri', name: '千切豹馬', rarity: 3, tag: '神速',
-      base: { SHT: 40, SPD: 60, TEC: 40, INT: 38, PHY: 32 },
-      growth: { SHT: 1.02, SPD: 1.25, TEC: 1.02, INT: 1.02, PHY: 0.95 },
-      passive: { name: '神速', desc: 'Option C 成功率+5%。', opt: { C: 5 } } },
-    /* ★2 ---------------------------------------------------------------- */
-    { id: 'kunigami_early', name: '國神錬介（初期）', rarity: 2, tag: 'ヒーロー志願',
-      base: { SHT: 38, SPD: 32, TEC: 30, INT: 30, PHY: 42 },
-      growth: { SHT: 1.02, SPD: 0.95, TEC: 0.95, INT: 0.95, PHY: 1.1 },
-      passive: { name: 'ヒーロー志願', desc: 'Option A 成功率+2%。', opt: { A: 2 } } },
-    { id: 'bachira_raw', name: '蜂楽廻（原石）', rarity: 2, tag: '原石',
-      base: { SHT: 32, SPD: 35, TEC: 43, INT: 32, PHY: 30 },
-      growth: { SHT: 0.95, SPD: 1.0, TEC: 1.1, INT: 1.0, PHY: 0.95 },
-      passive: { name: '怪物の萌芽', desc: 'Option B 成功率+2%。', opt: { B: 2 } } },
-    { id: 'raichi', name: '雷市陣吾', rarity: 2, tag: '気迫',
-      base: { SHT: 34, SPD: 33, TEC: 30, INT: 28, PHY: 41 },
-      growth: { SHT: 1.0, SPD: 0.98, TEC: 0.95, INT: 0.95, PHY: 1.08 },
-      passive: { name: '気迫', desc: '練習HP消費-1。', hpCost: -1 } },
-    { id: 'gagamaru', name: '我牙丸吟', rarity: 2, tag: '野生',
-      base: { SHT: 30, SPD: 37, TEC: 32, INT: 30, PHY: 39 },
-      growth: { SHT: 0.95, SPD: 1.05, TEC: 0.98, INT: 0.95, PHY: 1.05 },
-      passive: { name: '野生の反射', desc: 'FLOW 突入率+5%。', flowP: 0.05 } },
-    /* ★1 ---------------------------------------------------------------- */
-    { id: 'isagi_early', name: '潔世一（初期）', rarity: 1, tag: '無名のFW',
-      base: { SHT: 26, SPD: 24, TEC: 25, INT: 30, PHY: 22 },
-      growth: { SHT: 0.9, SPD: 0.88, TEC: 0.9, INT: 1.0, PHY: 0.88 },
-      passive: { name: '覚醒の兆し', desc: 'FLOW 突入率+10%。', flowP: 0.10 } },
-    { id: 'igarashi', name: '五十嵐栗夢', rarity: 1, tag: '生存本能',
-      base: { SHT: 24, SPD: 26, TEC: 24, INT: 20, PHY: 24 },
-      growth: { SHT: 0.88, SPD: 0.9, TEC: 0.88, INT: 0.85, PHY: 0.9 },
-      passive: { name: '生存本能', desc: '危険水域での故障率 40%→30%。', injuryP: -0.10 } },
-    { id: 'naruhaya', name: '成早朝日', rarity: 1, tag: '執念',
-      base: { SHT: 25, SPD: 28, TEC: 23, INT: 22, PHY: 22 },
-      growth: { SHT: 0.88, SPD: 0.95, TEC: 0.87, INT: 0.87, PHY: 0.88 },
-      passive: { name: '大金への執念', desc: 'Cash 報酬×1.3。', cashMult: 1.3 } }
+  var RARITY = {
+    '5':  { stars: 5, label: '★5',      rate: 0.5,  base: 82, growth: 1.48, color: '#ff2d55', tier: 'LR相当・最上位',   flowP: 0 },
+    '4F': { stars: 4, label: '★4 FLOW', rate: 0.5,  base: 66, growth: 1.34, color: '#ff8c1c', tier: 'FLOW覚醒体',      flowP: 0.15, flowBonus: 5 },
+    '4':  { stars: 4, label: '★4',      rate: 2.5,  base: 60, growth: 1.28, color: '#ffd166', tier: 'UR相当',           flowP: 0 },
+    '3':  { stars: 3, label: '★3',      rate: 3.5,  base: 45, growth: 1.14, color: '#c58bff', tier: 'SSR相当',          flowP: 0 },
+    '2':  { stars: 2, label: '★2',      rate: 30.0, base: 32, growth: 1.00, color: '#4da3ff', tier: 'SR相当',           flowP: 0 },
+    '1':  { stars: 1, label: '★1',      rate: 63.0, base: 24, growth: 0.90, color: '#9aa4b2', tier: 'R相当・生存縛り',  flowP: 0 }
+  };
+  var RARITY_ORDER = ['5', '4F', '4', '3', '2', '1'];
+
+  /* ------------------------------------------------------- キャラクター（41名）
+   * ident : 5属性の個性ベクトル（1.0 = 平均）。カードの初期値・成長補正の形を決める
+   * fav   : 得意選択肢（固有エゴが強化する Option）
+   * passive : 固有エゴ（カードのレアリティに関係なく共通）
+   * sig   : 固有覚醒スキル（Climax 成功時に主属性が閾値を超えるか FLOW 成功で覚醒）
+   */
+  var CHARACTERS = {
+    isagi:    { name: '潔世一',       tag: '空間認識の申し子',       ident: { SHT: 1.0, SPD: 0.85, TEC: 0.9, INT: 1.25, PHY: 0.85 }, fav: 'D',
+                passive: { name: '覚醒の兆し', desc: 'FLOW 突入率 +10%。Option D +3%。', flowP: 0.10, opt: { D: 3 } },
+                sig: { name: 'メタビジョン・ダイレクト', desc: 'Option D +8% / Option A +4%', fx: { opt: { D: 8, A: 4 } } } },
+    bachira:  { name: '蜂楽廻',       tag: '怪物',                   ident: { SHT: 0.9, SPD: 0.95, TEC: 1.3, INT: 0.9, PHY: 0.8 }, fav: 'B',
+                passive: { name: '中の怪物', desc: 'Option B +3%。突発イベント率 +5%。', opt: { B: 3 }, eventRate: 0.05 },
+                sig: { name: '怪物のドリブル', desc: 'Option B +8% / 全選択肢 +2%', fx: { opt: { B: 8 }, all: 2 } } },
+    chigiri:  { name: '千切豹馬',     tag: '神速',                   ident: { SHT: 0.9, SPD: 1.4, TEC: 0.9, INT: 0.85, PHY: 0.75 }, fav: 'C',
+                passive: { name: '神速', desc: 'Option C +5%。', opt: { C: 5 } },
+                sig: { name: '縛られぬ速さ', desc: 'Option C +10%', fx: { opt: { C: 10 } } } },
+    kunigami: { name: '國神錬介',     tag: 'ヒーロー',               ident: { SHT: 1.1, SPD: 0.85, TEC: 0.8, INT: 0.8, PHY: 1.25 }, fav: 'A',
+                passive: { name: 'ヒーロー志願', desc: 'Option A +3%。', opt: { A: 3 } },
+                sig: { name: '無回転バズーカ', desc: 'Option A +8% / 練習HP消費 -1', fx: { opt: { A: 8 }, hpCost: -1 } } },
+    nagi:     { name: '凪誠士郎',     tag: '天才',                   ident: { SHT: 1.05, SPD: 0.8, TEC: 1.35, INT: 1.0, PHY: 0.8 }, fav: 'B',
+                passive: { name: '天才のトラップ', desc: 'Option B +5%。', opt: { B: 5 } },
+                sig: { name: '神トラップ', desc: 'Option B +8% / Option A +3%', fx: { opt: { B: 8, A: 3 } } } },
+    reo:      { name: '御影玲王',     tag: 'カメレオン',             ident: { SHT: 0.95, SPD: 0.95, TEC: 1.05, INT: 1.15, PHY: 0.9 }, fav: 'B',
+                passive: { name: '万能のカメレオン', desc: '全選択肢 +2%。Cash 報酬 ×1.2。', all: 2, cashMult: 1.2 },
+                sig: { name: '複写（コピー）', desc: '全選択肢 +4%', fx: { all: 4 } } },
+    barou:    { name: '馬狼照英',     tag: '王様',                   ident: { SHT: 1.25, SPD: 0.9, TEC: 0.95, INT: 0.8, PHY: 1.15 }, fav: 'A',
+                passive: { name: '王様', desc: 'Option A +5%。', opt: { A: 5 } },
+                sig: { name: '邪道こそが王道', desc: 'Option A +9% / 年俸 ×+5%', fx: { opt: { A: 9 }, bid: 0.05 } } },
+    rin:      { name: '糸師凛',       tag: '青い監獄 最強',          ident: { SHT: 1.2, SPD: 1.0, TEC: 1.1, INT: 1.15, PHY: 0.95 }, fav: 'A',
+                passive: { name: 'フェイントの化身', desc: '全選択肢 +2%、Option A +3%。', all: 2, opt: { A: 3 } },
+                sig: { name: '破壊者', desc: 'Option A +7% / Option B +4%', fx: { opt: { A: 7, B: 4 } } } },
+    sae:      { name: '糸師冴',       tag: '世界最高峰のMF',         ident: { SHT: 0.95, SPD: 0.9, TEC: 1.35, INT: 1.2, PHY: 0.75 }, fav: 'B',
+                passive: { name: '絶対的ボールホルダー', desc: 'Option B +7%。', opt: { B: 7 } },
+                sig: { name: '美しく壊す', desc: 'Option B +8% / Option D +4%', fx: { opt: { B: 8, D: 4 } } } },
+    shidou:   { name: '士道龍聖',     tag: '破滅の悦楽',             ident: { SHT: 1.3, SPD: 1.0, TEC: 0.85, INT: 0.75, PHY: 1.15 }, fav: 'A',
+                passive: { name: '破滅の悦楽', desc: 'Option A +7%。ただし練習HP消費 +1。', opt: { A: 7 }, hpCost: 1 },
+                sig: { name: '龍聖・直下蹴弾', desc: 'Option A +10%', fx: { opt: { A: 10 } } } },
+    raichi:   { name: '雷市陣吾',     tag: '気迫',                   ident: { SHT: 0.9, SPD: 0.9, TEC: 0.8, INT: 0.75, PHY: 1.3 }, fav: 'A',
+                passive: { name: '気迫', desc: '練習HP消費 -1。', hpCost: -1 },
+                sig: { name: '傍若無人強奪', desc: 'Option A +6% / 練習HP消費 -1', fx: { opt: { A: 6 }, hpCost: -1 } } },
+    gagamaru: { name: '我牙丸吟',     tag: '野生',                   ident: { SHT: 0.8, SPD: 1.05, TEC: 0.85, INT: 0.8, PHY: 1.2 }, fav: 'C',
+                passive: { name: '野生の反射', desc: 'FLOW 突入率 +5%。', flowP: 0.05 },
+                sig: { name: 'アクロバティック', desc: 'Option C +5% / Option A +4%', fx: { opt: { C: 5, A: 4 } } } },
+    igarashi: { name: '五十嵐栗夢',   tag: '生存本能',               ident: { SHT: 0.85, SPD: 0.9, TEC: 0.85, INT: 0.8, PHY: 0.9 }, fav: 'C',
+                passive: { name: '生存本能', desc: '危険水域での故障率 40%→30%。', injuryP: -0.10 },
+                sig: { name: '南無三！', desc: 'Option C +5% / 故障率 -5%', fx: { opt: { C: 5 }, injuryP: -0.05 } } },
+    naruhaya: { name: '成早朝日',     tag: '執念',                   ident: { SHT: 0.9, SPD: 1.0, TEC: 0.85, INT: 0.8, PHY: 0.85 }, fav: 'C',
+                passive: { name: '大金への執念', desc: 'Cash 報酬 ×1.3。', cashMult: 1.3 },
+                sig: { name: 'ムードメーカー', desc: 'Option C +5% / Cash ×1.1', fx: { opt: { C: 5 }, cashMult: 1.1 } } },
+    kira:     { name: '吉良涼介',     tag: '日本サッカー界の宝',     ident: { SHT: 1.05, SPD: 0.95, TEC: 1.0, INT: 0.95, PHY: 0.9 }, fav: 'A',
+                passive: { name: 'エースの矜持', desc: '年俸査定 ×1.05。', bidMult: 1.05 },
+                sig: { name: '松風黒王のエース', desc: 'Option A +6% / 年俸 ×+5%', fx: { opt: { A: 6 }, bid: 0.05 } } },
+    iemon:    { name: '伊右衛門送人', tag: '鉄壁',                   ident: { SHT: 0.75, SPD: 0.8, TEC: 0.85, INT: 1.0, PHY: 1.1 }, fav: 'A',
+                passive: { name: '鉄壁', desc: '練習HP消費 -1。', hpCost: -1 },
+                sig: { name: '守備職人', desc: 'Option A +5% / 全選択肢 +1%', fx: { opt: { A: 5 }, all: 1 } } },
+    imamura:  { name: '今村遊大',     tag: '恋愛脳',                 ident: { SHT: 0.85, SPD: 1.0, TEC: 0.9, INT: 0.8, PHY: 0.85 }, fav: 'C',
+                passive: { name: '恋愛脳', desc: '突発イベント率 +5%。', eventRate: 0.05 },
+                sig: { name: 'ひらめきの一撃', desc: 'Option C +5% / Option B +3%', fx: { opt: { C: 5, B: 3 } } } },
+    kuon:     { name: '久遠渉',       tag: 'ハイジャンパー',         ident: { SHT: 0.95, SPD: 0.95, TEC: 0.8, INT: 0.8, PHY: 1.15 }, fav: 'A',
+                passive: { name: '裏切りの打算', desc: 'Cash 報酬 ×1.2。Option A +2%。', cashMult: 1.2, opt: { A: 2 } },
+                sig: { name: 'ハイジャンプ・ヘッド', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    okawa:    { name: '大川響鬼',     tag: '熊本県大会得点王',       ident: { SHT: 1.1, SPD: 0.9, TEC: 0.85, INT: 0.8, PHY: 0.9 }, fav: 'A',
+                passive: { name: '得点王の意地', desc: 'Option A +2%。', opt: { A: 2 } },
+                sig: { name: '熊本の砲弾', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    niko:     { name: '二子一揮',     tag: '影の支配者',             ident: { SHT: 0.85, SPD: 0.85, TEC: 0.95, INT: 1.3, PHY: 0.8 }, fav: 'B',
+                passive: { name: '影の支配者', desc: 'Option B +3%、Option D +3%。', opt: { B: 3, D: 3 } },
+                sig: { name: '無限の発想', desc: 'Option B +6% / Option D +6%', fx: { opt: { B: 6, D: 6 } } } },
+    wanima_j: { name: '鰐間淳壱',     tag: '兄',                     ident: { SHT: 1.05, SPD: 1.05, TEC: 0.9, INT: 0.85, PHY: 0.9 }, fav: 'C',
+                passive: { name: '以心伝心（兄）', desc: 'Option C +3%。', opt: { C: 3 } },
+                sig: { name: '兄弟連携カウンター', desc: 'Option C +6% / Option A +3%', fx: { opt: { C: 6, A: 3 } } } },
+    wanima_k: { name: '鰐間計助',     tag: '弟',                     ident: { SHT: 0.95, SPD: 1.05, TEC: 0.95, INT: 0.9, PHY: 0.9 }, fav: 'C',
+                passive: { name: '以心伝心（弟）', desc: 'Option C +3%。', opt: { C: 3 } },
+                sig: { name: '兄弟連携スルー', desc: 'Option C +6% / Option B +3%', fx: { opt: { C: 6, B: 3 } } } },
+    aryu:     { name: '蟻生十兵衛',   tag: 'オシャ',                 ident: { SHT: 0.9, SPD: 0.95, TEC: 0.9, INT: 0.85, PHY: 1.35 }, fav: 'A',
+                passive: { name: '反則級の特級身体', desc: 'Option A +4%。', opt: { A: 4 } },
+                sig: { name: 'No.1オシャ・ヘッド', desc: 'Option A +8%', fx: { opt: { A: 8 } } } },
+    tokimitsu:{ name: '時光青志',     tag: 'フィジカルモンスター',   ident: { SHT: 0.95, SPD: 0.95, TEC: 0.8, INT: 0.7, PHY: 1.4 }, fav: 'A',
+                passive: { name: 'フィジカルモンスター', desc: 'Option A +4%。練習HP消費 -1。', opt: { A: 4 }, hpCost: -1 },
+                sig: { name: '背肩奪取', desc: 'Option A +8% / 練習HP消費 -1', fx: { opt: { A: 8 }, hpCost: -1 } } },
+    zantetsu: { name: '剣城斬鉄',     tag: '領域',                   ident: { SHT: 0.9, SPD: 1.3, TEC: 0.85, INT: 0.7, PHY: 1.0 }, fav: 'C',
+                passive: { name: '俺の領域', desc: 'Option C +4%。', opt: { C: 4 } },
+                sig: { name: '名誉返上の守備', desc: 'Option C +7% / 全選択肢 +1%', fx: { opt: { C: 7 }, all: 1 } } },
+    kiyora:   { name: '清羅刃',       tag: 'ボーダーライナー',       ident: { SHT: 0.95, SPD: 1.0, TEC: 1.0, INT: 1.0, PHY: 0.95 }, fav: 'B',
+                passive: { name: 'ボーダーライナー', desc: '全選択肢 +1%。', all: 1 },
+                sig: { name: '境界線の一手', desc: '全選択肢 +4%', fx: { all: 4 } } },
+    hiori:    { name: '氷織羊',       tag: '静のテクニシャン',       ident: { SHT: 0.85, SPD: 0.9, TEC: 1.15, INT: 1.3, PHY: 0.8 }, fav: 'B',
+                passive: { name: '冷静な視野', desc: 'Option B +4%、Option D +3%。', opt: { B: 4, D: 3 } },
+                sig: { name: '「静」のテクニシャン', desc: 'Option B +7% / Option D +6%', fx: { opt: { B: 7, D: 6 } } } },
+    karasu:   { name: '烏旅人',       tag: 'ヒットマン',             ident: { SHT: 0.9, SPD: 0.95, TEC: 1.2, INT: 1.2, PHY: 0.9 }, fav: 'B',
+                passive: { name: '弱点を突く', desc: 'Option B +5%。', opt: { B: 5 } },
+                sig: { name: '弱点がないなら創るまで', desc: 'Option B +8% / 全選択肢 +2%', fx: { opt: { B: 8 }, all: 2 } } },
+    otoya:    { name: '乙夜影汰',     tag: '忍者',                   ident: { SHT: 1.0, SPD: 1.35, TEC: 1.0, INT: 0.8, PHY: 0.8 }, fav: 'C',
+                passive: { name: '忍術', desc: 'Option C +5%。', opt: { C: 5 } },
+                sig: { name: '速攻の忍術', desc: 'Option C +9% / Option A +3%', fx: { opt: { C: 9, A: 3 } } } },
+    yukimiya: { name: '雪宮剣優',     tag: '1on1エンペラー',         ident: { SHT: 1.15, SPD: 1.0, TEC: 1.15, INT: 0.9, PHY: 0.85 }, fav: 'A',
+                passive: { name: '1on1エンペラー', desc: 'Option A +3%、Option B +3%。', opt: { A: 3, B: 3 } },
+                sig: { name: '一瞬に見出す極限', desc: 'Option A +6% / Option B +6%', fx: { opt: { A: 6, B: 6 } } } },
+    kurona:   { name: '黒名蘭世',     tag: 'シャーク',               ident: { SHT: 0.95, SPD: 1.25, TEC: 1.05, INT: 0.85, PHY: 0.8 }, fav: 'C',
+                passive: { name: '小柄なシャーク', desc: 'Option C +4%。', opt: { C: 4 } },
+                sig: { name: 'シャークの捕食', desc: 'Option C +8% / Option B +3%', fx: { opt: { C: 8, B: 3 } } } },
+    nanase:   { name: '七星虹郎',     tag: '天然記念物',             ident: { SHT: 0.9, SPD: 1.0, TEC: 0.85, INT: 0.8, PHY: 1.2 }, fav: 'A',
+                passive: { name: '天然記念物', desc: '練習HP消費 -1。', hpCost: -1 },
+                sig: { name: 'トレッキング・トレーニング', desc: 'Option A +6% / 練習HP消費 -1', fx: { opt: { A: 6 }, hpCost: -1 } } },
+    aiku:     { name: 'オリヴァ・愛空', tag: 'U-20日本代表主将',     ident: { SHT: 0.8, SPD: 0.95, TEC: 1.0, INT: 1.3, PHY: 1.15 }, fav: 'D',
+                passive: { name: '捉える間合い', desc: '全選択肢 +3%。', all: 3 },
+                sig: { name: 'オールMAXで視える世界', desc: '全選択肢 +5%', fx: { all: 5 } } },
+    sendou:   { name: '閃堂秋人',     tag: 'U-20日本代表エース',     ident: { SHT: 1.15, SPD: 0.9, TEC: 0.85, INT: 0.8, PHY: 1.2 }, fav: 'A',
+                passive: { name: 'エースの意地', desc: 'Option A +4%。', opt: { A: 4 } },
+                sig: { name: '世界標準の欲望', desc: 'Option A +9%', fx: { opt: { A: 9 } } } },
+    mitoma:   { name: '三笘薫',       tag: 'ワールドストライカー',   ident: { SHT: 1.0, SPD: 1.35, TEC: 1.2, INT: 0.9, PHY: 0.85 }, fav: 'C',
+                passive: { name: '電光石火', desc: 'Option C +5%、Option B +3%。', opt: { C: 5, B: 3 } },
+                sig: { name: '独走のワールドストライカー', desc: 'Option C +8% / Option B +4%', fx: { opt: { C: 8, B: 4 } } } },
+    honda:    { name: '本田圭佑',     tag: '永遠の挑戦者',           ident: { SHT: 1.2, SPD: 0.85, TEC: 1.05, INT: 1.15, PHY: 0.95 }, fav: 'A',
+                passive: { name: '永遠の挑戦者', desc: '年俸査定 ×1.10。', bidMult: 1.10 },
+                sig: { name: '挑戦者の無回転', desc: 'Option A +7% / 年俸 ×+5%', fx: { opt: { A: 7 }, bid: 0.05 } } },
+    luna:     { name: 'レオナルド・ルナ', tag: 'レ・アールの貴公子', ident: { SHT: 1.0, SPD: 1.0, TEC: 1.35, INT: 1.1, PHY: 0.85 }, fav: 'B',
+                passive: { name: '貴公子の技巧', desc: 'Option B +5%。', opt: { B: 5 } },
+                sig: { name: 'レ・アールの魔術', desc: 'Option B +9%', fx: { opt: { B: 9 } } } },
+    blake:    { name: 'アダム・ブレイク', tag: 'GGジャンキー',       ident: { SHT: 1.25, SPD: 0.95, TEC: 0.9, INT: 0.85, PHY: 1.15 }, fav: 'A',
+                passive: { name: 'GGジャンキー', desc: 'Option A +5%。', opt: { A: 5 } },
+                sig: { name: 'イングランドの砲撃', desc: 'Option A +9%', fx: { opt: { A: 9 } } } },
+    dada:     { name: 'ダダ・シウバ', tag: '重戦車',                 ident: { SHT: 1.05, SPD: 0.9, TEC: 0.85, INT: 0.8, PHY: 1.45 }, fav: 'A',
+                passive: { name: '重戦車', desc: 'Option A +4%。練習HP消費 -2。', opt: { A: 4 }, hpCost: -2 },
+                sig: { name: '重戦車の突進', desc: 'Option A +8% / 練習HP消費 -1', fx: { opt: { A: 8 }, hpCost: -1 } } },
+    cavazos:  { name: 'パブロ・カバソス', tag: 'そばかすベイビー',   ident: { SHT: 1.0, SPD: 1.2, TEC: 1.2, INT: 1.0, PHY: 0.8 }, fav: 'C',
+                passive: { name: 'アルゼンチンの閃き', desc: 'Option C +3%、Option B +3%。', opt: { C: 3, B: 3 } },
+                sig: { name: 'ラ・ヌエストラ', desc: 'Option C +6% / Option B +6%', fx: { opt: { C: 6, B: 6 } } } },
+    loki:     { name: 'ジュリアン・ロキ', tag: '神童',               ident: { SHT: 1.05, SPD: 1.5, TEC: 1.05, INT: 1.0, PHY: 0.85 }, fav: 'C',
+                passive: { name: 'マッハスピード', desc: 'Option C +8%。', opt: { C: 8 } },
+                sig: { name: '同世代の超新星', desc: 'Option C +12%', fx: { opt: { C: 12 } } } }
+  };
+
+  /* ---------------------------------------------------------- アドバイザー
+   * PWC の「アドバイザーキャラ」枠に対応。RUN 開始時に 1 名を選択。unlock: 解放条件（実績ID）
+   */
+  var ADVISORS = [
+    { id: 'ego',    name: '絵心甚八',       card: '”青い監獄”のイカれた指導者', desc: 'スキル覚醒閾値 ×0.9。除籍時の補償ジェム ×1.5。', fx: { thMult: 0.9, elimGemMult: 1.5 }, unlock: null },
+    { id: 'anri',   name: '帝襟アンリ',     card: '新しい夢を見る瞬間',           desc: '練習HP消費 -2。休養回復 +5。',                 fx: { hpCost: -2, restBonus: 5 }, unlock: null },
+    { id: 'noa',    name: 'ノエル・ノア',   card: '世界を魅せる英雄選手',         desc: '全選択肢 +3%。',                               fx: { all: 3 }, unlock: 'pass_u20' },
+    { id: 'sae',    name: '糸師冴',         card: 'お前のエゴが欲しい',           desc: 'Option B +4%。TEC 成長 +10%。',                fx: { opt: { B: 4 }, growth: { TEC: 0.10 } }, unlock: 'pass_second' },
+    { id: 'mitoma', name: '三笘薫',         card: '走り続ける薫風',               desc: 'Option C +4%。SPD 成長 +10%。',                fx: { opt: { C: 4 }, growth: { SPD: 0.10 } }, unlock: 'runs_10' },
+    { id: 'loki',   name: 'ジュリアン・ロキ', card: '同世代の超新星',             desc: 'FLOW 突入率 +8%。FLOW 成功時 年俸 ×1.3。',     fx: { flowP: 0.08, flowBidMult: 1.3 }, unlock: 'pass_nel' },
+    { id: 'furan',  name: '不乱蔦宏俊',     card: '拝金主義の銭ゲバ狸',           desc: 'Cash 報酬 ×1.5。購買部価格 ×0.85。',           fx: { cashMult: 1.5, priceMult: 0.85 }, unlock: 'bid_1oku' }
   ];
 
   /* ------------------------------------------------------------------ スキル
-   * family : 対応ステータス。th : 覚醒閾値（該当ステータス値）
-   * fx.opt : 選択肢別 成功率加算(%) / fx.all : 全選択肢加算 / fx.bid : 年俸倍率加算
-   * fx.hpCost : 練習HP消費加算 / fx.unlockD : Option D 解放
-   * 所持数に上限は無く、同一スキルは Lv として重複スタックし効果も加算される。
+   * 汎用スキル（5系統×5段階）。所持数に上限は無く同一スキルは Lv として重複。
    */
   var SKILLS = [
     { id: 'sh1', family: 'SHT', tier: 1, name: 'ダイレクトボレー',     th: 60,   desc: 'Option A +3%',                    fx: { opt: { A: 3 } } },
@@ -141,123 +198,54 @@
     { id: 'sh3', family: 'SHT', tier: 3, name: '逆足キャノン',         th: 400,  desc: 'Option A +7%',                    fx: { opt: { A: 7 } } },
     { id: 'sh4', family: 'SHT', tier: 4, name: '皇帝の一撃',           th: 1000, desc: 'Option A +10%',                   fx: { opt: { A: 10 } } },
     { id: 'sh5', family: 'SHT', tier: 5, name: '世界一のフィニッシュ', th: 2500, desc: 'Option A +14%',                   fx: { opt: { A: 14 } } },
-
     { id: 'sp1', family: 'SPD', tier: 1, name: '神速カウンター',       th: 60,   desc: 'Option C +3% / 年俸×+5%',          fx: { opt: { C: 3 }, bid: 0.05 } },
     { id: 'sp2', family: 'SPD', tier: 2, name: 'マッハカットイン',     th: 150,  desc: 'Option C +5% / 年俸×+8%',          fx: { opt: { C: 5 }, bid: 0.08 } },
     { id: 'sp3', family: 'SPD', tier: 3, name: '裏抜けスピードスター', th: 400,  desc: 'Option C +7% / 年俸×+10%',         fx: { opt: { C: 7 }, bid: 0.10 } },
     { id: 'sp4', family: 'SPD', tier: 4, name: '光速ブレイクスルー',   th: 1000, desc: 'Option C +10% / 年俸×+15%',        fx: { opt: { C: 10 }, bid: 0.15 } },
     { id: 'sp5', family: 'SPD', tier: 5, name: '音速のカタルシス',     th: 2500, desc: 'Option C +14% / 年俸×+20%',        fx: { opt: { C: 14 }, bid: 0.20 } },
-
     { id: 'te1', family: 'TEC', tier: 1, name: '怪物ドリブル',         th: 60,   desc: 'Option B +3%',                    fx: { opt: { B: 3 } } },
     { id: 'te2', family: 'TEC', tier: 2, name: 'ブラックホールトラップ', th: 150, desc: 'Option B +5% / 全選択肢+1%',       fx: { opt: { B: 5 }, all: 1 } },
     { id: 'te3', family: 'TEC', tier: 3, name: 'マジックトラップ',     th: 400,  desc: 'Option B +7% / 全選択肢+2%',       fx: { opt: { B: 7 }, all: 2 } },
     { id: 'te4', family: 'TEC', tier: 4, name: '絶対支配のキープ',     th: 1000, desc: 'Option B +10% / 全選択肢+3%',      fx: { opt: { B: 10 }, all: 3 } },
     { id: 'te5', family: 'TEC', tier: 5, name: '世界を欺く技術',       th: 2500, desc: 'Option B +14% / 全選択肢+4%',      fx: { opt: { B: 14 }, all: 4 } },
-
     { id: 'in1', family: 'INT', tier: 1, name: '空間認識',             th: 60,   desc: '全選択肢+2%',                     fx: { all: 2 } },
     { id: 'in2', family: 'INT', tier: 2, name: 'メタビジョン',         th: 150,  desc: 'Option D（メタビジョン）解放 / 全+2%', fx: { all: 2, unlockD: true } },
     { id: 'in3', family: 'INT', tier: 3, name: '空間破壊',             th: 400,  desc: 'Option D +8% / 全+3%',            fx: { opt: { D: 8 }, all: 3, unlockD: true } },
     { id: 'in4', family: 'INT', tier: 4, name: '超メタビジョン',       th: 1000, desc: 'Option D +12% / 全+4%',           fx: { opt: { D: 12 }, all: 4, unlockD: true } },
     { id: 'in5', family: 'INT', tier: 5, name: '未来視',               th: 2500, desc: 'Option D +16% / 全+5%',           fx: { opt: { D: 16 }, all: 5, unlockD: true } },
-
     { id: 'ph1', family: 'PHY', tier: 1, name: '絶対ポストプレイ',     th: 60,   desc: 'Option A +3% / 練習HP消費-1',      fx: { opt: { A: 3 }, hpCost: -1 } },
     { id: 'ph2', family: 'PHY', tier: 2, name: 'ぶちかまし',           th: 150,  desc: 'Option A +4% / 練習HP消費-1',      fx: { opt: { A: 4 }, hpCost: -1 } },
     { id: 'ph3', family: 'PHY', tier: 3, name: '破滅ストライク',       th: 400,  desc: 'Option A +6% / 練習HP消費-2',      fx: { opt: { A: 6 }, hpCost: -2 } },
     { id: 'ph4', family: 'PHY', tier: 4, name: '鋼の体幹',             th: 1000, desc: 'Option A +8% / 練習HP消費-2',      fx: { opt: { A: 8 }, hpCost: -2 } },
     { id: 'ph5', family: 'PHY', tier: 5, name: '守備ブロック粉砕',     th: 2500, desc: 'Option A +12% / 練習HP消費-3',     fx: { opt: { A: 12 }, hpCost: -3 } }
   ];
-
   var FAMILY_JP = { SHT: 'シュート系', SPD: 'スピード系', TEC: 'テクニック系', INT: 'インテリジェンス系', PHY: 'フィジカル系' };
 
   /* ------------------------------------------------------------ 選択肢定義 */
   var OPTIONS = {
-    A: { key: 'A', name: '強引なフィジカル・フィニッシュ', stats: ['SHT', 'PHY'], color: '#ff4d4d',
-         flavor: 'DFを背負ったまま体を捻じ込み、力づくでゴールをこじ開ける。' },
-    B: { key: 'B', name: '戦術的な崩しとインサイド突破', stats: ['INT', 'TEC'], color: '#7cff6b',
-         flavor: '味方を囮に使い、DFの重心をずらしてインサイドを切り裂く。' },
-    C: { key: 'C', name: '超速の裏抜けとスプリント', stats: ['SPD', 'INT'], color: '#4dd2ff',
-         flavor: 'DFラインの一瞬の隙を読み、誰よりも速く裏へ抜け出す。' },
-    D: { key: 'D', name: 'メタビジョン', stats: ['INT', 'TEC'], color: '#c58bff',
-         flavor: 'フィールド全体を俯瞰し、存在しなかった「勝ち筋」を創り出す。' }
+    A: { key: 'A', name: '強引なフィジカル・フィニッシュ', stats: ['SHT', 'PHY'], color: '#ff4d4d', flavor: 'DFを背負ったまま体を捻じ込み、力づくでゴールをこじ開ける。' },
+    B: { key: 'B', name: '戦術的な崩しとインサイド突破', stats: ['INT', 'TEC'], color: '#7cff6b', flavor: '味方を囮に使い、DFの重心をずらしてインサイドを切り裂く。' },
+    C: { key: 'C', name: '超速の裏抜けとスプリント', stats: ['SPD', 'INT'], color: '#4dd2ff', flavor: 'DFラインの一瞬の隙を読み、誰よりも速く裏へ抜け出す。' },
+    D: { key: 'D', name: 'メタビジョン', stats: ['INT', 'TEC'], color: '#c58bff', flavor: 'フィールド全体を俯瞰し、存在しなかった「勝ち筋」を創り出す。' }
   };
 
-  /* ------------------------------------------------------------------ 章
-   * envMult  : 環境倍率（練習獲得量）
-   * statReq  : 合計ステータス足切り (0 = 無し)
-   * goalReq  : 必要ゴール数 / winReq : 必要 Climax 成功数（試合勝利も要求）
-   * bidReq   : 年俸足切り (円)
-   * rate     : 敵レート（選択肢ごと、2ステータス合計との比率で判定）
-   */
-  var CHAPTERS = [
-    { n: 1, title: '一次選考', sub: '青い監獄 一次選考 — チームZ vs チームV', weeks: 10, envMult: 1.0,
-      statReq: 240, goalReq: 1, winReq: 0, bidReq: 0,
-      enemy: { name: 'チームV', lead: '凪誠士郎 / 馬狼照英 / 御影玲王', rate: { A: 175, B: 175, C: 170, D: 162 } },
-      bidPerGoal: 5e6, cashPerGoal: 30000, cashWin: 30000,
-      intro: '青い監獄一次選考、最終戦。勝てば生き残り、負ければ即ち終わり。',
-      highlights: [
-        '前半20分。蜂楽のドリブルが敵陣を切り裂き、こぼれ球がお前の足元へ転がる——。',
-        '後半開始直後。凪の神トラップから馬狼が得点、流れは敵にある。だが千切の裏抜けで生まれた一瞬の空白——。',
-        'ラスト5分。誰もがゴールを求めて走る。パスの選択肢は無限、しかし決めるのはお前だ——。'
-      ] },
-    { n: 2, title: '二次選考', sub: '青い監獄 二次選考 — 3rdステージ vs 糸師凛', weeks: 10, envMult: 2.5,
-      statReq: 650, goalReq: 0, winReq: 2, bidReq: 0,
-      enemy: { name: '糸師凛チーム', lead: '糸師凛 / 蟻生十兵衛 / 時光青志', rate: { A: 600, B: 590, C: 580, D: 550 } },
-      bidPerGoal: 1.5e7, cashPerGoal: 60000, cashWin: 60000,
-      intro: '二次選考3rdステージ。青い監獄最強・糸師凛の前に立つ。',
-      highlights: [
-        '開始3分。凛の冷徹なゲームメイクにチームが飲まれる。だが凛のマークが一瞬外れた——。',
-        '前半終了間際。蟻生の高さに競り負け失点。その直後、蜂楽の怪物ドリブルからボールが渡る——。',
-        '残り1分。凛が「消えろ」と呟く。世界へ繋がる最後のシュートチャンス——。'
-      ] },
-    { n: 3, title: 'U-20日本代表戦', sub: '青い監獄 vs U-20日本代表 — 糸師冴', weeks: 8, envMult: 6,
-      statReq: 1750, goalReq: 0, winReq: 2, bidReq: 0,
-      enemy: { name: 'U-20日本代表', lead: '糸師冴 / 士道龍聖 / 大川響鬼', rate: { A: 1700, B: 1660, C: 1640, D: 1550 } },
-      bidPerGoal: 3e7, cashPerGoal: 100000, cashWin: 100000,
-      intro: '青い監獄の存続を懸けた一戦。世界最高峰のMF・糸師冴が待つ。',
-      highlights: [
-        '前半15分。冴の完璧なスルーパスから士道が先制。反撃の狼煙を上げるのは、お前だ——。',
-        '後半10分。冴のキープをゾーンプレスで奪う。カウンター、ゴールまで40m——。',
-        'アディショナルタイム。冴が初めてお前を「敵」として見た。この一撃で歴史が変わる——。'
-      ] },
-    { n: 4, title: '新英雄大戦', sub: 'ネオ・エゴイストリーグ — 欧州最強クラブ戦', weeks: 12, envMult: 12,
-      statReq: 0, goalReq: 0, winReq: 2, bidReq: 3e8,
-      enemy: { name: 'バスタード・ミュンヘン選抜', lead: 'ミヒャエル・カイザー / ネス / 凪誠士郎', rate: { A: 7400, B: 7200, C: 7150, D: 6800 } },
-      bidPerGoal: 6e7, cashPerGoal: 180000, cashWin: 180000,
-      intro: '欧州のクラブスカウトが見守る中、年俸3億以上の評価を勝ち取れ。',
-      highlights: [
-        '前半5分。カイザーインパクトが炸裂、先制される。皇帝の視線がお前を捉える——。',
-        '前半40分。ネスの魔術的なパスをカットし、一気に敵陣へ。ゴールまで一直線——。',
-        '後半終了間際。スタジアム全体が沈黙する。皇帝を超えるのは、今この瞬間しかない——。'
-      ] },
-    { n: 5, title: 'U-20 W杯 決勝', sub: 'U-20ワールドカップ決勝 — ノエル・ノア率いる最強軍団', weeks: 12, envMult: 28,
-      statReq: 0, goalReq: 0, winReq: 3, bidReq: 0,
-      enemy: { name: 'ノエル・ノア率いる最強軍団', lead: 'ノエル・ノア / ジュリアン・ロキ / マルク・スナッフィー', rate: { A: 25500, B: 25000, C: 24800, D: 24000 } },
-      bidPerGoal: 1e8, cashPerGoal: 300000, cashWin: 300000,
-      intro: '世界一を懸けた決勝。許されるのは3対0の完全勝利のみ。一度の失敗が終わりを意味する。',
-      highlights: [
-        '前半10分。ノアが「見せてみろ」と言わんばかりに中央で待ち構える。世界最高の壁——。',
-        '後半5分。ロキの神速を止め、スナッフィーの罠を掻い潜り、ペナルティエリアへ侵入——。',
-        '後半45分。世界一の座まで、あと一撃。お前のエゴが世界を塗り替える——。'
-      ] }
-  ];
-
-  /* ------------------------------------------------------------------ 購買部
-   * price は 章番号 × chMult を乗算。買いだめ不可（購入と同時に消費）。
-   */
+  /* ------------------------------------------------------------------ 購買部 */
   var ITEMS = [
     { id: 'capsule', name: '高濃度酸素カプセル', price: 40000, desc: 'HPを即座に100%まで全回復。', icon: '💊' },
     { id: 'protein', name: '特製プロテイン',     price: 35000, desc: '次の練習1回に限り、ステータス獲得量を2倍。', icon: '🥤' },
     { id: 'note',    name: '戦術アナライズノート', price: 90000, desc: '次の試合における全選択肢の成功率に+10%。', icon: '📓' }
   ];
 
-  /* ------------------------------------------------------- 突発エゴイベント
-   * fx.stat    : { STAT: 練習1回分の獲得量に対する倍率 }
-   * fx.trained : 今週鍛えたステータスへの追加倍率
-   * fx.allStat : 全ステータスへの倍率
-   * fx.hp      : HP増減 / fx.cash : Cash増減 / fx.bid : 年俸増減
-   * fx.protein : 次回練習2倍付与
-   * fx.roll    : { p, win:{...}, lose:{...}, winText, loseText } ギャンブル
-   */
+  /* ------------------------------------------------------ コンディション */
+  var CONDITIONS = {
+    great:  { label: '絶好調', icon: '🔥', mult: 1.15, hpCost: -1, color: '#ff8c1c' },
+    good:   { label: '好調',   icon: '😀', mult: 1.05, hpCost: 0,  color: '#3ddc84' },
+    normal: { label: '普通',   icon: '😐', mult: 1.00, hpCost: 0,  color: '#9aa4b2' },
+    bad:    { label: '不調',   icon: '😩', mult: 0.85, hpCost: 2,  color: '#ff2a4a' }
+  };
+  var COND_ORDER = ['bad', 'normal', 'good', 'great'];
+
+  /* ------------------------------------------------------- 突発化学反応イベント */
   var EVENTS = [
     { id: 'ev_bachira', rival: 'bachira', title: '蜂楽廻「ねぇ、一緒に遊ぼうよ！」',
       text: '練習中、蜂楽が笑いながらボールを蹴り込んでくる。「オレの中の怪物がさ、お前と遊びたがってるんだ」',
@@ -292,7 +280,7 @@
       choices: [
         { label: '破滅的なシュート合戦', fx: { stat: { SHT: 2.0 }, hp: -25 }, result: '互いに壊れるまで撃ち合った。決定力が爆発的に向上。だが肉体は限界。' },
         { label: '距離を取る', fx: { hp: 5 }, result: '「つまんね」。士道は去った。少し休めた。' } ] },
-    { id: 'ev_kunigami', rival: 'kunigami_early', title: '國神錬介「ヒーローになるんだ」',
+    { id: 'ev_kunigami', rival: 'kunigami', title: '國神錬介「ヒーローになるんだ」',
       text: '國神がバーベルを置き、真っ直ぐな目で言う。「一緒にやるか？」',
       choices: [
         { label: '筋トレ合戦', fx: { stat: { PHY: 1.3 }, hp: -8 }, result: '限界まで追い込んだ。体幹が鋼のように締まった。' },
@@ -313,48 +301,141 @@
       choices: [
         { label: '受けて立つ', fx: { stat: { PHY: 1.0 }, hp: -10 }, result: '激しいぶつかり合い。接触耐性が向上した。' },
         { label: 'かわす', fx: { stat: { SPD: 0.6 } }, result: '雷市の突進を紙一重でかわし続けた。俊敏性が向上。' } ] },
-    { id: 'ev_kaiser', rival: 'kaiser', title: 'ミヒャエル・カイザー「皇帝の前に跪け」',
+    { id: 'ev_kaiser', rival: null, title: 'ミヒャエル・カイザー「皇帝の前に跪け」',
       text: '青い薔薇のタトゥーを見せつけるようにカイザーが立つ。「格の違いを教えてやる」',
       choices: [
         { label: 'シュート勝負を挑む', fx: { roll: { p: 0.3, win: { stat: { SHT: 2.0 } }, lose: { stat: { SHT: 0.4 }, hp: -15 },
                   winText: 'カイザーインパクトを超える一撃。皇帝が初めて表情を変えた。', loseText: '圧倒的な格差。「これが皇帝だ」' } } },
         { label: '戦術を盗む', fx: { stat: { INT: 0.8 } }, result: '皇帝の駆け引きを分析。戦術眼が向上した。' } ] },
-    { id: 'ev_reo', rival: null, title: '御影玲王「金なら出す」',
+    { id: 'ev_reo', rival: 'reo', title: '御影玲王「金なら出す」',
       text: '玲王が札束を見せつける。「オレの実験に付き合え。悪いようにはしない」',
       choices: [
-        { label: '契約を受ける', fx: { cashPerCh: 20000, bidPerCh: 2e6 }, result: 'Cash と年俸評価がわずかに上昇した。' },
+        { label: '契約を受ける', fx: { cashPerArc: 20000, bidPerArc: 2e6 }, result: 'Cash と年俸評価がわずかに上昇した。' },
         { label: '断る', fx: { stat: { INT: 0.3, PHY: 0.3 } }, result: '「金で買えないものもある」。自分を貫いた。' } ] },
     { id: 'ev_condition', rival: null, title: '異常なコンディション低下',
       text: '朝、身体が鉛のように重い。疲労が蓄積している。',
       choices: [
-        { label: '無理を押して練習を続ける', fx: { trained: 0.8, hp: -15 }, result: '限界を超えて追い込んだ。だが肉体はさらに消耗した。' },
-        { label: '早めに切り上げる', fx: { hp: 8 }, result: 'コンディション管理を優先。少し回復した。' } ] },
+        { label: '無理を押して練習を続ける', fx: { trained: 0.8, hp: -15, cond: -1 }, result: '限界を超えて追い込んだ。だが肉体はさらに消耗した。' },
+        { label: '早めに切り上げる', fx: { hp: 8, cond: 1 }, result: 'コンディション管理を優先。少し回復した。' } ] },
     { id: 'ev_supply', rival: null, title: '購買部の特別支給',
       text: '「今日だけ特別だ」——スタッフが試供品を差し出す。',
       choices: [
         { label: '特製プロテインを受け取る', fx: { protein: true }, result: '次の練習1回の獲得量が2倍になる。' },
-        { label: '現金化する', fx: { cashPerCh: 12000 }, result: 'Cash を獲得した。' } ] },
-    { id: 'ev_hiori', rival: null, title: '氷織羊「…お前は、何のために蹴る？」',
+        { label: '現金化する', fx: { cashPerArc: 12000 }, result: 'Cash を獲得した。' } ] },
+    { id: 'ev_hiori', rival: 'hiori', title: '氷織羊「…お前は、何のために蹴る？」',
       text: '氷織が静かに問いかける。「オレは、まだ答えを探してる」',
       choices: [
         { label: '真剣に対話する', fx: { stat: { INT: 1.0 } }, result: '互いのプレー哲学を語り合い、空間の見え方が変わった。' },
-        { label: 'パス練習に付き合う', fx: { stat: { TEC: 0.6, INT: 0.3 } }, result: '氷織の正確なパスを受け続け、技術が向上した。' } ] }
+        { label: 'パス練習に付き合う', fx: { stat: { TEC: 0.6, INT: 0.3 } }, result: '氷織の正確なパスを受け続け、技術が向上した。' } ] },
+    { id: 'ev_otoya', rival: 'otoya', title: '乙夜影汰「忍術、見せてやるよ」',
+      text: '乙夜が気配を消して背後に立っていた。「DFの死角ってさ、こうやって入るんだ」',
+      choices: [
+        { label: '裏抜けの間合いを教わる', fx: { stat: { SPD: 1.0, INT: 0.4 } }, result: '一瞬で消える動き出しのコツを掴んだ。俊敏性が向上。' },
+        { label: '飛び道具の練習に付き合う', fx: { stat: { SHT: 0.7, SPD: 0.3 } }, result: '乙夜の強烈なミドルを研究。決定力が向上。' } ] },
+    { id: 'ev_karasu', rival: 'karasu', title: '烏旅人「お前の弱点、教えてやろうか」',
+      text: '烏がニヤリと笑う。「弱点がないなら、創るまでだ」',
+      choices: [
+        { label: '弱点を指摘してもらう', fx: { weakest: 1.2 }, result: '最も低い能力を徹底的に鍛え直した。' },
+        { label: '逆に烏の弱点を探す', fx: { stat: { INT: 0.8 } }, result: '烏の狙いを読み切る訓練になった。戦術眼が向上。' } ] },
+    { id: 'ev_yukimiya', rival: 'yukimiya', title: '雪宮剣優「1on1、付き合え」',
+      text: '雪宮が眼鏡を外す。「一瞬に見出す極限——それがオレのサッカーだ」',
+      choices: [
+        { label: '1on1を受ける', fx: { roll: { p: 0.45, win: { stat: { SHT: 1.2, TEC: 0.8 } }, lose: { stat: { TEC: 0.4 }, hp: -8 },
+                  winText: '雪宮のフェイントを見切り、抜き去った。決定力と技術が向上。', loseText: '一瞬で置き去りにされた。「まだ見えてないな」' } } },
+        { label: 'シュートフォームを研究', fx: { stat: { SHT: 0.7 } }, result: '雪宮のストリート仕込みのシュートを解析。決定力が向上。' } ] },
+    { id: 'ev_kurona', rival: 'kurona', title: '黒名蘭世「シャーク、参上ッス」',
+      text: '黒名が小柄な体でボールを奪いに来る。「速さなら負けないッスよ」',
+      choices: [
+        { label: 'スピード勝負', fx: { stat: { SPD: 1.0 }, hp: -6 }, result: '黒名の初速に食らいついた。俊敏性が向上。' },
+        { label: 'ボール奪取の技を教わる', fx: { stat: { TEC: 0.6, PHY: 0.4 } }, result: '奪い方の駆け引きを学んだ。' } ] },
+    { id: 'ev_aiku', rival: 'aiku', title: 'オリヴァ・愛空「間合い、見せてやるよ」',
+      text: '愛空が余裕の笑みでポジションを取る。「オレの間合いに入った瞬間、終わりだ」',
+      choices: [
+        { label: '間合いを破る練習', fx: { stat: { INT: 1.0, SPD: 0.3 } }, result: '世界基準のDFの間合いを体で覚えた。戦術眼が向上。' },
+        { label: '守備の駆け引きを教わる', fx: { stat: { PHY: 0.6, INT: 0.4 } }, result: '体の使い方を学び、肉体が強化された。' } ] },
+    { id: 'ev_sendou', rival: 'sendou', title: '閃堂秋人「エースの意地、見せてやる」',
+      text: '閃堂が真剣な表情で言う。「世界標準ってやつを教えてやる」',
+      choices: [
+        { label: 'ヘディング合戦', fx: { stat: { PHY: 1.0, SHT: 0.4 }, hp: -8 }, result: '空中戦で競り合い続けた。肉体と決定力が向上。' },
+        { label: 'エースの心構えを聞く', fx: { stat: { INT: 0.5 }, cond: 1 }, result: '「欲望を隠すな」。心が整った。' } ] },
+    { id: 'ev_niko', rival: 'niko', title: '二子一揮「影から、全部見えてる」',
+      text: '二子が静かに近づく。「お前の癖、もう分かった」',
+      choices: [
+        { label: '戦術ボードで議論する', fx: { stat: { INT: 1.1 } }, result: '二子の支配的な戦術眼に触れ、視野が広がった。' },
+        { label: '癖を矯正する', fx: { allStat: 0.2 }, result: '二子の指摘をもとに動きの無駄を削った。' } ] },
+    { id: 'ev_aryu', rival: 'aryu', title: '蟻生十兵衛「オシャじゃない…」',
+      text: '蟻生が髪をかき上げる。「オシャなプレーで勝つ。それ以外はノンオシャ」',
+      choices: [
+        { label: '空中戦を挑む', fx: { roll: { p: 0.4, win: { stat: { PHY: 1.5 } }, lose: { stat: { PHY: 0.4 }, hp: -10 },
+                  winText: '反則級の身体能力に競り勝った！肉体が大幅に向上。', loseText: '「ノンオシャ」。完全に競り負けた。' } } },
+        { label: 'ヘディングフォームを観察', fx: { stat: { PHY: 0.5, INT: 0.3 } }, result: '跳躍のタイミングを学んだ。' } ] },
+    { id: 'ev_tokimitsu', rival: 'tokimitsu', title: '時光青志「オレ…また失敗するかも…」',
+      text: '時光がネガティブに呟きながらも、圧倒的なフィジカルで壁を作る。',
+      choices: [
+        { label: 'フィジカル勝負', fx: { stat: { PHY: 1.2 }, hp: -10 }, result: 'モンスター級の体幹に押し込まれ続けた。肉体が向上。' },
+        { label: '励ます', fx: { stat: { INT: 0.3 }, cond: 1 }, result: '「…ありがとう」。時光の笑顔に、少し心が軽くなった。' } ] },
+    { id: 'ev_mitoma', rival: 'mitoma', title: '三笘薫「ドリブル、見てみる？」',
+      text: '特別コーチとして現れた三笘が、静かにボールを運び始める。',
+      choices: [
+        { label: 'ドリブルのコツを教わる', fx: { stat: { SPD: 0.8, TEC: 0.8 } }, result: '電光石火の仕掛けを学んだ。俊敏性と技術が向上。' },
+        { label: '1on1で挑む', fx: { roll: { p: 0.25, win: { stat: { SPD: 1.5, TEC: 1.0 } }, lose: { stat: { INT: 0.5 } },
+                  winText: 'ワールドストライカーから一度だけボールを奪った。', loseText: '完全に抜かれた。だが、その動きは目に焼き付いた。' } } } ] },
+    { id: 'ev_anri', rival: null, title: '帝襟アンリ「差し入れ、持ってきました」',
+      text: 'アンリが弁当を差し出す。「無理しすぎないでくださいね」',
+      choices: [
+        { label: 'ありがたく受け取る', fx: { hp: 12, cond: 1 }, result: 'HPが回復し、コンディションも上向いた。' },
+        { label: '練習後に食べる', fx: { trained: 0.4, hp: 5 }, result: '集中して練習を終え、その後に補給した。' } ] },
+    { id: 'ev_ness', rival: null, title: 'ネス「カイザー様の邪魔をするな」',
+      text: 'ネスが魔術のようなパスでボールを回す。「お前にパスを出す価値はない」',
+      choices: [
+        { label: 'パスコースを読み切る', fx: { stat: { INT: 0.8, TEC: 0.4 } }, result: 'ネスの魔術的なパスの軌道を解析した。' },
+        { label: '無視して走り込む', fx: { stat: { SPD: 0.7 } }, result: '走り勝ってパスを引き出した。俊敏性が向上。' } ] },
+    { id: 'ev_loki', rival: 'loki', title: 'ジュリアン・ロキ「マッハで行こうか」',
+      text: '世界最速の男が笑う。「ついてこれる？」',
+      choices: [
+        { label: '全力でついていく', fx: { roll: { p: 0.3, win: { stat: { SPD: 1.8 } }, lose: { stat: { SPD: 0.5 }, hp: -12 },
+                  winText: '一瞬だけロキと並んだ。俊敏性が跳ね上がった。', loseText: '影すら踏めなかった。だが脚は確実に速くなった。' } } },
+        { label: '加速のフォームを観察', fx: { stat: { SPD: 0.6, INT: 0.4 } }, result: '神童の重心移動を解析した。' } ] }
   ];
 
-  /* --------------------------------------------- FIFAワールドカップ（殿堂入り用）
-   * rateMult : 第5章敵レートに乗算。 climaxes : 4 (2-2 は引き分け即死)
+  /* ------------------------------------------------------ 新英雄大戦 クラブ */
+  var NEL_CLUBS = [
+    { id: 'de', country: 'ドイツ', name: 'バスタード・ミュンヘン', flag: '🇩🇪', master: 'ノエル・ノア', stars: 'ミヒャエル・カイザー / アレクシス・ネス',
+      bl: '潔世一・雪宮剣優・雷市陣吾・我牙丸吟・五十嵐栗夢・音留徹平・黒名蘭世・清羅刃・氷織羊・國神錬介（ワイルドカード）',
+      passive: { desc: 'ノアの指導：全選択肢 +3%', all: 3 }, canon: '新英雄大戦 4戦全勝・優勝（対スペイン 3-2 / 対イングランド 3-2 / 対イタリア 3-2 / 対フランス 3-2）',
+      profile: { A: 1.05, B: 1.05, C: 1.0, D: 1.0 }, order: ['es', 'en', 'it', 'fr'] },
+    { id: 'en', country: 'イングランド', name: 'マンシャイン・シティ', flag: '🏴', master: 'クリス・プリンス', stars: 'クリス・プリンス',
+      bl: '御影玲王・千切豹馬・凪誠士郎・仁王和真・劈大河・鰐間淳壱・皿斑海琉・柊零次・西岡初',
+      passive: { desc: 'プリンスの指導：Option C +5%', opt: { C: 5 } }, canon: '新英雄大戦 0勝4敗・最下位（千切が全試合で得点）',
+      profile: { A: 0.95, B: 0.95, C: 1.0, D: 0.95 }, order: ['de', 'fr', 'it', 'es'] },
+    { id: 'it', country: 'イタリア', name: 'ユーヴァース', flag: '🇮🇹', master: 'マルク・スナッフィー', stars: 'ドン・ロレンツォ',
+      bl: '馬狼照英・オリヴァ・愛空・蟻生十兵衛・二子一揮・閃堂秋人・不角源・田中信玄・志熊恭平・石狩幸雄',
+      passive: { desc: 'スナッフィーの指導：Option A +5% / 年俸 ×1.05', opt: { A: 5 }, bidMult: 1.05 }, canon: '新英雄大戦 2勝2敗・3位（馬狼 5得点）',
+      profile: { A: 1.12, B: 1.0, C: 0.98, D: 1.0 }, order: ['fr', 'es', 'de', 'en'] },
+    { id: 'fr', country: 'フランス', name: 'P・X・G', flag: '🇫🇷', master: 'ジュリアン・ロキ', stars: 'ジュリアン・ロキ / シャルル・シュヴァリエ',
+      bl: '糸師凛・烏旅人・時光青志・剣城斬鉄・七星虹郎・超健人・柚春彦・猿堂寺暁・士道龍聖',
+      passive: { desc: 'ロキの指導：Option C +4% / SPD 成長 +10%', opt: { C: 4 }, growth: { SPD: 0.10 } }, canon: '新英雄大戦 3勝1敗・2位（糸師凛 得点王 7得点）',
+      profile: { A: 1.0, B: 1.0, C: 1.1, D: 1.05 }, order: ['it', 'en', 'es', 'de'] },
+    { id: 'es', country: 'スペイン', name: 'FCバルチャ', flag: '🇪🇸', master: 'ラヴィーニョ', stars: 'ラヴィーニョ',
+      bl: '蜂楽廻・乙夜影汰・颯波留・蛇来弥勒・狐里輝・若月樹・曽倉哲・日不見愛基・灰地静',
+      passive: { desc: 'ラヴィーニョの指導：Option B +5% / TEC 成長 +10%', opt: { B: 5 }, growth: { TEC: 0.10 } }, canon: '新英雄大戦 1勝3敗・4位（蜂楽 5得点）',
+      profile: { A: 0.98, B: 1.1, C: 1.0, D: 1.0 }, order: ['de', 'it', 'fr', 'en'] }
+  ];
+
+  /* --------------------------------------------- FIFAワールドカップ（殿堂入り用・成人A代表 if）
+   * PWC の各国代表カード（カバソス／シウバ／ブレイク／ルナ／ロキ）と NEL マスターを配した架空の世界決戦
    */
   var WORLD_CUP = {
     climaxes: 4,
     stages: [
-      { id: 'r16', name: 'ラウンド16', team: 'アルゼンチン代表', flag: '🇦🇷', rateMult: { A: 1.00, B: 1.02, C: 1.00, D: 1.00 },
-        intro: '世界屈指の攻撃陣。守備は個の速さで潰しに来る。' },
-      { id: 'qf',  name: '準々決勝',   team: 'ブラジル代表',     flag: '🇧🇷', rateMult: { A: 1.12, B: 1.15, C: 1.05, D: 1.08 },
-        intro: '技術で世界を制する王国。だがラインの裏は意外に緩い。' },
-      { id: 'sf',  name: '準決勝',     team: 'イングランド代表', flag: '🏴', rateMult: { A: 1.30, B: 1.18, C: 1.22, D: 1.15 },
-        intro: '鉄壁のフィジカル。力比べで勝てる相手ではない。' },
-      { id: 'f',   name: '決勝',       team: 'フランス代表',     flag: '🇫🇷', rateMult: { A: 1.40, B: 1.40, C: 1.38, D: 1.32 },
-        intro: '全てにおいて完成された世界王者。ここを越えれば、真の世界一だ。' }
+      { id: 'r16', name: 'ラウンド16', team: 'アルゼンチン代表', flag: '🇦🇷', star: 'パブロ・カバソス', rateMult: { A: 1.00, B: 1.02, C: 1.00, D: 1.00 },
+        intro: '世界屈指の攻撃陣。カバソスの閃きが中盤を支配し、守備は個の速さで潰しに来る。' },
+      { id: 'qf',  name: '準々決勝',   team: 'ブラジル代表',     flag: '🇧🇷', star: 'ダダ・シウバ', rateMult: { A: 1.15, B: 1.12, C: 1.05, D: 1.08 },
+        intro: '技術で世界を制する王国。重戦車ダダ・シウバが最終ラインに君臨する。' },
+      { id: 'sf',  name: '準決勝',     team: 'イングランド代表', flag: '🏴', star: 'アダム・ブレイク / クリス・プリンス', rateMult: { A: 1.30, B: 1.18, C: 1.22, D: 1.15 },
+        intro: '鉄壁のフィジカルとGGジャンキーの砲撃。力比べで勝てる相手ではない。' },
+      { id: 'f',   name: '決勝',       team: 'フランス代表',     flag: '🇫🇷', star: 'ノエル・ノア / ジュリアン・ロキ', rateMult: { A: 1.42, B: 1.42, C: 1.40, D: 1.34 },
+        intro: 'ノエル・ノア率いる最強軍団。全てにおいて完成された世界王者。ここを越えれば、真の世界一だ。' }
     ],
     highlights: [
       '前半15分。世界のスピードに戸惑うチーム。だが一瞬の隙をお前だけが見ている——。',
@@ -364,33 +445,64 @@
     ]
   };
 
+  /* ------------------------------------------------------------------ 実績 */
+  var ACHIEVEMENTS = [
+    { id: 'first_run',    name: '入寮',                 desc: '初めて育成を開始した',                       gems: 100 },
+    { id: 'first_goal',   name: '初ゴール',             desc: '公式戦で初めてゴールを決めた',               gems: 100 },
+    { id: 'first_skill',  name: 'アウェイケニング',     desc: '初めてスキルを覚醒させた',                   gems: 150 },
+    { id: 'first_flow',   name: 'FLOW',                 desc: '初めて FLOW に突入した',                     gems: 200 },
+    { id: 'first_sig',    name: 'エゴの目覚め',         desc: '固有覚醒スキルを初めて発現させた',           gems: 250 },
+    { id: 'pass_entry',   name: '鬼ごっこ生還',         desc: '入寮テストを突破した',                       gems: 50 },
+    { id: 'pass_first',   name: '一次選考突破',         desc: '一次選考を突破した',                         gems: 200 },
+    { id: 'pass_second',  name: '二次選考突破',         desc: '二次選考を突破した（アドバイザー「糸師冴」解放）', gems: 300 },
+    { id: 'pass_u20',     name: 'U-20日本代表撃破',     desc: '三次選考・U-20日本代表戦に勝利した（アドバイザー「ノエル・ノア」解放）', gems: 400 },
+    { id: 'pass_nel',     name: '新英雄大戦 生存',      desc: '新英雄大戦の年俸足切りを突破した（アドバイザー「ジュリアン・ロキ」解放）', gems: 500 },
+    { id: 'clear',        name: '世界一',               desc: 'U-20 W杯を制覇し殿堂入りした',               gems: 1000 },
+    { id: 'wc_champion',  name: '真の世界一',           desc: 'FIFA ワールドカップで優勝した',               gems: 2000 },
+    { id: 'bid_1oku',     name: '億の男',               desc: '年俸評価 1億円に到達した（アドバイザー「不乱蔦宏俊」解放）', gems: 300 },
+    { id: 'stat_1000',    name: '青天井の入口',         desc: '合計ステータス 1,000 を超えた',               gems: 150 },
+    { id: 'stat_10000',   name: '人外',                 desc: '合計ステータス 10,000 を超えた',              gems: 400 },
+    { id: 'runs_10',      name: '10周目',               desc: '10 回目の育成を開始した（アドバイザー「三笘薫」解放）', gems: 300 },
+    { id: 'elim_10',      name: '敗者の山',             desc: '10 回除籍された',                            gems: 300 },
+    { id: 'injury',       name: '靭帯断裂',             desc: '危険水域での練習強行で選手生命を終えた',     gems: 100 },
+    { id: 'cold',         name: 'コールド',             desc: 'コールド負けで試合を打ち切られた',            gems: 100 },
+    { id: 'nomination',   name: '凛の指名',             desc: '二次選考4thステージで敗北しながら糸師凛に指名された', gems: 300 },
+    { id: 'gacha_50',     name: 'スカウト50回',         desc: 'スカウトを累計 50 回行った',                  gems: 200 },
+    { id: 'lb_10',        name: '完凸への道',           desc: '同一カードの限界突破が 10 に達した',          gems: 300 },
+    { id: 'collect_50',   name: 'コレクター',           desc: '50 種類のカードを所持した',                   gems: 400 },
+    { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 }
+  ];
+
   /* ------------------------------------------------------- 調整パラメータ */
   var PARAMS = {
-    BASE_MAIN: 10,     COMP_MAIN: 0.012,  /* メイン能力: 基礎×環境倍率 + 現在値×複利 */
-    BASE_SUB: 2,       COMP_SUB: 0.004,   /* 副次能力 */
-    SKILL_MULT: 1.05,                      /* 所持スキル1つにつき獲得量 ×1.05 (相乗) */
-    HP_COST: 15,       HP_COST_VAR: 2,     /* 練習HP消費 15±2 */
+    BASE_MAIN: 10,     COMP_MAIN: 0.006,
+    BASE_SUB: 2,       COMP_SUB: 0.002,
+    SKILL_STEP: 0.05,  SKILL_STACK_P: 0.35, /* 練習倍率 = 1 + 0.05×所持スキル数 / 同スキル重複覚醒率 */
+    HP_COST: 15,       HP_COST_VAR: 2,
     REST_HEAL: 40,
     HP_EFF_TIRED: 0.5, HP_EFF_DANGER: 0.35,
     INJURY_P: 0.40,
     EVENT_RATE: 0.20,
-    SIG_K: 10,         WALL: 0.7,          /* 比率 < WALL → 成功率 0% */
+    SIG_K: 6,          WALL: 0.7,
     FLOW_LO: 0.25,     FLOW_HI: 0.40,      FLOW_P: 0.25, FLOW_BONUS: 20,
-    SKILL_BONUS_CAP: 25,                   /* スキル由来の成功率加算 上限(%) */
+    SKILL_BONUS_CAP: 25,
     NOTE_BONUS: 10,
-    D_POWER_MULT: 1.0,                     /* Option D の実効パワー倍率（レート側で優遇） */
-    LB_STEP: 0.05,     LB_GROWTH: 0.03,    /* 限界突破1回ごと: 初期値+5%, 成長補正+3% */
+    D_POWER_MULT: 1.0,
+    LB_STEP: 0.05,     LB_GROWTH: 0.03,
+    SIG_TH: 220,                            /* 固有覚醒：主属性がこの値以上で Climax 成功 → 覚醒 */
     GACHA_SINGLE: 150, GACHA_TEN: 1500,
     INITIAL_GEMS: 1500,
-    GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_CH: 300,
-    MVP_BID_MULT: 1.5, FLOW_BID_MULT: 1.2, BID_SKILL_STEP: 0.04
+    GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
+    MVP_BID_MULT: 1.5, FLOW_BID_MULT: 1.2, BID_SKILL_STEP: 0.04,
+    COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60
   };
 
   BL.DATA = {
-    STATS: STATS, STAT_META: STAT_META, RARITY: RARITY, CHARACTERS: CHARACTERS,
-    SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS, CHAPTERS: CHAPTERS,
-    ITEMS: ITEMS, EVENTS: EVENTS, WORLD_CUP: WORLD_CUP, PARAMS: PARAMS,
+    STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
+    CHARACTERS: CHARACTERS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
+    ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
+    WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',
-    STARTER_CHAR: 'isagi_early'
+    STARTER_CARD: { char: 'isagi', title: 'チームＺ' }  /* PWC ★1 潔世一【チームＺ】 */
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
