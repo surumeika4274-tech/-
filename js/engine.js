@@ -9,8 +9,8 @@
   var D = BL.DATA;
   var P = D.PARAMS;
   var ARCS = BL.STORY.arcs;
-  var SAVE_KEY = 'bl_pwc_egoist_save_v2';
-  var SAVE_VERSION = 2;
+  var SAVE_KEY = 'bl_pwc_egoist_save_v3';
+  var SAVE_VERSION = 3;
 
   var rng = Math.random;
   BL.setRng = function (fn) { rng = fn; };
@@ -135,7 +135,7 @@
     if (card) {
       merge(charOf(card).passive);
       merge(D.TYPE_MAP[card.type]);
-      merge(D.RARITY[card.rar]);
+      if (card.flow) merge({ flowP: P.FLOW_CARD_P, flowBonus: P.FLOW_CARD_BONUS });
     }
     if (player.advisorId) { var adv = advisorById(player.advisorId); if (adv) merge(adv.fx); }
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
@@ -209,9 +209,14 @@
   BL.previewGain = function (run, stat) {
     var eff = hpEfficiency(run.hp) * (run.protein ? 2 : 1) * D.CONDITIONS[run.cond].mult;
     var out = {};
-    for (var i = 0; i < D.STATS.length; i++) { var s = D.STATS[i]; out[s] = r1(baseGain(run, s, s === stat) * eff); }
+    for (var i = 0; i < D.STATS.length; i++) { var s = D.STATS[i]; out[s] = r1(baseGain(run, s, s === stat) * eff * (s === stat && stat === run.hot ? P.HOT_MULT : 1)); }
     return out;
   };
+  /* 化学反応練習：週ごとに 1 属性が指定され、その主獲得量が ×HOT_MULT */
+  function rollHot(run) {
+    var pool = D.STATS.filter(function (s) { return s !== run.hot; });
+    run.hot = pool[Math.floor(rng() * pool.length)];
+  }
   function hpCostBase(run) {
     var mods = playerMods(run); var agg = aggregateSkills(run);
     return Math.max(5, P.HP_COST + mods.hpCost + agg.hpCost + D.CONDITIONS[run.cond].hpCost);
@@ -249,12 +254,14 @@
     }
     var eff = hpEfficiency(run.hp) * (run.protein ? 2 : 1) * D.CONDITIONS[run.cond].mult;
     res.eff = eff; res.protein = !!run.protein;
+    res.hot = (stat === run.hot);
     for (var i = 0; i < D.STATS.length; i++) {
       var s = D.STATS[i];
-      var g = r1(baseGain(run, s, s === stat) * eff);
+      var g = r1(baseGain(run, s, s === stat) * eff * (s === stat && res.hot ? P.HOT_MULT : 1));
       run.stats[s] = r1(run.stats[s] + g); res.gains[s] = g;
     }
     run.protein = false;
+    rollHot(run);
     var cost = hpCostBase(run) + Math.round((rng() * 2 - 1) * P.HP_COST_VAR);
     run.hp = clamp(run.hp - Math.max(5, cost), 0, 100);
     res.hpAfter = run.hp; res.hpCost = cost;
@@ -293,6 +300,7 @@
     var before = run.hp;
     run.hp = clamp(run.hp + P.REST_HEAL + mods.restBonus, 0, 100);
     if (rng() < P.COND_REST_UP_P) shiftCond(run, 1, mods.condFloor);
+    rollHot(run);
     run.weeksLeft -= 1; run.totals.weeksRested += 1;
     pushLog(run, arcOf(run).title + ' 残' + run.weeksLeft + '週：休養 (HP ' + before + '→' + run.hp + ')');
     afterWeek(state);
@@ -401,7 +409,7 @@
         if (flowBonus) o.breakdown.push({ label: 'FLOW', v: flowBonus });
         var mult = skillBonus + modBonus + noteBonus;
         var p = base + (100 - base) * (mult / 100) + flowBonus;
-        o.bonus = Math.round(p - base); o.p = clamp(p, 0, 100);
+        o.bonus = Math.round(p - base); o.p = clamp(p, 0, mdef.rule === 'single' ? 100 : P.P_CAP); /* 成功率上限（単発の試練は除く） */
       }
       o.pct = Math.round(o.p);
       list.push(o);
@@ -594,7 +602,7 @@
     while (run.seg < arc.segments.length) {
       var seg = arc.segments[run.seg];
       if (seg.cond && !run.flags[seg.cond]) { run.seg += 1; continue; }
-      run.weeksLeft = seg.weeks; run.phase = 'training';
+      run.weeksLeft = seg.weeks; run.phase = 'training'; rollHot(run);
       pushLog(run, '【' + arc.title + '】' + seg.name + '——公式戦まで ' + seg.weeks + ' 週。');
       if (seg.weeks <= 0) beginMatch(state);
       return;
@@ -750,7 +758,7 @@
       var card = pick(pool); var entry = state.meta.roster[card.id]; var isNew = !entry;
       if (isNew) state.meta.roster[card.id] = { dupes: 0, obtainedAt: Date.now() }; else entry.dupes += 1;
       if (state.meta.roster[card.id].dupes >= 10) unlock(state, 'lb_10');
-      results.push({ id: card.id, name: BL.cardName(card), rar: rar, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type });
+      results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type });
     }
     state.meta.records.gachaPulls += n;
     if (state.meta.records.gachaPulls >= 50) unlock(state, 'gacha_50');
@@ -811,4 +819,13 @@
     return v.toLocaleString() + '円';
   };
   BL.toggleSfx = function (state) { state.meta.sfx = !state.meta.sfx; BL.save(state); return state.meta.sfx; };
+  /** RUN サマリー（共有用テキスト） */
+  BL.runSummary = function (run) {
+    var card = cardById(run.cardId); var arc = arcOf(run); var s = run.stats;
+    var res = run.phase === 'clear' ? '世界一（殿堂入り）' : '第' + arc.n + '章「' + arc.title + '」で除籍' + (run.gameover ? '（' + run.gameover.detail + '）' : '');
+    var wl = run.history.map(function (h) { return (h.won ? '○' : '●') + h.me + '-' + h.en; }).join(' ');
+    return '#ブルーロックPWC改変版 ' + D.RARITY[card.rar].label + ' ' + BL.cardName(card) + (run.lb ? ' +' + run.lb : '') + ' / ' + res +
+      '\n合計 ' + Math.round(sumStats(s)) + '（SHT ' + Math.round(s.SHT) + ' SPD ' + Math.round(s.SPD) + ' TEC ' + Math.round(s.TEC) + ' INT ' + Math.round(s.INT) + ' PHY ' + Math.round(s.PHY) + '）' +
+      ' / スキル ' + aggregateSkills(run).count + ' / 年俸 ' + BL.fmtYen(run.bid) + ' / BLランキング ' + (run.rank || 300) + '位\n戦績 ' + wl;
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -28,21 +28,22 @@
     'コンディション': { stat: 'INT', icon: '🌤', desc: '戦術眼タイプ（コンディションが「普通」未満に落ちない／休養回復 +10）', condFloor: true, restBonus: 10 }
   };
 
-  /* ---------------------------------------------------------- レアリティ
-   * rate : ガチャ提供割合(%)。★3/★2/★1 は PWC サービス開始時の公表値（3.5 / 30 / 66.5）を基準に、
-   *        後年追加された ★4 / ★4FLOW / ★5 の枠を ★1 から割り当てた「推定値」。
-   *        （現行 PWC の ★4 以上の提供割合は公開情報で確認できなかったため、ここで調整可能にしてある）
-   * base / growth : 本作のステータス初期値スケール／成長補正の基準
+  /* ---------------------------------------------------------- レアリティ（8段階）
+   * 仕様書の8段階区分。PWC の各カードは tools/build_cards.js でキャラの原作の格 (floor, peak) と
+   * PWC レアリティ（★1→floor … ★5→peak）から内挿して割り当てる。★4FLOW 由来のカードは flow フラグを持つ。
+   * rate : ガチャ提供割合(%)（合計 100）
    */
   var RARITY = {
-    '5':  { stars: 5, label: '★5',      rate: 0.5,  base: 82, growth: 1.48, color: '#ff2d55', tier: 'LR相当・最上位',   flowP: 0 },
-    '4F': { stars: 4, label: '★4 FLOW', rate: 0.5,  base: 66, growth: 1.34, color: '#ff8c1c', tier: 'FLOW覚醒体',      flowP: 0.15, flowBonus: 5 },
-    '4':  { stars: 4, label: '★4',      rate: 2.5,  base: 60, growth: 1.28, color: '#ffd166', tier: 'UR相当',           flowP: 0 },
-    '3':  { stars: 3, label: '★3',      rate: 3.5,  base: 45, growth: 1.14, color: '#c58bff', tier: 'SSR相当',          flowP: 0 },
-    '2':  { stars: 2, label: '★2',      rate: 30.0, base: 32, growth: 1.00, color: '#4da3ff', tier: 'SR相当',           flowP: 0 },
-    '1':  { stars: 1, label: '★1',      rate: 63.0, base: 24, growth: 0.90, color: '#9aa4b2', tier: 'R相当・生存縛り',  flowP: 0 }
+    '8': { stars: 8, label: '★8', name: '世界最強',           rate: 0.2,  base: 100, growth: 1.62, color: '#ff2d55', tier: '世界最高峰。初期から破格の成長倍率を誇る絶対頂点枠' },
+    '7': { stars: 7, label: '★7', name: 'マスター・世界選抜', rate: 0.8,  base: 84,  growth: 1.48, color: '#ffd166', tier: '圧倒的フィジカルと戦術眼を持つ世界最高峰' },
+    '6': { stars: 6, label: '★6', name: '新世代世界11傑',     rate: 2.0,  base: 70,  growth: 1.36, color: '#f78c1c', tier: '世界ユース最高峰の個人技と突出した武器' },
+    '5': { stars: 5, label: '★5', name: '青い監獄 最上位',    rate: 5.0,  base: 58,  growth: 1.25, color: '#c58bff', tier: '単独で試合を破壊する青い監獄のトップ層' },
+    '4': { stars: 4, label: '★4', name: '青い監獄 主力選抜',  rate: 12.0, base: 47,  growth: 1.15, color: '#4da3ff', tier: '卓越した一芸で自立した決定力を持つエース層' },
+    '3': { stars: 3, label: '★3', name: '覚醒の主軸',         rate: 25.0, base: 38,  growth: 1.06, color: '#3ddc84', tier: '全国トップクラスの武器を持ち、育成次第で大化けする枠' },
+    '2': { stars: 2, label: '★2', name: '発展途上の原石',     rate: 30.0, base: 30,  growth: 0.98, color: '#9aa4b2', tier: '原石。限界突破の蓄積で化ける' },
+    '1': { stars: 1, label: '★1', name: '最底辺・生存縛り',   rate: 25.0, base: 24,  growth: 0.90, color: '#6b7280', tier: '初期ステータス・成長補正ともに最低水準のサバイバル枠' }
   };
-  var RARITY_ORDER = ['5', '4F', '4', '3', '2', '1'];
+  var RARITY_ORDER = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
   /* ------------------------------------------------------- キャラクター（41名）
    * ident : 5属性の個性ベクトル（1.0 = 平均）。カードの初期値・成長補正の形を決める
@@ -51,7 +52,7 @@
    * sig   : 固有覚醒スキル（Climax 成功時に主属性が閾値を超えるか FLOW 成功で覚醒）
    */
   var CHARACTERS = {
-    isagi:    { name: '潔世一',       tag: '空間認識の申し子',       ident: { SHT: 1.0, SPD: 0.85, TEC: 0.9, INT: 1.25, PHY: 0.85 }, fav: 'D',
+    isagi:    { name: '潔世一',       tag: '空間認識の申し子',       ident: { SHT: 1.1, SPD: 0.9, TEC: 0.9, INT: 1.2, PHY: 0.85 }, fav: 'D',
                 passive: { name: '覚醒の兆し', desc: 'FLOW 突入率 +10%。Option D +3%。', flowP: 0.10, opt: { D: 3 } },
                 sig: { name: 'メタビジョン・ダイレクト', desc: 'Option D +8% / Option A +4%', fx: { opt: { D: 8, A: 4 } } } },
     bachira:  { name: '蜂楽廻',       tag: '怪物',                   ident: { SHT: 0.9, SPD: 0.95, TEC: 1.3, INT: 0.9, PHY: 0.8 }, fav: 'B',
@@ -173,7 +174,35 @@
                 sig: { name: 'ラ・ヌエストラ', desc: 'Option C +6% / Option B +6%', fx: { opt: { C: 6, B: 6 } } } },
     loki:     { name: 'ジュリアン・ロキ', tag: '神童',               ident: { SHT: 1.05, SPD: 1.5, TEC: 1.05, INT: 1.0, PHY: 0.85 }, fav: 'C',
                 passive: { name: 'マッハスピード', desc: 'Option C +8%。', opt: { C: 8 } },
-                sig: { name: '同世代の超新星', desc: 'Option C +12%', fx: { opt: { C: 12 } } } }
+                sig: { name: '同世代の超新星', desc: 'Option C +12%', fx: { opt: { C: 12 } } } },
+    /* ---- 改変版オリジナル（PWC に選手カードが無い世界最強／マスター／世界11傑クラス） ---- */
+    noa:      { name: 'ノエル・ノア',   tag: '世界最高のストライカー', ident: { SHT: 1.3, SPD: 1.15, TEC: 1.25, INT: 1.2, PHY: 1.2 }, fav: 'A',
+                passive: { name: '完全無欠', desc: '全選択肢 +5%。練習HP消費 -2。', all: 5, hpCost: -2 },
+                sig: { name: '世界を魅せる一撃', desc: 'Option A +10% / 全選択肢 +3%', fx: { opt: { A: 10 }, all: 3 } } },
+    ego_if:   { name: '絵心甚八',       tag: '現役if・エゴイストの設計者', ident: { SHT: 1.05, SPD: 0.95, TEC: 1.1, INT: 1.4, PHY: 0.95 }, fav: 'D',
+                passive: { name: '設計者の眼', desc: 'スキル覚醒閾値 ×0.9。Option D +4%。', thMult: 0.9, opt: { D: 4 } },
+                sig: { name: 'エゴイストの設計図', desc: 'Option D +12% / 全選択肢 +2%', fx: { opt: { D: 12 }, all: 2 } } },
+    snuffy:   { name: 'マルク・スナッフィー', tag: 'マスター',       ident: { SHT: 1.0, SPD: 0.9, TEC: 1.15, INT: 1.35, PHY: 1.05 }, fav: 'B',
+                passive: { name: 'マスターの戦術眼', desc: 'Option B +6%。年俸査定 ×1.10。', opt: { B: 6 }, bidMult: 1.10 },
+                sig: { name: 'マスターの盤面', desc: 'Option B +10% / Option D +4%', fx: { opt: { B: 10, D: 4 } } } },
+    lavinho:  { name: 'ラヴィーニョ',   tag: '遊びの魔術師',           ident: { SHT: 0.95, SPD: 1.05, TEC: 1.4, INT: 1.1, PHY: 0.8 }, fav: 'B',
+                passive: { name: '遊びの魔術', desc: 'Option B +6%。突発イベント率 +5%。', opt: { B: 6 }, eventRate: 0.05 },
+                sig: { name: 'ジョガ・ボニート', desc: 'Option B +10% / Option C +4%', fx: { opt: { B: 10, C: 4 } } } },
+    prince:   { name: 'クリス・プリンス', tag: '華麗なる王子',        ident: { SHT: 1.3, SPD: 1.1, TEC: 1.15, INT: 1.0, PHY: 1.0 }, fav: 'A',
+                passive: { name: '華麗なる王子', desc: 'Option A +5%、Option C +3%。', opt: { A: 5, C: 3 } },
+                sig: { name: 'プリンスの美学', desc: 'Option A +8% / Option C +6%', fx: { opt: { A: 8, C: 6 } } } },
+    kaiser:   { name: 'ミヒャエル・カイザー', tag: '皇帝',           ident: { SHT: 1.35, SPD: 1.0, TEC: 1.05, INT: 1.0, PHY: 0.95 }, fav: 'A',
+                passive: { name: 'カイザーインパクト', desc: 'Option A +7%。', opt: { A: 7 } },
+                sig: { name: 'カイザーインパクト・零', desc: 'Option A +12%', fx: { opt: { A: 12 } } } },
+    lorenzo:  { name: 'ドン・ロレンツォ', tag: '守備の魔物',         ident: { SHT: 0.8, SPD: 0.95, TEC: 0.9, INT: 1.05, PHY: 1.45 }, fav: 'A',
+                passive: { name: '守備の魔物', desc: 'Option A +4%。練習HP消費 -2。', opt: { A: 4 }, hpCost: -2 },
+                sig: { name: '魔物の壁', desc: 'Option A +8% / 全選択肢 +2%', fx: { opt: { A: 8 }, all: 2 } } },
+    chevalier:{ name: 'シャルル・シュヴァリエ', tag: '電光石火の騎士', ident: { SHT: 1.1, SPD: 1.4, TEC: 1.0, INT: 0.95, PHY: 0.9 }, fav: 'C',
+                passive: { name: '電光石火', desc: 'Option C +7%。', opt: { C: 7 } },
+                sig: { name: '騎士の突撃', desc: 'Option C +10% / Option A +3%', fx: { opt: { C: 10, A: 3 } } } },
+    ness:     { name: 'アレクシス・ネス', tag: '皇帝の魔術師',        ident: { SHT: 0.85, SPD: 0.95, TEC: 1.35, INT: 1.2, PHY: 0.8 }, fav: 'B',
+                passive: { name: '皇帝の魔術師', desc: 'Option B +5%、Option D +3%。', opt: { B: 5, D: 3 } },
+                sig: { name: '魔術のスルーパス', desc: 'Option B +9% / Option D +5%', fx: { opt: { B: 9, D: 5 } } } }
   };
 
   /* ---------------------------------------------------------- アドバイザー
@@ -494,7 +523,10 @@
     INITIAL_GEMS: 1500,
     GEMS_SURVIVE: 500, GEMS_CLEAR_BONUS: 2000, GEMS_ELIM_PER_ARC: 300,
     MVP_BID_MULT: 1.5, FLOW_BID_MULT: 1.2, BID_SKILL_STEP: 0.04,
-    COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60
+    COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60,
+    FLOW_CARD_P: 0.15, FLOW_CARD_BONUS: 5,   /* ★4FLOW 由来カード：FLOW 突入率 +15% / FLOW ボーナス +5pt */
+    HOT_MULT: 1.25,                         /* 化学反応練習：週ごとに指定される1属性の主獲得量 ×1.25 */
+    P_CAP: 92                               /* Climax 成功率の上限(%)。最低保証は無いが、100% も無い（単発の試練は対象外） */
   };
 
   BL.DATA = {

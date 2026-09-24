@@ -63,7 +63,7 @@ module.exports = { playRun };
 
 if (require.main === module) {
   const N = parseInt(process.argv[2] || '200', 10);
-  const rarFilter = (process.argv[3] || '5,4F,4,3,2,1').split(',');
+  const rarFilter = (process.argv[3] || '8,7,6,5,4,3,2,1').split(',');
   const only = process.argv[4] || null;
   const dupes = parseInt(process.env.DUPES || '0', 10);
   let cards = BL.CARDS.filter(c => rarFilter.includes(c.rar) && (!only || c.id === only || c.char === only));

@@ -12,7 +12,8 @@
   /* ------------------------------------------------------------ utils */
   function $(sel, el) { return (el || document).querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function stars(r) { var n = D.RARITY[r].stars; var s = ''; for (var i = 0; i < n; i++) s += '★'; return s + (r === '4F' ? ' FLOW' : ''); }
+  function stars(r) { var n = D.RARITY[r].stars; var s = ''; for (var i = 0; i < n; i++) s += '★'; return s; }
+  function cardBadge(card) { return (card.flow ? ' <span class="tag flow">FLOW</span>' : '') + (card.origin === 'mod' ? ' <span class="tag">改変版</span>' : ''); }
   function num(v) { return Math.round(v).toLocaleString(); }
   function pct(v) { return Math.round(v) + '%'; }
   function yen(v) { return BL.fmtYen(v); }
@@ -71,6 +72,7 @@
       case 'rules': inner = renderRules(); break;
       case 'advisor': inner = renderAdvisorPick(); break;
       case 'story': inner = renderStoryModal(); break;
+      case 'summary': inner = '<div class="modal-head"><h2>RUN 結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><p class="muted small">クリップボードにアクセスできない環境のため、以下を選択してコピーしてください。</p><textarea class="summary-box" id="summary-text" readonly onfocus="this.select()">' + esc(ui.modal.text) + '</textarea>'; break;
     }
     ov.innerHTML = '<div class="modal-backdrop"><div class="modal">' + inner + '</div></div>'; ov.hidden = false;
   }
@@ -107,14 +109,14 @@
         '<button class="btn primary" data-action="pick-card" data-arg="' + card.id + '"' + (state.run || state.wc ? ' disabled' : '') + '>この選手で育成開始</button>';
     } else actions = '<button class="btn ghost sm" data-action="card-detail" data-arg="' + card.id + '">詳細</button>';
     return '<article class="card char-card' + (own ? '' : ' unowned') + '" style="--rc:' + rc(card.rar) + '">' +
-      '<div class="card-top"><div class="rarity">' + stars(card.rar) + '</div><div class="lb">' + typeIcon(card.type) + ' ' + esc(card.type) + (own ? (own.dupes ? ' / 限界突破 +' + own.dupes : '') : ' / 未所持') + '</div></div>' +
+      '<div class="card-top"><div class="rarity">' + stars(card.rar) + cardBadge(card) + '</div><div class="lb">' + typeIcon(card.type) + ' ' + esc(card.type) + (own ? (own.dupes ? ' / 限界突破 +' + own.dupes : '') : ' / 未所持') + '</div></div>' +
       '<h3>' + esc(c.name) + '<small>【' + esc(card.title) + '】 ' + esc(card.pos.join('/')) + ' — ' + esc(c.tag) + '</small></h3>' +
       '<div class="stat-line">' + statLine + '<span class="st total"><i>合計</i>' + num(BL.sumStats(prof.stats)) + '</span></div>' +
       '<div class="passive"><b>' + esc(c.passive.name) + '</b> ' + esc(c.passive.desc) + '</div>' +
       '<div class="card-actions">' + actions + '</div></article>';
   }
   function rarityFilterBar(current, action) {
-    var opts = [['all', '全て']].concat(D.RARITY_ORDER.map(function (r) { return [r, D.RARITY[r].label]; }));
+    var opts = [['all', '全て']].concat(D.RARITY_ORDER.map(function (r) { return [r, D.RARITY[r].label + ' ' + D.RARITY[r].name]; }));
     return '<div class="filters">' + opts.map(function (o) { return '<button class="chipbtn' + (current === o[0] ? ' active' : '') + '" data-action="' + action + '" data-arg="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>';
   }
   function renderRoster() {
@@ -123,7 +125,8 @@
       .sort(function (a, b) { return D.RARITY_ORDER.indexOf(a.rar) - D.RARITY_ORDER.indexOf(b.rar) || a.char.localeCompare(b.char); });
     var note = state.run ? '<div class="notice warn">育成中の選手がいます。RUN を終えるまで新規育成は開始できません（リセット・放棄は不可）。<button class="btn primary sm" data-action="resume-run">育成を再開</button></div>' :
                state.wc ? '<div class="notice warn">FIFAワールドカップに出撃中の選手がいます。<button class="btn gold sm" data-action="wc-resume">W杯を再開</button></div>' : '';
-    return note + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全カード準拠）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）が周回を跨いで蓄積。</div>' +
+    var tips = state.meta.records.runs === 0 ? '<div class="notice tips"><b>はじめての方へ</b><ul><li>「この選手で育成開始」→ アドバイザーを選ぶと RUN 開始。以後の行動は全て即時保存され、やり直しは不可能。</li><li>練習は HP を約15% 消費。HP50% 未満で効率半減、30% 未満で練習すると 40% で選手生命が終わる。休養で +40%。</li><li>試合の Climax は「対応2能力の合計 ÷ 敵レート」で成功率が決まる。育成画面右上の「次の試合」で事前に確認できる。</li><li>初期配布の ★1 潔世一は生存縛り。除籍で得る補償ジェムと実績ジェムでスカウトを回し、限界突破を積むのが基本ループ。</li></ul></div>' : '';
+    return note + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル9枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）が周回を跨いで蓄積。</div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') + '<div class="grid">' + cards.map(function (c) { return cardCardHtml(c, state.meta.roster[c.id], { owned: true }); }).join('') + '</div>';
   }
   function renderDex() {
@@ -131,7 +134,7 @@
     var owned = cards.filter(function (c) { return !!state.meta.roster[c.id]; }).length;
     var rows = cards.map(function (c) {
       var own = state.meta.roster[c.id]; var ch = D.CHARACTERS[c.char];
-      return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') : '—') + '</td></tr>';
+      return '<tr class="' + (own ? 'have' : 'nohave') + '" data-action="card-detail" data-arg="' + c.id + '"><td style="color:' + rc(c.rar) + '">' + stars(c.rar) + (c.flow ? ' F' : '') + '</td><td><b>' + esc(ch.name) + '</b> 【' + esc(c.title) + '】' + (c.origin === 'mod' ? ' <small class="muted">改変版</small>' : '') + '</td><td>' + typeIcon(c.type) + esc(c.type) + '</td><td>' + esc(c.pos.join('/')) + '</td><td>' + (own ? '所持' + (own.dupes ? ' +' + own.dupes : '') : '—') + '</td></tr>';
     }).join('');
     return '<div class="muted small">図鑑 ' + owned + ' / ' + cards.length + '。行をクリックで詳細。</div>' + rarityFilterBar(ui.rosterFilter, 'roster-filter') +
       '<table class="tbl dex"><thead><tr><th>レア</th><th>カード</th><th>タイプ</th><th>ポジション</th><th>所持</th></tr></thead><tbody>' + rows + '</tbody></table>';
@@ -141,8 +144,8 @@
     var c = D.CHARACTERS[card.char]; var own = state.meta.roster[card.id]; var prof = BL.cardProfile(card, own ? own.dupes : 0);
     var rows = D.STATS.map(function (s) { return '<tr><td style="color:' + D.STAT_META[s].color + '"><b>' + s + '</b> ' + D.STAT_META[s].jp + '</td><td>' + num(prof.stats[s]) + '</td><td>×' + prof.growth[s].toFixed(2) + '</td></tr>'; }).join('');
     var others = BL.CARDS.filter(function (x) { return x.char === card.char && x.id !== card.id; }).map(function (x) { return '<span class="tag" style="border-color:' + rc(x.rar) + '">' + stars(x.rar) + ' ' + esc(x.title) + (state.meta.roster[x.id] ? ' ✓' : '') + '</span>'; }).join(' ');
-    return '<div class="modal-head"><h2 style="color:' + rc(card.rar) + '">' + stars(card.rar) + ' ' + esc(c.name) + '【' + esc(card.title) + '】</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
-      '<p class="muted">' + typeIcon(card.type) + ' ' + esc(card.type) + 'タイプ（' + esc(D.TYPE_MAP[card.type].desc) + '） / ' + esc(card.pos.join(' / ')) + ' / ' + esc(D.RARITY[card.rar].tier) + '</p>' +
+    return '<div class="modal-head"><h2 style="color:' + rc(card.rar) + '">' + stars(card.rar) + ' ' + esc(c.name) + '【' + esc(card.title) + '】' + cardBadge(card) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
+      '<p class="muted">' + esc(D.RARITY[card.rar].name) + '（' + esc(D.RARITY[card.rar].tier) + '）<br>' + typeIcon(card.type) + ' ' + esc(card.type) + 'タイプ（' + esc(D.TYPE_MAP[card.type].desc) + '） / ' + esc(card.pos.join(' / ')) + (card.pwc ? ' / PWC ' + esc(card.pwc === '4FLOW' ? '★4 FLOW' : '★' + card.pwc) + ' 由来' : ' / 改変版オリジナル') + (card.flow ? ' / FLOW 突入率 +15%・FLOW ボーナス +5pt' : '') + '</p>' +
       '<table class="tbl"><thead><tr><th>能力</th><th>初期値</th><th>成長補正</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<div class="passive big"><b>固有エゴ：' + esc(c.passive.name) + '</b><br>' + esc(c.passive.desc) + '</div>' +
       '<div class="passive big"><b>固有覚醒スキル：' + esc(c.sig.name) + '</b><br>' + esc(c.sig.desc) + '（主属性 ' + D.TYPE_MAP[card.type].stat + ' が ' + P.SIG_TH + ' 以上で Climax 成功、または FLOW 成功で覚醒）</div>' +
@@ -164,17 +167,18 @@
     var m = state.meta;
     var rateRows = D.RARITY_ORDER.map(function (r) {
       var n = BL.CARDS.filter(function (c) { return c.rar === r; }).length;
-      return '<tr><td style="color:' + rc(r) + '">' + stars(r) + '</td><td>' + esc(D.RARITY[r].tier) + '</td><td class="num">' + D.RARITY[r].rate.toFixed(1) + '%</td><td class="muted">' + n + ' 枚</td></tr>';
+      var names = BL.CARDS.filter(function (c) { return c.rar === r; }).map(function (c) { return D.CHARACTERS[c.char].name; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).slice(0, 6).join('、');
+      return '<tr><td style="color:' + rc(r) + '">' + stars(r) + '</td><td><b>' + esc(D.RARITY[r].name) + '</b><br><small class="muted">' + esc(names) + (n > 6 ? ' ほか' : '') + '</small></td><td class="num">' + D.RARITY[r].rate.toFixed(1) + '%</td><td class="muted">' + n + ' 枚</td></tr>';
     }).join('');
     return '<div class="gacha-panel"><div class="gacha-cta"><div><div class="muted">所持 Ego Gems</div><div class="big-num">💎 ' + num(m.gems) + '</div></div>' +
       '<div class="gacha-btns"><button class="btn primary" data-action="gacha" data-arg="1"' + (m.gems < P.GACHA_SINGLE ? ' disabled' : '') + '>単発スカウト<small>' + P.GACHA_SINGLE + ' Gems</small></button>' +
       '<button class="btn gold" data-action="gacha" data-arg="10"' + (m.gems < P.GACHA_TEN ? ' disabled' : '') + '>10連スカウト<small>' + P.GACHA_TEN + ' Gems</small></button></div></div>' +
-      '<p class="muted small">天井・確定枠は存在しない。提供割合の ★3/★2/★1 は PWC サービス開始時の公表値（3.5 / 30 / 66.5%）を基準とし、後年追加の ★4 / ★4FLOW / ★5 は公開情報が確認できないため推定値（js/data.js で調整可能）。</p>' +
+      '<p class="muted small">天井・確定枠は存在しない。8段階の提供割合は仕様書どおり（0.2 / 0.8 / 2 / 5 / 12 / 25 / 30 / 25%）。各カードの段階は、キャラの原作の格と PWC でのレアリティから割り当て（詳細は図鑑・README）。</p>' +
       '<table class="tbl"><thead><tr><th>レア</th><th>クラス</th><th>提供割合</th><th>収録</th></tr></thead><tbody>' + rateRows + '</tbody></table></div>';
   }
   function renderGachaResult() {
     var res = ui.modal.results.map(function (r, i) {
-      return '<div class="pull' + (D.RARITY[r.rar].stars >= 4 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms"><div class="pull-r">' + stars(r.rar) + '</div><div class="pull-n">' + esc(r.name) + '</div><div class="pull-t">' + typeIcon(r.type) + ' ' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
+      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms"><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-n">' + esc(r.name) + '</div><div class="pull-t">' + typeIcon(r.type) + ' ' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
     }).join('');
     var costN = ui.modal.n === 10 ? P.GACHA_TEN : P.GACHA_SINGLE;
     return '<div class="modal-head"><h2>スカウト結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="pulls">' + res + '</div>' +
@@ -224,9 +228,11 @@
       '<li>「あと0週」で強制的に公式戦へ突入。章は複数の節（試合）で構成され、章末に足切り査定がある。</li></ul>' +
       '<h4>肉体健全度とコンディション</h4><ul><li>練習でHP約15%消費、休養で+40%。HP50%以上：万全／30〜49%：疲労（効率50%）／30%未満：危険水域（効率35%、練習強行で40%の確率で靭帯断裂＝即除籍）。</li>' +
       '<li>コンディション（絶好調 ×1.15 / 好調 ×1.05 / 普通 / 不調 ×0.85・HP消費+2）は練習で下がりやすく休養で上がりやすい。</li></ul>' +
-      '<h4>成長</h4><ul><li>獲得量 = (基礎値×章環境倍率 + 現在値×複利率) × (1 + 0.05×所持スキル数) × 成長補正 × 限界突破 × HP効率 × コンディション。上限なし。</li></ul>' +
+      '<h4>成長</h4><ul><li>獲得量 = (基礎値×章環境倍率 + 現在値×複利率) × (1 + 0.05×所持スキル数) × 成長補正 × 限界突破 × HP効率 × コンディション。上限なし。</li><li>化学反応練習：毎週ランダムに 1 属性が指定され、その練習の主獲得量が ×' + P.HOT_MULT + '。</li></ul>' +
+      '<h4>レアリティ（8段階）</h4><ul>' + D.RARITY_ORDER.map(function (r) { return '<li><b style="color:' + rc(r) + '">' + D.RARITY[r].label + ' ' + esc(D.RARITY[r].name) + '</b>（' + D.RARITY[r].rate + '%）：' + esc(D.RARITY[r].tier) + '</li>'; }).join('') + '<li>PWC の各カードは「キャラの原作の格 (floor, peak)」と「PWC でのレアリティ（★1→floor … ★5→peak）」で内挿して割り当て。★4FLOW 由来は FLOW 突入率 +15%・ボーナス +5pt。</li></ul>' +
       '<h4>試合（Climax）</h4><ul><li>成功率 = 対応2ステータス合計 ÷ 敵レート の比率 r をシグモイド変換（r=1 で 50%）。r &lt; 0.7 は補正を無視して 0%（完全ゼロの壁）。</li>' +
       '<li>スキル・固有エゴ・アドバイザー・クラブ・アナライズノートは失敗率を割合で削る乗算補正。FLOW は +20pt 加算（最良選択肢が 25〜40% の局面で 25% で突入、成功時スキル確定覚醒）。</li>' +
+      '<li>試合の Climax の成功率上限は ' + P.P_CAP + '%（入寮テスト・100ゴールなどの単発試練は除く）。運による最低保証が無いのと同様に、確定成功も無い。</li>' +
       '<li>失敗はカウンターで失点。勝利必須の試合では勝利条件が数学的に不可能になった瞬間にコールド負け。同点は即時敗北。</li>' +
       '<li>試合ルール：単発（失敗＝除籍）／リーグ（章末判定）／勝利必須／二次選考3rd（敗北で蜂楽を奪われ2対2へ）／二次選考4th（敗北でも INT または2得点で凛の指名）／新英雄大戦（年俸判定）／グループ（3戦2勝）／決勝（3対0のみ）。</li></ul>' +
       '<h4>章構成</h4><table class="tbl"><thead><tr><th>章</th><th>節</th><th>章末足切り</th></tr></thead><tbody>' + arcRows + '</tbody></table>' +
@@ -296,8 +302,9 @@
     var statRows = D.STATS.map(function (s) {
       var g = BL.previewGain(run, s)[s];
       var pop = (flash && flash.gains && flash.gains[s]) ? '<span class="gain-pop' + (flash.stat === s ? ' main' : '') + '">+' + flash.gains[s] + '</span>' : '';
-      return '<div class="stat-row" style="--c:' + D.STAT_META[s].color + '"><div class="stat-name"><b>' + s + '</b><i>' + D.STAT_META[s].en + '</i></div><div class="stat-val">' + num(run.stats[s]) + pop + '</div>' +
-        '<button class="btn train" data-action="train" data-arg="' + s + '"><span>' + D.STAT_META[s].jp + '練習</span><small>主 +' + g + ' / 副 +' + gains[s] + '</small></button></div>';
+      var hot = (s === run.hot);
+      return '<div class="stat-row' + (hot ? ' hot' : '') + '" style="--c:' + D.STAT_META[s].color + '"><div class="stat-name"><b>' + s + '</b><i>' + D.STAT_META[s].en + '</i>' + (hot ? '<em class="hotlbl">化学反応 ×' + P.HOT_MULT + '</em>' : '') + '</div><div class="stat-val">' + num(run.stats[s]) + pop + '</div>' +
+        '<button class="btn train" data-action="train" data-arg="' + s + '"><span>' + D.STAT_META[s].jp + '練習' + (hot ? ' ⚡' : '') + '</span><small>主 +' + g + ' / 副 +' + gains[s] + '</small></button></div>';
     }).join('');
     var optPrev = preview.map(function (o) { return '<div class="opt-prev' + (o.wall ? ' wall' : '') + '"><b>' + o.key + '</b><span class="bar"><i style="width:' + Math.round(o.p) + '%;background:' + (D.OPTIONS[o.key] || { color: '#fff' }).color + '"></i></span><em>' + (o.wall ? '0%（壁）' : pct(o.p)) + '</em><small>' + o.stats.join('+') + ' ' + num(o.power) + '/' + num(o.rate) + '</small></div>'; }).join('');
     var cut = arc.cut || {}; var reqs = [];
@@ -432,14 +439,14 @@
     return '<section class="screen gameover"><div class="go-big">除籍</div><div class="go-sub">ELIMINATED</div><div class="go-box"><div class="go-reason">' + esc(reason) + '</div><p>' + esc(g.detail) + '</p>' +
       '<div class="muted">' + esc(BL.cardName(card)) + ' ／ 第' + ARCS[g.arc].n + '章「' + esc(ARCS[g.arc].title) + '」で脱落 ／ 合計 ' + num(g.total) + ' ／ スキル ' + g.skills + ' ／ 年俸 ' + yen(g.bid) + ' ／ BLランキング ' + (run.rank || 300) + '位</div>' +
       '<div class="go-gems">補償 Ego Gems <b>+' + g.gems + '</b> → 所持 ' + num(state.meta.gems) + '</div><p class="muted">育成データは完全に抹消される。やり直しは存在しない。</p></div>' +
-      '<div class="modal-foot center"><button class="btn danger lg" data-action="close-run">ロビーへ強制送還</button></div></section>';
+      '<div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn danger lg" data-action="close-run">ロビーへ強制送還</button></div></section>';
   }
   function renderClear() {
     var run = state.run; var card = BL.cardById(run.cardId);
     var st = D.STATS.map(function (s) { return '<span class="st" style="--c:' + D.STAT_META[s].color + '"><i>' + s + '</i>' + num(run.stats[s]) + '</span>'; }).join('');
     return '<section class="screen clear"><div class="clear-kicker">U-20 WORLD CUP CHAMPION</div><div class="clear-big">世界一</div><div class="go-box gold"><h3>' + stars(card.rar) + ' ' + esc(BL.cardName(card)) + ' — 殿堂入り</h3><div class="stat-line">' + st + '</div>' +
       '<div class="muted">最終年俸 ' + yen(run.bid) + ' ／ スキル ' + BL.aggregateSkills(run).count + ' ／ 通算ゴール ' + run.totals.goals + ' ／ ' + run.totals.matchWins + '勝' + (run.totals.matches - run.totals.matchWins) + '敗</div>' +
-      '<p>この選手は殿堂入りとして永続保存され、メインメニューから「FIFAワールドカップ（成人A代表・世界決戦モード）」へ出撃できる。</p></div><div class="modal-foot center"><button class="btn gold lg" data-action="close-run">ロビーへ</button></div></section>';
+      '<p>この選手は殿堂入りとして永続保存され、メインメニューから「FIFAワールドカップ（成人A代表・世界決戦モード）」へ出撃できる。</p></div><div class="modal-foot center"><button class="btn ghost" data-action="copy-summary">結果をコピー</button><button class="btn gold lg" data-action="close-run">ロビーへ</button></div></section>';
   }
 
   /* ------------------------------------------------------------ world cup */
@@ -500,7 +507,7 @@
     'gacha': function (arg) {
       var n = parseInt(arg, 10) === 10 ? 10 : 1; var res = BL.gacha(state, n);
       if (!res.ok) { toast('Ego Gems が足りない', 'warn'); return; }
-      var hi = res.results.some(function (r) { return D.RARITY[r.rar].stars >= 4; }); sfx(hi ? 'rare' : 'gacha');
+      var hi = res.results.some(function (r) { return D.RARITY[r.rar].stars >= 6; }); sfx(hi ? 'rare' : 'gacha');
       ui.modal = { type: 'gacha', results: res.results, n: n }; render();
     },
     'pick-card': function (arg) { if (state.run || state.wc) return; ui.pickCard = arg; ui.modal = { type: 'advisor' }; render(); },
@@ -548,6 +555,12 @@
       else render();
     },
     'close-run': function () { BL.closeRun(state); ui.lobbyTab = 'roster'; ui.inLobby = false; render(); },
+    'copy-summary': function () {
+      if (!state.run) return; var text = BL.runSummary(state.run);
+      var done = function () { toast('結果をクリップボードにコピーした', 'ok'); };
+      var fallback = function () { ui.modal = { type: 'summary', text: text }; render(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+    },
     'wc-start': function (arg) { var res = BL.startWorldCup(state, arg); if (!res.ok) { toast({ active: 'W杯出撃中の選手がいる', used: 'この選手は既に出撃済み' }[res.reason] || '出撃できない', 'warn'); return; } ui.inLobby = false; render(); },
     'wc-resume': function () { ui.screen = 'game'; ui.inLobby = false; render(); },
     'wc-begin': function () { BL.wcBeginMatch(state); render(); blackout('FIFA WORLD CUP — ' + D.WORLD_CUP.stages[state.wc.stage].team, 1400, function () { sfx('whistle'); render(); }); },
