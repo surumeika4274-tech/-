@@ -25,7 +25,7 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
 
   await page.goto(base);
   await page.evaluate(() => localStorage.clear()); await page.reload();
-  await page.waitForSelector('.title-screen');
+  await page.waitForSelector('.title-screen'); await page.evaluate(() => { BL_UI.ui.fastFx = true; });
   await page.screenshot({ path: OUT + '/01_title.png' });
   await page.click('.title-screen'); await page.waitForSelector('.lobby');
   await page.screenshot({ path: OUT + '/02_lobby.png', fullPage: true });
@@ -51,6 +51,16 @@ function assert(c, msg) { if (!c) throw new Error('ASSERT: ' + msg); nOk++; cons
   st = await S(); assert(st.meta.roster[starterId].tier === 1 && st.meta.pieces === 40, 'star-up ★1→★2 (60 pieces)');
   await page.screenshot({ path: OUT + '/05_upgrade.png', fullPage: true });
 
+  /* difficulty toggle + missions */
+  await page.click('[data-action="lobby-tab"][data-arg="roster"]');
+  assert((await page.$$('.mission')).length === 6, 'six daily missions listed');
+  await page.click('[data-action="toggle-difficulty"]'); await wait(80);
+  st = await S(); assert(st.meta.difficulty === 'hell' && (await page.$('.btn.diff.hell')), 'hell mode toggled on');
+  await page.click('[data-action="toggle-difficulty"]'); await wait(80);
+  st = await S(); assert(st.meta.difficulty === 'normal', 'hell mode toggled off');
+  assert(st.meta.daily.progress.scouts === 1, 'scout mission progressed');
+  await page.click('[data-action="claim-mission"][data-arg="m_scout"]'); await wait(80);
+  st = await S(); assert(st.meta.daily.claimed.m_scout && st.meta.pieces === 45, 'scout mission claimed (+5 pieces)');
   /* dex + achievements + records tabs */
   await page.click('[data-action="lobby-tab"][data-arg="dex"]'); await page.screenshot({ path: OUT + '/06_dex.png' });
   await page.click('[data-action="lobby-tab"][data-arg="ach"]');

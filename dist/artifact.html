@@ -563,6 +563,99 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
 .modal-foot a.btn { text-decoration: none; }
 @media (max-width: 640px) { .highlight { flex-direction: column; align-items: stretch; } .rival-strip { justify-content: flex-start; } .choice-stage { flex-direction: column; } .vs-mark { display: none; } }
 
+/* ---- v8 アニメーション強化・ミッション・難易度 ---- */
+@keyframes screenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.screen:not(.training) { animation: screenIn .32s ease both; }
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+.home-hero .hero-art svg, .run-hero .rh-art svg { animation: floaty 4.5s ease-in-out infinite; }
+@keyframes holo { 0% { filter: drop-shadow(0 0 4px rgba(255,209,102,.35)); } 50% { filter: drop-shadow(0 0 14px rgba(255,209,102,.7)); } 100% { filter: drop-shadow(0 0 4px rgba(255,209,102,.35)); } }
+.card-svg.r7, .card-svg.r8 { animation: holo 3s ease-in-out infinite; }
+.card-svg .aura { transform-origin: 60px 62px; animation: auraSpin 12s linear infinite; }
+.card-svg .aura2 { transform-origin: 60px 62px; animation: auraSpin 20s linear infinite reverse; }
+@keyframes auraSpin { to { transform: rotate(360deg); } }
+/* タイトル背景 */
+.title-screen { position: relative; overflow: hidden; }
+.title-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.title-bg i { position: absolute; left: -20%; width: 140%; height: 2px; background: linear-gradient(90deg, transparent, rgba(77,210,255,.45), transparent); animation: sweep 6s linear infinite; }
+.title-bg i:nth-child(1) { top: 28%; transform: rotate(-8deg); animation-delay: 0s; }
+.title-bg i:nth-child(2) { top: 55%; transform: rotate(-8deg); animation-delay: 2s; }
+.title-bg i:nth-child(3) { top: 78%; transform: rotate(-8deg); animation-delay: 4s; }
+@keyframes sweep { from { transform: translateX(-30%) rotate(-8deg); opacity: 0; } 20% { opacity: 1; } to { transform: translateX(30%) rotate(-8deg); opacity: 0; } }
+@keyframes glow { 0%, 100% { text-shadow: 0 0 18px rgba(47,128,255,.4); } 50% { text-shadow: 0 0 34px rgba(77,210,255,.9); } }
+.title-logo .accent { animation: glow 2.6s ease-in-out infinite; }
+/* 判定演出 */
+.judge { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(2,4,10,.72); backdrop-filter: blur(2px); z-index: 60; }
+.judge-box { width: min(520px, 92vw); padding: 22px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); text-align: center; animation: pop .18s ease; }
+.judge-kicker { color: var(--muted); font-size: .85rem; letter-spacing: .08em; margin-bottom: 12px; }
+.judge-meter { position: relative; height: 16px; border-radius: 8px; background: #0b1020; border: 1px solid var(--line); overflow: visible; }
+.judge-meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 8px; background: linear-gradient(90deg, #3ddc84, #ffd166, #ff2a4a); animation: meterFill .65s cubic-bezier(.2,.8,.2,1) forwards; }
+.judge-meter i { --p: 50%; }
+@keyframes meterFill { to { width: var(--p); } }
+.judge-meter em { position: absolute; top: -6px; width: 3px; height: 28px; background: #fff; transform: translateX(-50%); box-shadow: 0 0 10px #fff; }
+.judge-num { font-family: 'Oswald', sans-serif; font-size: 3rem; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.judge-box.hit { border-color: var(--ok); box-shadow: 0 0 40px rgba(61,220,132,.5); }
+.judge-box.hit .judge-num { color: var(--ok); }
+.judge-box.fail { border-color: var(--danger); box-shadow: 0 0 40px rgba(255,42,74,.5); }
+.judge-box.fail .judge-num { color: var(--danger); }
+@keyframes shakeX { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+body.shake #app { animation: shakeX .45s ease; }
+/* ゴールカットインのバースト */
+.cutin { position: relative; }
+.burst { position: absolute; inset: 0; pointer-events: none; }
+.burst i { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: burstOut .9s ease-out forwards; }
+.burst i:nth-child(1) { --dx: -120px; --dy: -60px; } .burst i:nth-child(2) { --dx: 120px; --dy: -70px; } .burst i:nth-child(3) { --dx: -140px; --dy: 30px; } .burst i:nth-child(4) { --dx: 140px; --dy: 40px; }
+.burst i:nth-child(5) { --dx: -60px; --dy: -110px; background: #4dd2ff; } .burst i:nth-child(6) { --dx: 70px; --dy: -110px; background: #4dd2ff; } .burst i:nth-child(7) { --dx: -80px; --dy: 90px; background: #ff4d4d; } .burst i:nth-child(8) { --dx: 90px; --dy: 90px; background: #ff4d4d; }
+@keyframes burstOut { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; } }
+/* ミニピッチ */
+.pitch { display: block; margin: 8px auto; max-width: 100%; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.pitch .ball { animation: ballGoal 1.1s cubic-bezier(.3,.7,.4,1) forwards; }
+.pitch.miss .ball { animation: ballMiss 1.1s ease-out forwards; }
+.pitch .me { animation: runUp 1.1s ease-out forwards; }
+.pitch.goal .net { animation: netShake .5s ease 1s 2; transform-origin: 306px 75px; }
+.pitch.miss .df { animation: intercept .5s ease .6s forwards; }
+@keyframes ballGoal { 0% { transform: translate(0, 0); } 45% { transform: translate(120px, -22px); } 100% { transform: translate(224px, 0); } }
+@keyframes ballMiss { 0% { transform: translate(0, 0); } 55% { transform: translate(118px, -10px); } 100% { transform: translate(60px, 30px); } }
+@keyframes runUp { to { transform: translate(60px, 0); } }
+@keyframes netShake { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.35); } }
+@keyframes intercept { to { transform: translate(-18px, 0) scale(1.3); } }
+/* FLOW の脈動 */
+@keyframes flowPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.35); } 50% { box-shadow: 0 0 22px 4px rgba(255,255,255,.35); } }
+.in-flow .btn.climax, .sq-climax.flow .btn.climax.mini { animation: flowPulse 1.3s ease-in-out infinite; }
+/* 紙吹雪 */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 55; }
+.confetti i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; opacity: .95; animation: fall 3s linear forwards; }
+@keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: .6; } }
+/* ガチャの反転演出 */
+.pull { perspective: 600px; }
+.pull .pull-art { animation: flipIn .7s cubic-bezier(.2,.8,.2,1) both; animation-delay: inherit; transform-style: preserve-3d; }
+@keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0); opacity: 1; } }
+.pull.hi { position: relative; }
+.pull.hi::after { content: ''; position: absolute; inset: -6px; border-radius: 14px; border: 2px solid var(--rc); animation: ring 1.2s ease-out 3; pointer-events: none; }
+@keyframes ring { from { transform: scale(.9); opacity: .9; } to { transform: scale(1.15); opacity: 0; } }
+/* HP・ステータス */
+.hp-bar i { transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.ms-bar i { transition: width .5s ease; }
+/* ミッション */
+.panel.missions { margin-bottom: 12px; }
+.ms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.mission { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); }
+.mission.done { border-color: var(--gold); }
+.mission.claimed { opacity: .6; }
+.ms-body { flex: 1; min-width: 0; }
+.ms-body b { font-size: 13px; }
+.ms-bar { height: 6px; border-radius: 3px; background: var(--line); margin: 4px 0 2px; overflow: hidden; }
+.ms-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.ms-body small { color: var(--muted); font-size: 11px; }
+.mission .btn { white-space: nowrap; }
+.tag.ok { border-color: var(--ok); color: var(--ok); }
+/* 難易度 */
+.btn.diff.hell { border-color: var(--danger); color: #ff8c8c; background: rgba(255,42,74,.1); }
+.hell-tag { color: #ff8c8c; }
+@media (prefers-reduced-motion: reduce) {
+  .screen:not(.training), .home-hero .hero-art svg, .run-hero .rh-art svg, .card-svg.r7, .card-svg.r8, .card-svg .aura, .card-svg .aura2, .title-bg i, .title-logo .accent, .burst i, .pitch .ball, .pitch .me, .pitch .net, .pitch .df, .in-flow .btn.climax, .sq-climax.flow .btn.climax.mini, .confetti i, .pull .pull-art, .pull.hi::after { animation: none !important; }
+  body.shake #app { animation: none !important; }
+}
+
 </style>
 
   <noscript><div class="noscript">JavaScript を有効にしてください。</div></noscript>
@@ -1424,7 +1517,11 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     { id: 'route_barou',  name: '王様と組む',           desc: '二次選考 3rd ステージで馬狼・成早と組んだ',   gems: 150 },
     { id: 'route_chigiri',name: '旧友と組む',           desc: '二次選考 3rd ステージで千切・國神と組んだ',   gems: 150 },
     { id: 'choices_10',   name: 'エゴの選択',           desc: 'ストーリーの分岐を 10 回選んだ',              gems: 200 },
-    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 }
+    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 },
+    /* v8 */
+    { id: 'mission_10',   name: '日課',                 desc: 'デイリーミッションの報酬を 10 回受け取った',  gems: 200 },
+    { id: 'hell_grad',    name: '地獄の卒業生',         desc: '地獄モードで編を卒業した',                    gems: 300 },
+    { id: 'hell_clear',   name: '地獄の世界一',         desc: '地獄モードで世界一を達成した',                gems: 1500 }
   ];
 
 
@@ -1497,6 +1594,18 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     kusso: { hair: 'short', color: '#111', skin: '#6b4226', eye: '#111' }, bello: { hair: 'spiky', color: '#111', skin: '#6b4226', eye: '#111' }
   };
 
+  /* ------------------------------------------------ v8：デイリーミッション（日付が変わるとリセット。報酬は受け取り式） */
+  var MISSIONS = [
+    { id: 'm_train',  name: '練習を 10 回行う',       key: 'weeksTrained', goal: 10, reward: { gems: 60 } },
+    { id: 'm_goal',   name: '公式戦で 5 ゴール',       key: 'goals',        goal: 5,  reward: { gems: 80 } },
+    { id: 'm_flow',   name: 'FLOW に 1 回突入',        key: 'flows',        goal: 1,  reward: { gems: 100 } },
+    { id: 'm_choice', name: 'ストーリー分岐を 3 回選ぶ', key: 'choices',      goal: 3,  reward: { pieces: 10 } },
+    { id: 'm_grad',   name: '編を 1 回卒業する',        key: 'grads',        goal: 1,  reward: { gems: 200 } },
+    { id: 'm_scout',  name: 'スカウトを 1 回引く',      key: 'scouts',       goal: 1,  reward: { pieces: 5 } }
+  ];
+  /* 難易度：地獄モードは全試合の敵レート ×1.15、卒業・世界一の報酬 ×1.5 */
+  var DIFFICULTIES = { normal: { name: '通常', rateMult: 1.0, rewardMult: 1.0, desc: '標準の敵レート' }, hell: { name: '地獄', rateMult: 1.15, rewardMult: 1.5, desc: '全試合の敵レート ×1.15。卒業・世界一の Ego Gems とピース ×1.5' } };
+
   /* ------------------------------------------------------- 調整パラメータ */
   var PARAMS = {
     BASE_MAIN: 10,     COMP_MAIN: 0.006,
@@ -1529,13 +1638,14 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     FINAL_SQUAD: 5, FINAL_USES: 4, FINAL_MIN_HEALTHY: 3, /* 決戦：5 人編成・同一選手の起用上限（全 18 局面）・故障で 3 人未満なら敗退 */
     PARTNER_GROWTH_BASE: 0.015, PARTNER_GROWTH_TIER: 0.005, /* 相棒：主属性の成長 +1.5% + 0.5%×段階 */
     MASTERY_GROWTH: 0.01, MASTERY_BASE: 0.01, MASTERY_XP_PART: 1, MASTERY_XP_FINAL: 3,
-    FINAL_LOSS_KEEPS_GRADS: true            /* 決戦敗退時に卒業生を失わない（原作でも W杯敗退は除籍ではない） */
+    FINAL_LOSS_KEEPS_GRADS: true,           /* 決戦敗退時に卒業生を失わない（原作でも W杯敗退は除籍ではない） */
+    JUDGE_MS: 900                           /* 判定演出の長さ（UI） */
   };
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
     CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
-    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS,
+    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS, MISSIONS: MISSIONS, DIFFICULTIES: DIFFICULTIES,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',
@@ -2289,7 +2399,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
         achievements: {}, pendingAch: [],
         records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0, choices: 0 },
         history: [], sfx: true, portraits: {}, pieces: 0,
-        grads: [], upgrades: {}, mastery: {}, squadPick: [],
+        grads: [], upgrades: {}, mastery: {}, squadPick: [], difficulty: 'normal', daily: { date: '', progress: {}, claimed: {}, claimedTotal: 0 },
         createdAt: Date.now()
       },
       run: null, wc: null
@@ -2344,6 +2454,35 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   BL.unlockAchievement = unlock;
   BL.drainPendingAch = function (state) { var l = state.meta.pendingAch.slice(); state.meta.pendingAch = []; if (l.length) BL.save(state); return l; };
   BL.advisorUnlocked = function (state, adv) { return !adv.unlock || !!state.meta.achievements[adv.unlock]; };
+
+  /* ------------------------------------------------------------ デイリーミッション・難易度 */
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  BL.todayKey = todayKey;
+  function daily(state) {
+    var m = state.meta; if (!m.daily) m.daily = { date: '', progress: {}, claimed: {}, claimedTotal: 0 };
+    var t = todayKey(); if (m.daily.date !== t) { m.daily.date = t; m.daily.progress = {}; m.daily.claimed = {}; }
+    return m.daily;
+  }
+  BL.daily = function (state) { var d = daily(state); return d; };
+  function bumpDaily(state, key, n) { var d = daily(state); d.progress[key] = (d.progress[key] || 0) + (n || 1); }
+  BL.missionStatus = function (state) {
+    var d = daily(state);
+    return D.MISSIONS.map(function (ms) { var cur = Math.min(ms.goal, d.progress[ms.key] || 0); return { id: ms.id, name: ms.name, goal: ms.goal, cur: cur, done: cur >= ms.goal, claimed: !!d.claimed[ms.id], reward: ms.reward }; });
+  };
+  BL.claimMission = function (state, id) {
+    var d = daily(state); var ms = null; for (var i = 0; i < D.MISSIONS.length; i++) if (D.MISSIONS[i].id === id) ms = D.MISSIONS[i];
+    if (!ms) return { ok: false, reason: 'id' };
+    if (d.claimed[id]) return { ok: false, reason: 'claimed' };
+    if ((d.progress[ms.key] || 0) < ms.goal) return { ok: false, reason: 'incomplete' };
+    d.claimed[id] = true; d.claimedTotal = (d.claimedTotal || 0) + 1;
+    if (ms.reward.gems) state.meta.gems += ms.reward.gems;
+    if (ms.reward.pieces) state.meta.pieces = (state.meta.pieces || 0) + ms.reward.pieces;
+    if (d.claimedTotal >= 10) unlock(state, 'mission_10');
+    BL.save(state); return { ok: true, reward: ms.reward };
+  };
+  BL.setDifficulty = function (state, id) { if (!D.DIFFICULTIES[id]) return { ok: false }; state.meta.difficulty = id; BL.save(state); return { ok: true }; };
+  function diffOf(run) { return D.DIFFICULTIES[run.difficulty] || D.DIFFICULTIES.normal; }
+  BL.diffOf = diffOf;
 
   /* ------------------------------------------------------------ 永続強化・熟練度・星上げ */
   /** 永続強化の合成効果。upg = { id: Lv } */
@@ -2549,6 +2688,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       m.win = opp.name + ' を破った。スカウトの入札額が跳ね上がる。'; m.lose = opp.name + ' に敗れた。それでも入札は続く——ゴールがすべてだ。';
       m.oppClub = opp.id; if (text.rival) m.rival = text.rival;
     }
+    /* 難易度 */
+    var dm = diffOf(run).rateMult; if (dm !== 1) { var dk = ['A', 'B', 'C', 'D']; for (var di = 0; di < dk.length; di++) if (m.rate[dk[di]] != null) m.rate[dk[di]] = Math.round(m.rate[dk[di]] * dm); }
     /* ストーリー分岐による敵レート補正・指名条件補正 */
     var sr = run.segRate && run.segRate[seg.id];
     if (sr) { var keys = ['A', 'B', 'C', 'D']; for (var ki = 0; ki < keys.length; ki++) { var kk = keys[ki]; if (m.rate[kk] == null) continue; var mult = (typeof sr === 'number') ? sr : (sr.all || 1) * (sr[kk] || 1); m.rate[kk] = Math.round(m.rate[kk] * mult); } }
@@ -2659,7 +2800,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     run.protein = false;
     rollHot(run);
     res.hpAfter = run.hp; res.condAfter = run.cond;
-    run.weeksLeft -= 1; run.totals.weeksTrained += 1;
+    run.weeksLeft -= 1; run.totals.weeksTrained += 1; bumpDaily(state, 'weeksTrained', 1);
     pushLog(run, arcOf(run).title + ' 残' + run.weeksLeft + '週：' + D.STAT_META[stat].en + ' 練習 (+' + (res.gains[stat] || 0) + (isFinal(run) ? ' 代表' : '') + ')' + (res.protein ? ' [プロテイン×2]' : ''));
     checkStatAch(state);
 
@@ -2999,7 +3140,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * dominanceMult(run, m) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
     var cashGain = Math.round((goals * arc.cashPerGoal + (m.won ? arc.cashWin : 0)) * mods.cashMult * agg.cashMult);
     run.bid += bidGain; run.cash += cashGain;
-    run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1;
+    run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1; bumpDaily(state, 'goals', goals); if (m.flows) bumpDaily(state, 'flows', m.flows);
     if (m.won) run.totals.matchWins += 1;
     if (m.cold) unlock(state, 'cold');
     if (run.bid >= 1e8) unlock(state, 'bid_1oku');
@@ -3111,7 +3252,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       if (win) unlock(state, 'gamble_win');
     } else applyChoiceFx(state, run, opt.fx, seg, res.effects);
     run.choices[seg.id] = idx; run.choiceLog.push({ arc: run.arc, seg: seg.id, title: ch.title, label: opt.label });
-    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10');
+    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10'); bumpDaily(state, 'choices', 1);
     pushLog(run, '【分岐】' + ch.title + ' → ' + opt.label + (res.effects.length ? '（' + res.effects.join(' / ') + '）' : ''));
     run.lastChoice = res;
     startSegment(state, seg);
@@ -3138,7 +3279,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     for (var k in run.totals) if (run.totals.hasOwnProperty(k)) g.totals[k] = (g.totals[k] || 0) + run.totals[k];
     g.history = (g.history || []).concat(run.history); if (g.history.length > 40) g.history = g.history.slice(-40);
     ev.graduated = true; ev.gradId = g.id; ev.part = g.part;
-    ev.pieces = P.PIECES_GRAD * arc.n; state.meta.pieces = (state.meta.pieces || 0) + ev.pieces;
+    ev.pieces = Math.round(P.PIECES_GRAD * arc.n * diffOf(run).rewardMult); state.meta.pieces = (state.meta.pieces || 0) + ev.pieces; bumpDaily(state, 'grads', 1);
+    if (run.difficulty === 'hell') unlock(state, 'hell_grad');
     addMastery(state, run.charId, P.MASTERY_XP_PART); ev.masteryLv = masteryLv(state, run.charId);
     unlock(state, 'grad_first');
     if (g.part >= LAST_ARC) unlock(state, 'grad_4');
@@ -3167,9 +3309,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     if (survived) {
       ev.gems = P.GEMS_SURVIVE;
       if (isLast) {
-        ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear');
+        ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear'); if (run.difficulty === 'hell') unlock(state, 'hell_clear');
         if (isFinal(run)) { unlock(state, 'squad_clear'); for (var p = 0; p < run.players.length; p++) { addMastery(state, run.players[p].charId, P.MASTERY_XP_FINAL); removeGrad(state, run.players[p].gradId); } }
       } else graduateRun(state, ev);
+      ev.gems = Math.round(ev.gems * diffOf(run).rewardMult);
       state.meta.gems += ev.gems;
       if (run.arc > state.meta.records.bestArc) state.meta.records.bestArc = run.arc;
       var achMap = { first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
@@ -3295,7 +3438,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
       totals: { goals: 0, climaxWins: 0, flows: 0, events: 0, purchases: 0, weeksTrained: 0, weeksRested: 0, matches: 0, matchWins: 0, pairEvents: 0 },
       upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs,
-      choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
+      difficulty: state.meta.difficulty || 'normal', choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
     };
   }
   /** opts: { cardId } → 第一編を新規開始 ／ { gradId } → 卒業生で次の編を開始。partnerId は任意（相棒）。旧 API startRun(state, cardId, advisorId) も受け付ける */
@@ -3391,7 +3534,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       if (state.meta.roster[card.id].dupes >= 10) unlock(state, 'lb_10');
       results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type, pieces: piecesGain });
     }
-    state.meta.records.gachaPulls += n;
+    state.meta.records.gachaPulls += n; bumpDaily(state, 'scouts', 1);
     if (state.meta.records.gachaPulls >= 50) unlock(state, 'gacha_50');
     if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
     BL.save(state);
@@ -3640,8 +3783,10 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     out.push('<ellipse cx="43.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/><ellipse cx="56.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/>');
     out.push('<circle cx="44" cy="45.3" r="1.9" fill="' + look.eye + '"/><circle cx="57" cy="45.3" r="1.9" fill="' + look.eye + '"/>');
     out.push('<circle cx="44.6" cy="44.6" r=".6" fill="#fff"/><circle cx="57.6" cy="44.6" r=".6" fill="#fff"/>');
-    out.push('<path d="M40 40 Q44 38 47 40 M53 40 Q56 38 60 40" stroke="' + shade(look.color, -30) + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>');
-    out.push('<path d="M47 53 Q50 55 53 53" stroke="' + shade(look.skin, -60) + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>');
+    var brow = { A: 'M39 39 L47 41 M61 39 L53 41', B: 'M40 40 Q44 38 47 40 M53 40 Q56 38 60 40', C: 'M39 41 L47 39 M61 41 L53 39', D: 'M40 39 Q44 37 47 39 M53 39 Q56 37 60 39' }[look.fav] || 'M40 40 Q44 38 47 40 M53 40 Q56 38 60 40';
+    var mouth = { A: 'M46 53 Q50 56 54 53', B: 'M47 53 Q50 55 53 53', C: 'M46 54 L54 54', D: 'M47 53 Q50 54 53 53' }[look.fav] || 'M47 53 Q50 55 53 53';
+    out.push('<path d="' + brow + '" stroke="' + shade(look.color, -30) + '" stroke-width="1.5" fill="none" stroke-linecap="round"/>');
+    out.push('<path d="' + mouth + '" stroke="' + shade(look.skin, -60) + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>');
     /* 髪（前） */
     if (hs.front) out.push('<path d="' + hs.front + '" fill="' + look.color + '"/>');
     if (look.accent) out.push('<path d="M40 24 Q46 20 52 24 L50 32 Q46 30 42 32 Z" fill="' + look.accent + '" fill-opacity=".95"/>');
@@ -3688,8 +3833,11 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       out.push('<text x="60" y="98" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-weight="900" font-size="92" fill="' + typeColor + '" fill-opacity=".14">' + esc(initial) + '</text>');
       out.push('<path d="M-5 30 L45 30 M-5 38 L30 38 M-5 46 L20 46" stroke="' + typeColor + '" stroke-opacity=".35" stroke-width="2"/>');
       out.push('<path d="M-10 128 L130 128 M10 150 L20 128 M110 150 L100 128" stroke="#ffffff" stroke-opacity=".12" stroke-width="1.5" fill="none"/>');
+      /* レアリティのオーラ（★6 以上）とタイプ色の光線 */
+      if (r.stars >= 6) { out.push('<circle cx="60" cy="62" r="46" fill="none" stroke="' + r.color + '" stroke-opacity=".35" stroke-width="' + (r.stars >= 8 ? 6 : 3) + '" class="aura"/>'); out.push('<circle cx="60" cy="62" r="52" fill="none" stroke="' + r.color + '" stroke-opacity=".15" stroke-width="1.5" stroke-dasharray="3 5" class="aura2"/>'); }
+      out.push('<path d="M60 62 L-20 -10 M60 62 L140 -10 M60 62 L-30 60 M60 62 L150 60" stroke="' + typeColor + '" stroke-opacity=".08" stroke-width="10"/>');
       /* バストアップ */
-      var look = lookOf(card.char); var kit = kitOf(card, typeColor);
+      var look = lookOf(card.char); var kit = kitOf(card, typeColor); look.fav = c.fav;
       out.push('<g transform="translate(-6 2) scale(1.32)">' + bust(card, look, kit, id, flip) + '</g>');
       /* 胸のポジション */
       out.push('<text x="60" y="106" text-anchor="middle" font-family="Oswald, Noto Sans JP, sans-serif" font-weight="700" font-size="11" fill="' + kit.trim + '" fill-opacity=".9">' + (card.pos && card.pos[0] ? esc(card.pos[0]) : '') + '</text>');
@@ -3754,7 +3902,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   var BL = root.BL; var D = BL.DATA; var P = D.PARAMS; var ARCS = BL.STORY.arcs; var LAST = ARCS.length - 1;
 
   var state = BL.load();
-  var ui = { screen: 'title', lobbyTab: 'roster', rosterFilter: 'all', inLobby: false, modal: null, flash: null, busy: false, pick: null };
+  var ui = { screen: 'title', lobbyTab: 'roster', rosterFilter: 'all', inLobby: false, modal: null, flash: null, busy: false, pick: null, fastFx: false };
+  function motionOk() { try { return !ui.fastFx && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return !ui.fastFx; } }
   BL.SFX.setEnabled(state.meta.sfx !== false);
 
   /* ------------------------------------------------------------ utils */
@@ -3860,7 +4009,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
 
   /* ------------------------------------------------------------ title */
   function renderTitle() {
-    return '<section class="screen title-screen" data-action="title-start">' + disclaimerBar() +
+    return '<section class="screen title-screen" data-action="title-start"><div class="title-bg"><i></i><i></i><i></i></div>' + disclaimerBar() +
       '<div class="title-body"><div class="title-kicker">PROJECT : WORLD CHAMPION — MODIFIED / 原作準拠ローグライト</div>' +
       '<h1 class="title-logo"><span>BLUE</span> <span class="accent">LOCK</span><small>PWC : EGOIST ROGUELITE</small></h1>' +
       '<p class="title-tag">一次選考から二次・三次選考、新英雄大戦まで、編ごとに1人を育て上げて卒業させろ。第四編を卒業した5人で U-20 ワールドカップに挑む。敗者は即刻除籍。能力は青天井。</p>' +
@@ -3881,7 +4030,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       '</div></div>' : '';
     return '<section class="screen lobby">' + disclaimerBar() +
       '<header class="lobby-head"><div class="lobby-title"><span class="accent">BLUE LOCK</span> PWC — ロビー</div>' +
-      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
+      '<div class="head-right"><button class="btn ghost sm diff ' + (m.difficulty === 'hell' ? 'hell' : '') + '" data-action="toggle-difficulty" title="' + esc(D.DIFFICULTIES[m.difficulty || 'normal'].desc) + '">' + (m.difficulty === 'hell' ? '🔥 地獄モード' : '難易度：通常') + '</button><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
       hero + '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
   }
 
@@ -3921,8 +4070,17 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var cards = ids.map(BL.cardById).filter(Boolean).filter(function (c) { return ui.rosterFilter === 'all' || effRar(c) === ui.rosterFilter; })
       .sort(function (a, b) { return D.RARITY_ORDER.indexOf(effRar(a)) - D.RARITY_ORDER.indexOf(effRar(b)) || a.char.localeCompare(b.char); });
     var tips = state.meta.records.runs === 0 ? '<div class="notice tips"><b>進行の流れ</b><ul><li><b>第一編</b>：所持カードから 1 人を選び、アドバイザーと相棒（任意）を決めて育成。編末の査定を生き残ると「卒業」し、<b>育成済み</b>タブに保存される。</li><li><b>第二〜四編</b>：前の編を卒業した選手だけが挑める。能力・スキル・年俸を引き継ぎ、編ごとに育成方針を選び直す。除籍されるとその卒業生は抹消される。</li><li><b>第五編・決戦</b>：第四編を卒業した 5 人を決戦メンバーに選び、U-20 W杯へ。局面ごとに起用選手を選ぶ（同一選手の起用は ' + P.FINAL_USES + ' 回まで）。世界一で 5 人全員が殿堂入り。</li><li>練習は HP を約15% 消費。HP50% 未満で効率半減、30% 未満で練習すると 40% で選手生命が終わる。全ての行動は即時保存され、やり直しは不可能。</li><li>Ego Gems はスカウトと<b>永続強化</b>に、エゴ・ピースは交換所と<b>星上げ</b>に使う。</li></ul></div>' : '';
-    return busyNotice() + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル75枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）、ピースで星上げ（最大 +' + P.STARUP_MAX + ' 段階）。ここから開始できるのは<b>第一編</b>のみ。第二編以降は「育成済み」タブから。</div>' +
+    return busyNotice() + renderMissions() + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル75枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）、ピースで星上げ（最大 +' + P.STARUP_MAX + ' 段階）。ここから開始できるのは<b>第一編</b>のみ。第二編以降は「育成済み」タブから。</div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') + '<div class="grid">' + cards.map(function (c) { return cardCardHtml(c, state.meta.roster[c.id], { owned: true }); }).join('') + '</div>';
+  }
+  function renderMissions() {
+    var list = BL.missionStatus(state); var d = BL.daily(state);
+    var rows = list.map(function (ms) {
+      var rw = (ms.reward.gems ? '💎 ' + ms.reward.gems : '') + (ms.reward.pieces ? ' 🧩 ' + ms.reward.pieces : '');
+      return '<div class="mission' + (ms.claimed ? ' claimed' : (ms.done ? ' done' : '')) + '"><div class="ms-body"><b>' + esc(ms.name) + '</b><div class="ms-bar"><i style="width:' + Math.round(100 * ms.cur / ms.goal) + '%"></i></div><small>' + ms.cur + ' / ' + ms.goal + '</small></div>' +
+        (ms.claimed ? '<span class="tag ok">受取済</span>' : '<button class="btn ' + (ms.done ? 'gold' : 'ghost') + ' sm" data-action="claim-mission" data-arg="' + ms.id + '"' + (ms.done ? '' : ' disabled') + '>' + rw.trim() + '</button>') + '</div>';
+    }).join('');
+    return '<div class="panel missions"><h4>デイリーミッション <small>' + esc(d.date) + ' ／ 日付が変わるとリセット ／ 通算受取 ' + (d.claimedTotal || 0) + '</small></h4><div class="ms-grid">' + rows + '</div></div>';
   }
   function gradCardHtml(g, opts) {
     var card = BL.cardById(g.cardId); var c = D.CHARACTERS[g.charId];
@@ -4046,7 +4204,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
       return '<button class="btn choice adv' + (ok ? '' : ' locked') + '" data-action="choose-advisor" data-arg="' + a.id + '"' + (ok ? '' : ' disabled') + '><span>' + esc(a.name) + ' <small>【' + esc(a.card) + '】</small></span><small>' + (ok ? esc(a.desc) : '🔒 解放条件：実績「' + esc(ach ? ach.name : '') + '」') + '</small></button>';
     }).join('');
     return '<div class="modal-head"><h2>アドバイザーを選択</h2><button class="btn ghost sm" data-action="close-modal">戻る</button></div>' +
-      '<p class="muted">' + esc(title) + ' の' + (pk.kind === 'grad' ? esc(ARCS[pk.arc].part) + '（' + esc(ARCS[pk.arc].title) + '）' : pk.kind === 'final' ? '決戦' : '第一編') + 'に同行するアドバイザーを 1 名選ぶ。' + (pk.kind === 'final' ? '選択と同時に RUN が開始される。' : '次に相棒を選ぶ。') + '</p><div class="choices">' + list + '</div>';
+      '<p class="muted">' + esc(title) + ' の' + (pk.kind === 'grad' ? esc(ARCS[pk.arc].part) + '（' + esc(ARCS[pk.arc].title) + '）' : pk.kind === 'final' ? '決戦' : '第一編') + 'に同行するアドバイザーを 1 名選ぶ。' + (pk.kind === 'final' ? '選択と同時に RUN が開始される。' : '次に相棒を選ぶ。') + ' 難易度：<b>' + esc(D.DIFFICULTIES[state.meta.difficulty || 'normal'].name) + '</b>（ロビー右上で変更。RUN 開始時に確定）</p><div class="choices">' + list + '</div>';
   }
   function renderPartnerPick() {
     var pk = ui.pick; if (!pk) return ''; var card = BL.cardById(pk.cardId);
@@ -4264,7 +4422,7 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
   }
   function trainHeader(run, arc, seg, mdef) {
     return '<header class="chapter-head' + (run.weeksLeft <= 1 ? ' urgent' : '') + '">' +
-      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc(policyName(run.policy)) : '') + '</div>' +
+      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc(policyName(run.policy)) : '') + (run.difficulty === 'hell' ? ' ／ <span class="hell-tag">🔥 地獄</span>' : '') + '</div>' +
       '<div class="head-btns"><button class="btn ghost sm" data-action="open-story">ストーリー</button><button class="btn ghost sm" data-action="to-lobby">ロビー</button></div></header>';
   }
   function cmdRow(run) {
@@ -4422,15 +4580,25 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var endInfo = '';
     if (m.ended) { if (m.cold) endInfo = '<div class="cold">コールド負け — 勝利条件の達成が数学的に不可能。試合は打ち切られた。</div>'; else if (m.draw) endInfo = '<div class="cold">同点 — 延長戦なし。即時敗北。</div>'; else endInfo = '<div class="end ' + (m.won ? 'won' : 'lost') + '">試合終了 ' + m.me + ' - ' + m.en + ' ' + (m.won ? '勝利' : '敗北') + '</div>'; }
     var cutCard = r.cardId ? BL.cardById(r.cardId) : ctx.card;
-    var cut = (r.success && cutCard) ? '<div class="cutin"><div class="cutin-lines"></div><div class="cutin-art">' + art(cutCard, 150) + '</div></div>' : '';
+    var cut = (r.success && cutCard) ? '<div class="cutin"><div class="cutin-lines"></div><div class="burst"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="cutin-art">' + art(cutCard, 150) + '</div></div>' : '';
     var who = r.playerName ? '<div class="res-who">' + esc(r.playerName) + '</div>' : '';
     var skill = r.skill ? '<div class="awaken" style="--c:' + D.STAT_META[r.skill.family].color + '"><i>スキル覚醒</i><b>' + esc(r.skill.name) + ' Lv.' + r.skill.lv + '</b><small>' + esc(r.skill.desc) + '</small></div>' : '';
     var sig = r.sig ? '<div class="awaken sigaw" style="--c:' + D.STAT_META[r.sig.family].color + '"><i>固有エゴ覚醒</i><b>' + esc(r.sig.name) + ' Lv.' + r.sig.lv + '</b><small>' + esc(r.sig.desc) + '</small></div>' : '';
     var nextAction = ctx.kind === 'wc' ? 'wc-next' : 'climax-next';
     var nextLabel = m.ended ? (ctx.kind === 'wc' ? '結果へ' : '試合結果へ') : '次の局面へ';
     return '<div class="result-wrap ' + (r.success ? 'success' : 'fail') + '"><div class="res-kicker">Climax ' + (r.idx + 1) + ' — ' + r.key + ' ' + esc(r.name) + ' (' + r.p + '%)' + (r.flow ? ' [FLOW]' : '') + '</div>' +
-      cut + who + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
+      cut + who + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div>' + (m.rule !== 'single' ? pitchSvg(r.success, r.key) : '') + '<p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="' + nextAction + '">' + nextLabel + '</button></div></div>';
+  }
+  /** 局面の結果を示すミニピッチ（ボール軌道のアニメーション） */
+  function pitchSvg(success, key) {
+    var col = (D.OPTIONS[key] || { color: '#fff' }).color;
+    return '<svg class="pitch ' + (success ? 'goal' : 'miss') + '" viewBox="0 0 320 150" width="320" height="150" aria-hidden="true">' +
+      '<rect x="0" y="0" width="320" height="150" rx="10" fill="#0a3d22"/><path d="M0 40 H320 M0 75 H320 M0 110 H320" stroke="#0e4f2c" stroke-width="18"/>' +
+      '<rect x="10" y="10" width="300" height="130" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><path d="M160 10 V140" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><circle cx="160" cy="75" r="22" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/>' +
+      '<rect x="262" y="40" width="48" height="70" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><rect x="300" y="55" width="12" height="40" fill="#ffffff" fill-opacity=".25" stroke="#fff" stroke-width="2" class="net"/>' +
+      '<circle cx="70" cy="75" r="9" fill="' + col + '" class="me"/><circle cx="215" cy="' + (success ? 100 : 75) + '" r="9" fill="#ff2a4a" class="df"/><circle cx="292" cy="75" r="9" fill="#ffd166" class="gk"/>' +
+      '<circle cx="82" cy="75" r="5" fill="#ffffff" class="ball"/></svg>';
   }
   function renderMatchResult() {
     var run = state.run; var mr = run.matchResult; var arc = BL.arcOf(run);
@@ -4507,6 +4675,28 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     var fx = $('#fx'); fx.innerHTML = '<div class="blackout"><div class="blackout-text">' + esc(text) + '</div></div>'; fx.hidden = false; ui.busy = true; sfx('blackout');
     setTimeout(function () { fx.hidden = true; fx.innerHTML = ''; ui.busy = false; if (cb) cb(); }, ms);
   }
+  /** 判定演出：メーターが成功率まで伸びて結果が確定する */
+  function judge(res, cb) {
+    if (!motionOk()) { cb(); return; }
+    var fx = $('#fx'); var p = Math.max(0, Math.min(100, res.p || 0));
+    fx.innerHTML = '<div class="judge"><div class="judge-box"><div class="judge-kicker">' + (res.playerName ? esc(res.playerName) + ' — ' : '') + 'Climax ' + (res.idx + 1) + '　' + esc(res.name) + '</div><div class="judge-meter"><i style="--p:' + p + '%"></i><em style="left:' + p + '%"></em></div><div class="judge-num" data-p="' + p + '">0%</div></div></div>';
+    fx.hidden = false; ui.busy = true;
+    var el = fx.querySelector('.judge-num'); var t0 = null; var dur = P.JUDGE_MS || 900;
+    function step(ts) { if (t0 === null) t0 = ts; var t = Math.min(1, (ts - t0) / (dur * 0.7)); var e = 1 - Math.pow(1 - t, 2); if (el) el.textContent = Math.round(p * e) + '%'; if (t < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+    setTimeout(function () {
+      var box = fx.querySelector('.judge-box'); if (box) box.classList.add(res.success ? 'hit' : 'fail');
+      if (!res.success) { document.body.classList.add('shake'); setTimeout(function () { document.body.classList.remove('shake'); }, 450); }
+      setTimeout(function () { fx.hidden = true; fx.innerHTML = ''; ui.busy = false; cb(); }, 320);
+    }, dur);
+  }
+  function confetti() {
+    if (!motionOk()) return;
+    var fx = $('#fx'); var html = '<div class="confetti">'; var colors = ['#ffd166', '#4dd2ff', '#ff4d4d', '#7cff6b', '#c58bff', '#ffffff'];
+    for (var i = 0; i < 46; i++) html += '<i style="left:' + Math.round(Math.random() * 100) + '%;background:' + colors[i % colors.length] + ';animation-delay:' + Math.round(Math.random() * 600) + 'ms;animation-duration:' + (2200 + Math.round(Math.random() * 1400)) + 'ms;transform:rotate(' + Math.round(Math.random() * 360) + 'deg)"></i>';
+    fx.innerHTML = html + '</div>'; fx.hidden = false;
+    setTimeout(function () { if (fx.querySelector('.confetti')) { fx.hidden = true; fx.innerHTML = ''; } }, 3800);
+  }
   function countUp() {
     var el = $('.bid-num'); if (!el) return;
     var to = parseFloat(el.getAttribute('data-count')); var from = parseFloat(el.getAttribute('data-from')); var start = null; var dur = 1100;
@@ -4545,6 +4735,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     'to-lobby': function () { ui.inLobby = true; ui.lobbyTab = 'roster'; render(); },
     'resume-run': function () { ui.screen = 'game'; ui.inLobby = false; render(); },
     'toggle-sfx': function () { var v = BL.toggleSfx(state); BL.SFX.setEnabled(v); render(); },
+    'toggle-difficulty': function () { var next = state.meta.difficulty === 'hell' ? 'normal' : 'hell'; BL.setDifficulty(state, next); sfx(next === 'hell' ? 'rare' : 'click'); toast(next === 'hell' ? '地獄モード：全試合の敵レート ×1.15、卒業・世界一の報酬 ×1.5（次の RUN から）' : '通常モードに戻した', next === 'hell' ? 'warn' : 'ok'); render(); },
+    'claim-mission': function (arg) { var res = BL.claimMission(state, arg); if (!res.ok) { toast({ claimed: '受取済', incomplete: '未達成' }[res.reason] || '受け取れない', 'warn'); return; } sfx('ach'); toast('ミッション報酬：' + (res.reward.gems ? '💎 ' + res.reward.gems : '') + (res.reward.pieces ? ' 🧩 ' + res.reward.pieces : ''), 'ok'); render(); },
     'gacha': function (arg) {
       var n = parseInt(arg, 10) === 10 ? 10 : 1; var res = BL.gacha(state, n);
       if (!res.ok) { toast('Ego Gems が足りない', 'warn'); return; }
@@ -4583,7 +4775,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     'climax': function (arg, el) {
       if (ui.busy) return; var pidx = el ? el.getAttribute('data-player') : null;
       var res = BL.chooseClimax(state, arg, pidx === null ? undefined : pidx); if (!res) return;
-      sfx(res.success ? 'goal' : 'lost'); if (res.skill || res.sig) setTimeout(function () { sfx('awaken'); }, 500); render();
+      sfx('whistle');
+      judge(res, function () { sfx(res.success ? 'goal' : 'lost'); if (res.skill || res.sig) setTimeout(function () { sfx('awaken'); }, 500); render(); });
     },
     'climax-next': function () {
       BL.dismissResult(state);
@@ -4601,9 +4794,9 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     },
     'eval-next': function () {
       var res = BL.advance(state); if (!res.ok) return; var run = state.run;
-      if (run.phase === 'graduated') { sfx('clear'); render(); }
+      if (run.phase === 'graduated') { sfx('clear'); render(); confetti(); }
       else if (run.phase === 'gameover') blackout('除籍', 1200, function () { sfx('elim'); render(); });
-      else if (run.phase === 'clear') { sfx('clear'); render(); }
+      else if (run.phase === 'clear') { sfx('clear'); render(); confetti(); }
       else render();
     },
     'close-run': function () { var wasGrad = state.run && state.run.phase === 'graduated'; var wasClear = state.run && state.run.phase === 'clear'; BL.closeRun(state); ui.lobbyTab = wasGrad ? 'grads' : (wasClear ? 'hof' : 'roster'); ui.inLobby = false; render(); },
@@ -4623,8 +4816,8 @@ body[data-part="wc"] { background: radial-gradient(1200px 600px at 50% -10%, #3a
     'wc-start': function (arg) { var res = BL.startWorldCup(state, arg); if (!res.ok) { toast({ active: 'W杯出撃中の選手がいる', used: 'この選手は既に出撃済み' }[res.reason] || '出撃できない', 'warn'); return; } ui.inLobby = false; render(); },
     'wc-resume': function () { ui.screen = 'game'; ui.inLobby = false; render(); },
     'wc-begin': function () { BL.wcBeginMatch(state); render(); blackout('FIFA WORLD CUP — ' + D.WORLD_CUP.stages[state.wc.stage].team, 1400, function () { sfx('whistle'); render(); }); },
-    'wc-climax': function (arg) { if (ui.busy) return; var r = BL.wcChooseClimax(state, arg); if (!r) return; sfx(r.success ? 'goal' : 'lost'); render(); },
-    'wc-next': function () { BL.wcDismissResult(state); if (state.wc.phase === 'end' && state.wc.champion) sfx('clear'); render(); },
+    'wc-climax': function (arg) { if (ui.busy) return; var r = BL.wcChooseClimax(state, arg); if (!r) return; judge(r, function () { sfx(r.success ? 'goal' : 'lost'); render(); }); },
+    'wc-next': function () { BL.wcDismissResult(state); render(); if (state.wc.phase === 'end' && state.wc.champion) { sfx('clear'); confetti(); } },
     'wc-stage-next': function () { BL.wcNextStage(state); render(); },
     'wc-close': function () { BL.wcClose(state); ui.lobbyTab = 'hof'; ui.inLobby = false; render(); }
   };

@@ -6,7 +6,8 @@
   var BL = root.BL; var D = BL.DATA; var P = D.PARAMS; var ARCS = BL.STORY.arcs; var LAST = ARCS.length - 1;
 
   var state = BL.load();
-  var ui = { screen: 'title', lobbyTab: 'roster', rosterFilter: 'all', inLobby: false, modal: null, flash: null, busy: false, pick: null };
+  var ui = { screen: 'title', lobbyTab: 'roster', rosterFilter: 'all', inLobby: false, modal: null, flash: null, busy: false, pick: null, fastFx: false };
+  function motionOk() { try { return !ui.fastFx && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return !ui.fastFx; } }
   BL.SFX.setEnabled(state.meta.sfx !== false);
 
   /* ------------------------------------------------------------ utils */
@@ -112,7 +113,7 @@
 
   /* ------------------------------------------------------------ title */
   function renderTitle() {
-    return '<section class="screen title-screen" data-action="title-start">' + disclaimerBar() +
+    return '<section class="screen title-screen" data-action="title-start"><div class="title-bg"><i></i><i></i><i></i></div>' + disclaimerBar() +
       '<div class="title-body"><div class="title-kicker">PROJECT : WORLD CHAMPION — MODIFIED / 原作準拠ローグライト</div>' +
       '<h1 class="title-logo"><span>BLUE</span> <span class="accent">LOCK</span><small>PWC : EGOIST ROGUELITE</small></h1>' +
       '<p class="title-tag">一次選考から二次・三次選考、新英雄大戦まで、編ごとに1人を育て上げて卒業させろ。第四編を卒業した5人で U-20 ワールドカップに挑む。敗者は即刻除籍。能力は青天井。</p>' +
@@ -133,7 +134,7 @@
       '</div></div>' : '';
     return '<section class="screen lobby">' + disclaimerBar() +
       '<header class="lobby-head"><div class="lobby-title"><span class="accent">BLUE LOCK</span> PWC — ロビー</div>' +
-      '<div class="head-right"><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
+      '<div class="head-right"><button class="btn ghost sm diff ' + (m.difficulty === 'hell' ? 'hell' : '') + '" data-action="toggle-difficulty" title="' + esc(D.DIFFICULTIES[m.difficulty || 'normal'].desc) + '">' + (m.difficulty === 'hell' ? '🔥 地獄モード' : '難易度：通常') + '</button><button class="btn ghost sm" data-action="toggle-sfx">' + (m.sfx !== false ? '🔊 SE ON' : '🔇 SE OFF') + '</button><div class="gems">🧩 <b>' + num(m.pieces || 0) + '</b> ピース</div><div class="gems">💎 <b>' + num(m.gems) + '</b> Ego Gems</div></div></header>' +
       hero + '<nav class="tabs">' + tabHtml + '</nav><div class="lobby-body">' + body + '</div></section>';
   }
 
@@ -173,8 +174,17 @@
     var cards = ids.map(BL.cardById).filter(Boolean).filter(function (c) { return ui.rosterFilter === 'all' || effRar(c) === ui.rosterFilter; })
       .sort(function (a, b) { return D.RARITY_ORDER.indexOf(effRar(a)) - D.RARITY_ORDER.indexOf(effRar(b)) || a.char.localeCompare(b.char); });
     var tips = state.meta.records.runs === 0 ? '<div class="notice tips"><b>進行の流れ</b><ul><li><b>第一編</b>：所持カードから 1 人を選び、アドバイザーと相棒（任意）を決めて育成。編末の査定を生き残ると「卒業」し、<b>育成済み</b>タブに保存される。</li><li><b>第二〜四編</b>：前の編を卒業した選手だけが挑める。能力・スキル・年俸を引き継ぎ、編ごとに育成方針を選び直す。除籍されるとその卒業生は抹消される。</li><li><b>第五編・決戦</b>：第四編を卒業した 5 人を決戦メンバーに選び、U-20 W杯へ。局面ごとに起用選手を選ぶ（同一選手の起用は ' + P.FINAL_USES + ' 回まで）。世界一で 5 人全員が殿堂入り。</li><li>練習は HP を約15% 消費。HP50% 未満で効率半減、30% 未満で練習すると 40% で選手生命が終わる。全ての行動は即時保存され、やり直しは不可能。</li><li>Ego Gems はスカウトと<b>永続強化</b>に、エゴ・ピースは交換所と<b>星上げ</b>に使う。</li></ul></div>' : '';
-    return busyNotice() + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル75枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）、ピースで星上げ（最大 +' + P.STARUP_MAX + ' 段階）。ここから開始できるのは<b>第一編</b>のみ。第二編以降は「育成済み」タブから。</div>' +
+    return busyNotice() + renderMissions() + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル75枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）、ピースで星上げ（最大 +' + P.STARUP_MAX + ' 段階）。ここから開始できるのは<b>第一編</b>のみ。第二編以降は「育成済み」タブから。</div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') + '<div class="grid">' + cards.map(function (c) { return cardCardHtml(c, state.meta.roster[c.id], { owned: true }); }).join('') + '</div>';
+  }
+  function renderMissions() {
+    var list = BL.missionStatus(state); var d = BL.daily(state);
+    var rows = list.map(function (ms) {
+      var rw = (ms.reward.gems ? '💎 ' + ms.reward.gems : '') + (ms.reward.pieces ? ' 🧩 ' + ms.reward.pieces : '');
+      return '<div class="mission' + (ms.claimed ? ' claimed' : (ms.done ? ' done' : '')) + '"><div class="ms-body"><b>' + esc(ms.name) + '</b><div class="ms-bar"><i style="width:' + Math.round(100 * ms.cur / ms.goal) + '%"></i></div><small>' + ms.cur + ' / ' + ms.goal + '</small></div>' +
+        (ms.claimed ? '<span class="tag ok">受取済</span>' : '<button class="btn ' + (ms.done ? 'gold' : 'ghost') + ' sm" data-action="claim-mission" data-arg="' + ms.id + '"' + (ms.done ? '' : ' disabled') + '>' + rw.trim() + '</button>') + '</div>';
+    }).join('');
+    return '<div class="panel missions"><h4>デイリーミッション <small>' + esc(d.date) + ' ／ 日付が変わるとリセット ／ 通算受取 ' + (d.claimedTotal || 0) + '</small></h4><div class="ms-grid">' + rows + '</div></div>';
   }
   function gradCardHtml(g, opts) {
     var card = BL.cardById(g.cardId); var c = D.CHARACTERS[g.charId];
@@ -298,7 +308,7 @@
       return '<button class="btn choice adv' + (ok ? '' : ' locked') + '" data-action="choose-advisor" data-arg="' + a.id + '"' + (ok ? '' : ' disabled') + '><span>' + esc(a.name) + ' <small>【' + esc(a.card) + '】</small></span><small>' + (ok ? esc(a.desc) : '🔒 解放条件：実績「' + esc(ach ? ach.name : '') + '」') + '</small></button>';
     }).join('');
     return '<div class="modal-head"><h2>アドバイザーを選択</h2><button class="btn ghost sm" data-action="close-modal">戻る</button></div>' +
-      '<p class="muted">' + esc(title) + ' の' + (pk.kind === 'grad' ? esc(ARCS[pk.arc].part) + '（' + esc(ARCS[pk.arc].title) + '）' : pk.kind === 'final' ? '決戦' : '第一編') + 'に同行するアドバイザーを 1 名選ぶ。' + (pk.kind === 'final' ? '選択と同時に RUN が開始される。' : '次に相棒を選ぶ。') + '</p><div class="choices">' + list + '</div>';
+      '<p class="muted">' + esc(title) + ' の' + (pk.kind === 'grad' ? esc(ARCS[pk.arc].part) + '（' + esc(ARCS[pk.arc].title) + '）' : pk.kind === 'final' ? '決戦' : '第一編') + 'に同行するアドバイザーを 1 名選ぶ。' + (pk.kind === 'final' ? '選択と同時に RUN が開始される。' : '次に相棒を選ぶ。') + ' 難易度：<b>' + esc(D.DIFFICULTIES[state.meta.difficulty || 'normal'].name) + '</b>（ロビー右上で変更。RUN 開始時に確定）</p><div class="choices">' + list + '</div>';
   }
   function renderPartnerPick() {
     var pk = ui.pick; if (!pk) return ''; var card = BL.cardById(pk.cardId);
@@ -516,7 +526,7 @@
   }
   function trainHeader(run, arc, seg, mdef) {
     return '<header class="chapter-head' + (run.weeksLeft <= 1 ? ' urgent' : '') + '">' +
-      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc(policyName(run.policy)) : '') + '</div>' +
+      '<div class="ch-title">' + esc(arc.part) + ' ' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + (run.policy ? ' ／ 方針：' + esc(policyName(run.policy)) : '') + (run.difficulty === 'hell' ? ' ／ <span class="hell-tag">🔥 地獄</span>' : '') + '</div>' +
       '<div class="head-btns"><button class="btn ghost sm" data-action="open-story">ストーリー</button><button class="btn ghost sm" data-action="to-lobby">ロビー</button></div></header>';
   }
   function cmdRow(run) {
@@ -674,15 +684,25 @@
     var endInfo = '';
     if (m.ended) { if (m.cold) endInfo = '<div class="cold">コールド負け — 勝利条件の達成が数学的に不可能。試合は打ち切られた。</div>'; else if (m.draw) endInfo = '<div class="cold">同点 — 延長戦なし。即時敗北。</div>'; else endInfo = '<div class="end ' + (m.won ? 'won' : 'lost') + '">試合終了 ' + m.me + ' - ' + m.en + ' ' + (m.won ? '勝利' : '敗北') + '</div>'; }
     var cutCard = r.cardId ? BL.cardById(r.cardId) : ctx.card;
-    var cut = (r.success && cutCard) ? '<div class="cutin"><div class="cutin-lines"></div><div class="cutin-art">' + art(cutCard, 150) + '</div></div>' : '';
+    var cut = (r.success && cutCard) ? '<div class="cutin"><div class="cutin-lines"></div><div class="burst"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="cutin-art">' + art(cutCard, 150) + '</div></div>' : '';
     var who = r.playerName ? '<div class="res-who">' + esc(r.playerName) + '</div>' : '';
     var skill = r.skill ? '<div class="awaken" style="--c:' + D.STAT_META[r.skill.family].color + '"><i>スキル覚醒</i><b>' + esc(r.skill.name) + ' Lv.' + r.skill.lv + '</b><small>' + esc(r.skill.desc) + '</small></div>' : '';
     var sig = r.sig ? '<div class="awaken sigaw" style="--c:' + D.STAT_META[r.sig.family].color + '"><i>固有エゴ覚醒</i><b>' + esc(r.sig.name) + ' Lv.' + r.sig.lv + '</b><small>' + esc(r.sig.desc) + '</small></div>' : '';
     var nextAction = ctx.kind === 'wc' ? 'wc-next' : 'climax-next';
     var nextLabel = m.ended ? (ctx.kind === 'wc' ? '結果へ' : '試合結果へ') : '次の局面へ';
     return '<div class="result-wrap ' + (r.success ? 'success' : 'fail') + '"><div class="res-kicker">Climax ' + (r.idx + 1) + ' — ' + r.key + ' ' + esc(r.name) + ' (' + r.p + '%)' + (r.flow ? ' [FLOW]' : '') + '</div>' +
-      cut + who + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div><p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
+      cut + who + '<div class="res-big">' + (r.success ? (m.rule === 'single' ? 'CLEAR' : 'GOAL') : 'LOST') + '</div>' + (m.rule !== 'single' ? pitchSvg(r.success, r.key) : '') + '<p class="res-text">' + esc(text) + '</p>' + skill + sig + endInfo +
       '<div class="modal-foot center"><button class="btn primary lg" data-action="' + nextAction + '">' + nextLabel + '</button></div></div>';
+  }
+  /** 局面の結果を示すミニピッチ（ボール軌道のアニメーション） */
+  function pitchSvg(success, key) {
+    var col = (D.OPTIONS[key] || { color: '#fff' }).color;
+    return '<svg class="pitch ' + (success ? 'goal' : 'miss') + '" viewBox="0 0 320 150" width="320" height="150" aria-hidden="true">' +
+      '<rect x="0" y="0" width="320" height="150" rx="10" fill="#0a3d22"/><path d="M0 40 H320 M0 75 H320 M0 110 H320" stroke="#0e4f2c" stroke-width="18"/>' +
+      '<rect x="10" y="10" width="300" height="130" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><path d="M160 10 V140" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><circle cx="160" cy="75" r="22" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/>' +
+      '<rect x="262" y="40" width="48" height="70" fill="none" stroke="#e8edf7" stroke-opacity=".5" stroke-width="2"/><rect x="300" y="55" width="12" height="40" fill="#ffffff" fill-opacity=".25" stroke="#fff" stroke-width="2" class="net"/>' +
+      '<circle cx="70" cy="75" r="9" fill="' + col + '" class="me"/><circle cx="215" cy="' + (success ? 100 : 75) + '" r="9" fill="#ff2a4a" class="df"/><circle cx="292" cy="75" r="9" fill="#ffd166" class="gk"/>' +
+      '<circle cx="82" cy="75" r="5" fill="#ffffff" class="ball"/></svg>';
   }
   function renderMatchResult() {
     var run = state.run; var mr = run.matchResult; var arc = BL.arcOf(run);
@@ -759,6 +779,28 @@
     var fx = $('#fx'); fx.innerHTML = '<div class="blackout"><div class="blackout-text">' + esc(text) + '</div></div>'; fx.hidden = false; ui.busy = true; sfx('blackout');
     setTimeout(function () { fx.hidden = true; fx.innerHTML = ''; ui.busy = false; if (cb) cb(); }, ms);
   }
+  /** 判定演出：メーターが成功率まで伸びて結果が確定する */
+  function judge(res, cb) {
+    if (!motionOk()) { cb(); return; }
+    var fx = $('#fx'); var p = Math.max(0, Math.min(100, res.p || 0));
+    fx.innerHTML = '<div class="judge"><div class="judge-box"><div class="judge-kicker">' + (res.playerName ? esc(res.playerName) + ' — ' : '') + 'Climax ' + (res.idx + 1) + '　' + esc(res.name) + '</div><div class="judge-meter"><i style="--p:' + p + '%"></i><em style="left:' + p + '%"></em></div><div class="judge-num" data-p="' + p + '">0%</div></div></div>';
+    fx.hidden = false; ui.busy = true;
+    var el = fx.querySelector('.judge-num'); var t0 = null; var dur = P.JUDGE_MS || 900;
+    function step(ts) { if (t0 === null) t0 = ts; var t = Math.min(1, (ts - t0) / (dur * 0.7)); var e = 1 - Math.pow(1 - t, 2); if (el) el.textContent = Math.round(p * e) + '%'; if (t < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+    setTimeout(function () {
+      var box = fx.querySelector('.judge-box'); if (box) box.classList.add(res.success ? 'hit' : 'fail');
+      if (!res.success) { document.body.classList.add('shake'); setTimeout(function () { document.body.classList.remove('shake'); }, 450); }
+      setTimeout(function () { fx.hidden = true; fx.innerHTML = ''; ui.busy = false; cb(); }, 320);
+    }, dur);
+  }
+  function confetti() {
+    if (!motionOk()) return;
+    var fx = $('#fx'); var html = '<div class="confetti">'; var colors = ['#ffd166', '#4dd2ff', '#ff4d4d', '#7cff6b', '#c58bff', '#ffffff'];
+    for (var i = 0; i < 46; i++) html += '<i style="left:' + Math.round(Math.random() * 100) + '%;background:' + colors[i % colors.length] + ';animation-delay:' + Math.round(Math.random() * 600) + 'ms;animation-duration:' + (2200 + Math.round(Math.random() * 1400)) + 'ms;transform:rotate(' + Math.round(Math.random() * 360) + 'deg)"></i>';
+    fx.innerHTML = html + '</div>'; fx.hidden = false;
+    setTimeout(function () { if (fx.querySelector('.confetti')) { fx.hidden = true; fx.innerHTML = ''; } }, 3800);
+  }
   function countUp() {
     var el = $('.bid-num'); if (!el) return;
     var to = parseFloat(el.getAttribute('data-count')); var from = parseFloat(el.getAttribute('data-from')); var start = null; var dur = 1100;
@@ -797,6 +839,8 @@
     'to-lobby': function () { ui.inLobby = true; ui.lobbyTab = 'roster'; render(); },
     'resume-run': function () { ui.screen = 'game'; ui.inLobby = false; render(); },
     'toggle-sfx': function () { var v = BL.toggleSfx(state); BL.SFX.setEnabled(v); render(); },
+    'toggle-difficulty': function () { var next = state.meta.difficulty === 'hell' ? 'normal' : 'hell'; BL.setDifficulty(state, next); sfx(next === 'hell' ? 'rare' : 'click'); toast(next === 'hell' ? '地獄モード：全試合の敵レート ×1.15、卒業・世界一の報酬 ×1.5（次の RUN から）' : '通常モードに戻した', next === 'hell' ? 'warn' : 'ok'); render(); },
+    'claim-mission': function (arg) { var res = BL.claimMission(state, arg); if (!res.ok) { toast({ claimed: '受取済', incomplete: '未達成' }[res.reason] || '受け取れない', 'warn'); return; } sfx('ach'); toast('ミッション報酬：' + (res.reward.gems ? '💎 ' + res.reward.gems : '') + (res.reward.pieces ? ' 🧩 ' + res.reward.pieces : ''), 'ok'); render(); },
     'gacha': function (arg) {
       var n = parseInt(arg, 10) === 10 ? 10 : 1; var res = BL.gacha(state, n);
       if (!res.ok) { toast('Ego Gems が足りない', 'warn'); return; }
@@ -835,7 +879,8 @@
     'climax': function (arg, el) {
       if (ui.busy) return; var pidx = el ? el.getAttribute('data-player') : null;
       var res = BL.chooseClimax(state, arg, pidx === null ? undefined : pidx); if (!res) return;
-      sfx(res.success ? 'goal' : 'lost'); if (res.skill || res.sig) setTimeout(function () { sfx('awaken'); }, 500); render();
+      sfx('whistle');
+      judge(res, function () { sfx(res.success ? 'goal' : 'lost'); if (res.skill || res.sig) setTimeout(function () { sfx('awaken'); }, 500); render(); });
     },
     'climax-next': function () {
       BL.dismissResult(state);
@@ -853,9 +898,9 @@
     },
     'eval-next': function () {
       var res = BL.advance(state); if (!res.ok) return; var run = state.run;
-      if (run.phase === 'graduated') { sfx('clear'); render(); }
+      if (run.phase === 'graduated') { sfx('clear'); render(); confetti(); }
       else if (run.phase === 'gameover') blackout('除籍', 1200, function () { sfx('elim'); render(); });
-      else if (run.phase === 'clear') { sfx('clear'); render(); }
+      else if (run.phase === 'clear') { sfx('clear'); render(); confetti(); }
       else render();
     },
     'close-run': function () { var wasGrad = state.run && state.run.phase === 'graduated'; var wasClear = state.run && state.run.phase === 'clear'; BL.closeRun(state); ui.lobbyTab = wasGrad ? 'grads' : (wasClear ? 'hof' : 'roster'); ui.inLobby = false; render(); },
@@ -875,8 +920,8 @@
     'wc-start': function (arg) { var res = BL.startWorldCup(state, arg); if (!res.ok) { toast({ active: 'W杯出撃中の選手がいる', used: 'この選手は既に出撃済み' }[res.reason] || '出撃できない', 'warn'); return; } ui.inLobby = false; render(); },
     'wc-resume': function () { ui.screen = 'game'; ui.inLobby = false; render(); },
     'wc-begin': function () { BL.wcBeginMatch(state); render(); blackout('FIFA WORLD CUP — ' + D.WORLD_CUP.stages[state.wc.stage].team, 1400, function () { sfx('whistle'); render(); }); },
-    'wc-climax': function (arg) { if (ui.busy) return; var r = BL.wcChooseClimax(state, arg); if (!r) return; sfx(r.success ? 'goal' : 'lost'); render(); },
-    'wc-next': function () { BL.wcDismissResult(state); if (state.wc.phase === 'end' && state.wc.champion) sfx('clear'); render(); },
+    'wc-climax': function (arg) { if (ui.busy) return; var r = BL.wcChooseClimax(state, arg); if (!r) return; judge(r, function () { sfx(r.success ? 'goal' : 'lost'); render(); }); },
+    'wc-next': function () { BL.wcDismissResult(state); render(); if (state.wc.phase === 'end' && state.wc.champion) { sfx('clear'); confetti(); } },
     'wc-stage-next': function () { BL.wcNextStage(state); render(); },
     'wc-close': function () { BL.wcClose(state); ui.lobbyTab = 'hof'; ui.inLobby = false; render(); }
   };

@@ -10,6 +10,7 @@ BL.setRng(rnd);
 const arg = process.argv[2] || 'isagi';
 const card = BL.cardById(arg) || BL.CARDS.filter(c => c.char === arg).sort((a, b) => D.RARITY[b.rar].base - D.RARITY[a.rar].base)[0];
 const state = BL.newState(); state.meta.roster[card.id] = { dupes: parseInt(process.env.DUPES || '0', 10), tier: parseInt(process.env.TIER || '0', 10) };
+if (process.env.DIFF) state.meta.difficulty = process.env.DIFF;
 const ADV = process.argv[4] || 'ego';
 let r0 = BL.startRun(state, { cardId: card.id, advisorId: ADV, partnerId: process.env.PARTNER || null }); if (!r0.ok) throw new Error('start ' + r0.reason);
 console.log('==', BL.cardName(card), '★' + card.rar, card.type, 'growth', JSON.stringify(state.run.growth));

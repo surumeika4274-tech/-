@@ -69,8 +69,10 @@
     out.push('<ellipse cx="43.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/><ellipse cx="56.5" cy="45" rx="3.2" ry="2.6" fill="#ffffff"/>');
     out.push('<circle cx="44" cy="45.3" r="1.9" fill="' + look.eye + '"/><circle cx="57" cy="45.3" r="1.9" fill="' + look.eye + '"/>');
     out.push('<circle cx="44.6" cy="44.6" r=".6" fill="#fff"/><circle cx="57.6" cy="44.6" r=".6" fill="#fff"/>');
-    out.push('<path d="M40 40 Q44 38 47 40 M53 40 Q56 38 60 40" stroke="' + shade(look.color, -30) + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>');
-    out.push('<path d="M47 53 Q50 55 53 53" stroke="' + shade(look.skin, -60) + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>');
+    var brow = { A: 'M39 39 L47 41 M61 39 L53 41', B: 'M40 40 Q44 38 47 40 M53 40 Q56 38 60 40', C: 'M39 41 L47 39 M61 41 L53 39', D: 'M40 39 Q44 37 47 39 M53 39 Q56 37 60 39' }[look.fav] || 'M40 40 Q44 38 47 40 M53 40 Q56 38 60 40';
+    var mouth = { A: 'M46 53 Q50 56 54 53', B: 'M47 53 Q50 55 53 53', C: 'M46 54 L54 54', D: 'M47 53 Q50 54 53 53' }[look.fav] || 'M47 53 Q50 55 53 53';
+    out.push('<path d="' + brow + '" stroke="' + shade(look.color, -30) + '" stroke-width="1.5" fill="none" stroke-linecap="round"/>');
+    out.push('<path d="' + mouth + '" stroke="' + shade(look.skin, -60) + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>');
     /* 髪（前） */
     if (hs.front) out.push('<path d="' + hs.front + '" fill="' + look.color + '"/>');
     if (look.accent) out.push('<path d="M40 24 Q46 20 52 24 L50 32 Q46 30 42 32 Z" fill="' + look.accent + '" fill-opacity=".95"/>');
@@ -117,8 +119,11 @@
       out.push('<text x="60" y="98" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-weight="900" font-size="92" fill="' + typeColor + '" fill-opacity=".14">' + esc(initial) + '</text>');
       out.push('<path d="M-5 30 L45 30 M-5 38 L30 38 M-5 46 L20 46" stroke="' + typeColor + '" stroke-opacity=".35" stroke-width="2"/>');
       out.push('<path d="M-10 128 L130 128 M10 150 L20 128 M110 150 L100 128" stroke="#ffffff" stroke-opacity=".12" stroke-width="1.5" fill="none"/>');
+      /* レアリティのオーラ（★6 以上）とタイプ色の光線 */
+      if (r.stars >= 6) { out.push('<circle cx="60" cy="62" r="46" fill="none" stroke="' + r.color + '" stroke-opacity=".35" stroke-width="' + (r.stars >= 8 ? 6 : 3) + '" class="aura"/>'); out.push('<circle cx="60" cy="62" r="52" fill="none" stroke="' + r.color + '" stroke-opacity=".15" stroke-width="1.5" stroke-dasharray="3 5" class="aura2"/>'); }
+      out.push('<path d="M60 62 L-20 -10 M60 62 L140 -10 M60 62 L-30 60 M60 62 L150 60" stroke="' + typeColor + '" stroke-opacity=".08" stroke-width="10"/>');
       /* バストアップ */
-      var look = lookOf(card.char); var kit = kitOf(card, typeColor);
+      var look = lookOf(card.char); var kit = kitOf(card, typeColor); look.fav = c.fav;
       out.push('<g transform="translate(-6 2) scale(1.32)">' + bust(card, look, kit, id, flip) + '</g>');
       /* 胸のポジション */
       out.push('<text x="60" y="106" text-anchor="middle" font-family="Oswald, Noto Sans JP, sans-serif" font-weight="700" font-size="11" fill="' + kit.trim + '" fill-opacity=".9">' + (card.pos && card.pos[0] ? esc(card.pos[0]) : '') + '</text>');

@@ -71,7 +71,7 @@
         achievements: {}, pendingAch: [],
         records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0, grads: 0, finals: 0, choices: 0 },
         history: [], sfx: true, portraits: {}, pieces: 0,
-        grads: [], upgrades: {}, mastery: {}, squadPick: [],
+        grads: [], upgrades: {}, mastery: {}, squadPick: [], difficulty: 'normal', daily: { date: '', progress: {}, claimed: {}, claimedTotal: 0 },
         createdAt: Date.now()
       },
       run: null, wc: null
@@ -126,6 +126,35 @@
   BL.unlockAchievement = unlock;
   BL.drainPendingAch = function (state) { var l = state.meta.pendingAch.slice(); state.meta.pendingAch = []; if (l.length) BL.save(state); return l; };
   BL.advisorUnlocked = function (state, adv) { return !adv.unlock || !!state.meta.achievements[adv.unlock]; };
+
+  /* ------------------------------------------------------------ デイリーミッション・難易度 */
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  BL.todayKey = todayKey;
+  function daily(state) {
+    var m = state.meta; if (!m.daily) m.daily = { date: '', progress: {}, claimed: {}, claimedTotal: 0 };
+    var t = todayKey(); if (m.daily.date !== t) { m.daily.date = t; m.daily.progress = {}; m.daily.claimed = {}; }
+    return m.daily;
+  }
+  BL.daily = function (state) { var d = daily(state); return d; };
+  function bumpDaily(state, key, n) { var d = daily(state); d.progress[key] = (d.progress[key] || 0) + (n || 1); }
+  BL.missionStatus = function (state) {
+    var d = daily(state);
+    return D.MISSIONS.map(function (ms) { var cur = Math.min(ms.goal, d.progress[ms.key] || 0); return { id: ms.id, name: ms.name, goal: ms.goal, cur: cur, done: cur >= ms.goal, claimed: !!d.claimed[ms.id], reward: ms.reward }; });
+  };
+  BL.claimMission = function (state, id) {
+    var d = daily(state); var ms = null; for (var i = 0; i < D.MISSIONS.length; i++) if (D.MISSIONS[i].id === id) ms = D.MISSIONS[i];
+    if (!ms) return { ok: false, reason: 'id' };
+    if (d.claimed[id]) return { ok: false, reason: 'claimed' };
+    if ((d.progress[ms.key] || 0) < ms.goal) return { ok: false, reason: 'incomplete' };
+    d.claimed[id] = true; d.claimedTotal = (d.claimedTotal || 0) + 1;
+    if (ms.reward.gems) state.meta.gems += ms.reward.gems;
+    if (ms.reward.pieces) state.meta.pieces = (state.meta.pieces || 0) + ms.reward.pieces;
+    if (d.claimedTotal >= 10) unlock(state, 'mission_10');
+    BL.save(state); return { ok: true, reward: ms.reward };
+  };
+  BL.setDifficulty = function (state, id) { if (!D.DIFFICULTIES[id]) return { ok: false }; state.meta.difficulty = id; BL.save(state); return { ok: true }; };
+  function diffOf(run) { return D.DIFFICULTIES[run.difficulty] || D.DIFFICULTIES.normal; }
+  BL.diffOf = diffOf;
 
   /* ------------------------------------------------------------ 永続強化・熟練度・星上げ */
   /** 永続強化の合成効果。upg = { id: Lv } */
@@ -331,6 +360,8 @@
       m.win = opp.name + ' を破った。スカウトの入札額が跳ね上がる。'; m.lose = opp.name + ' に敗れた。それでも入札は続く——ゴールがすべてだ。';
       m.oppClub = opp.id; if (text.rival) m.rival = text.rival;
     }
+    /* 難易度 */
+    var dm = diffOf(run).rateMult; if (dm !== 1) { var dk = ['A', 'B', 'C', 'D']; for (var di = 0; di < dk.length; di++) if (m.rate[dk[di]] != null) m.rate[dk[di]] = Math.round(m.rate[dk[di]] * dm); }
     /* ストーリー分岐による敵レート補正・指名条件補正 */
     var sr = run.segRate && run.segRate[seg.id];
     if (sr) { var keys = ['A', 'B', 'C', 'D']; for (var ki = 0; ki < keys.length; ki++) { var kk = keys[ki]; if (m.rate[kk] == null) continue; var mult = (typeof sr === 'number') ? sr : (sr.all || 1) * (sr[kk] || 1); m.rate[kk] = Math.round(m.rate[kk] * mult); } }
@@ -441,7 +472,7 @@
     run.protein = false;
     rollHot(run);
     res.hpAfter = run.hp; res.condAfter = run.cond;
-    run.weeksLeft -= 1; run.totals.weeksTrained += 1;
+    run.weeksLeft -= 1; run.totals.weeksTrained += 1; bumpDaily(state, 'weeksTrained', 1);
     pushLog(run, arcOf(run).title + ' 残' + run.weeksLeft + '週：' + D.STAT_META[stat].en + ' 練習 (+' + (res.gains[stat] || 0) + (isFinal(run) ? ' 代表' : '') + ')' + (res.protein ? ' [プロテイン×2]' : ''));
     checkStatAch(state);
 
@@ -781,7 +812,7 @@
     var bidGain = Math.round(goals * arc.bidPerGoal * bidMultiplier(run) * dominanceMult(run, m) * (m.wins === m.n && m.n > 1 ? P.MVP_BID_MULT : 1) * (m.flowSuccess > 0 ? P.FLOW_BID_MULT * mods.flowBidMult : 1));
     var cashGain = Math.round((goals * arc.cashPerGoal + (m.won ? arc.cashWin : 0)) * mods.cashMult * agg.cashMult);
     run.bid += bidGain; run.cash += cashGain;
-    run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1;
+    run.totals.goals += goals; run.totals.climaxWins += m.wins; run.totals.flows += m.flows; run.totals.matches += 1; bumpDaily(state, 'goals', goals); if (m.flows) bumpDaily(state, 'flows', m.flows);
     if (m.won) run.totals.matchWins += 1;
     if (m.cold) unlock(state, 'cold');
     if (run.bid >= 1e8) unlock(state, 'bid_1oku');
@@ -893,7 +924,7 @@
       if (win) unlock(state, 'gamble_win');
     } else applyChoiceFx(state, run, opt.fx, seg, res.effects);
     run.choices[seg.id] = idx; run.choiceLog.push({ arc: run.arc, seg: seg.id, title: ch.title, label: opt.label });
-    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10');
+    state.meta.records.choices = (state.meta.records.choices || 0) + 1; if (state.meta.records.choices >= 10) unlock(state, 'choices_10'); bumpDaily(state, 'choices', 1);
     pushLog(run, '【分岐】' + ch.title + ' → ' + opt.label + (res.effects.length ? '（' + res.effects.join(' / ') + '）' : ''));
     run.lastChoice = res;
     startSegment(state, seg);
@@ -920,7 +951,8 @@
     for (var k in run.totals) if (run.totals.hasOwnProperty(k)) g.totals[k] = (g.totals[k] || 0) + run.totals[k];
     g.history = (g.history || []).concat(run.history); if (g.history.length > 40) g.history = g.history.slice(-40);
     ev.graduated = true; ev.gradId = g.id; ev.part = g.part;
-    ev.pieces = P.PIECES_GRAD * arc.n; state.meta.pieces = (state.meta.pieces || 0) + ev.pieces;
+    ev.pieces = Math.round(P.PIECES_GRAD * arc.n * diffOf(run).rewardMult); state.meta.pieces = (state.meta.pieces || 0) + ev.pieces; bumpDaily(state, 'grads', 1);
+    if (run.difficulty === 'hell') unlock(state, 'hell_grad');
     addMastery(state, run.charId, P.MASTERY_XP_PART); ev.masteryLv = masteryLv(state, run.charId);
     unlock(state, 'grad_first');
     if (g.part >= LAST_ARC) unlock(state, 'grad_4');
@@ -949,9 +981,10 @@
     if (survived) {
       ev.gems = P.GEMS_SURVIVE;
       if (isLast) {
-        ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear');
+        ev.gems += P.GEMS_CLEAR_BONUS; registerHof(state); state.meta.records.clears += 1; unlock(state, 'clear'); if (run.difficulty === 'hell') unlock(state, 'hell_clear');
         if (isFinal(run)) { unlock(state, 'squad_clear'); for (var p = 0; p < run.players.length; p++) { addMastery(state, run.players[p].charId, P.MASTERY_XP_FINAL); removeGrad(state, run.players[p].gradId); } }
       } else graduateRun(state, ev);
+      ev.gems = Math.round(ev.gems * diffOf(run).rewardMult);
       state.meta.gems += ev.gems;
       if (run.arc > state.meta.records.bestArc) state.meta.records.bestArc = run.arc;
       var achMap = { first: 'pass_first', second: 'pass_second', third: 'pass_u20', nel: 'pass_nel' };
@@ -1077,7 +1110,7 @@
       arcState: { matches: 0, wins: 0, losses: 0, goals: 0, finalWon: false }, rank: 300,
       totals: { goals: 0, climaxWins: 0, flows: 0, events: 0, purchases: 0, weeksTrained: 0, weeksRested: 0, matches: 0, matchWins: 0, pairEvents: 0 },
       upg: clone(state.meta.upgrades || {}), startedAt: Date.now(), runNo: state.meta.records.runs,
-      choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
+      difficulty: state.meta.difficulty || 'normal', choices: {}, choiceLog: [], storyFx: { opt: { A: 0, B: 0, C: 0, D: 0 }, all: 0, growth: { SHT: 0, SPD: 0, TEC: 0, INT: 0, PHY: 0 }, flowP: 0, hpCost: 0, bidMult: 1 }, segRate: {}, nominateMult: 1
     };
   }
   /** opts: { cardId } → 第一編を新規開始 ／ { gradId } → 卒業生で次の編を開始。partnerId は任意（相棒）。旧 API startRun(state, cardId, advisorId) も受け付ける */
@@ -1173,7 +1206,7 @@
       if (state.meta.roster[card.id].dupes >= 10) unlock(state, 'lb_10');
       results.push({ id: card.id, name: BL.cardName(card), rar: rar, flow: !!card.flow, isNew: isNew, dupes: state.meta.roster[card.id].dupes, type: card.type, pieces: piecesGain });
     }
-    state.meta.records.gachaPulls += n;
+    state.meta.records.gachaPulls += n; bumpDaily(state, 'scouts', 1);
     if (state.meta.records.gachaPulls >= 50) unlock(state, 'gacha_50');
     if (Object.keys(state.meta.roster).length >= 50) unlock(state, 'collect_50');
     BL.save(state);

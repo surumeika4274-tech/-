@@ -851,7 +851,11 @@
     { id: 'route_barou',  name: '王様と組む',           desc: '二次選考 3rd ステージで馬狼・成早と組んだ',   gems: 150 },
     { id: 'route_chigiri',name: '旧友と組む',           desc: '二次選考 3rd ステージで千切・國神と組んだ',   gems: 150 },
     { id: 'choices_10',   name: 'エゴの選択',           desc: 'ストーリーの分岐を 10 回選んだ',              gems: 200 },
-    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 }
+    { id: 'gamble_win',   name: '賭けに勝つ',           desc: 'ストーリー分岐のギャンブルに成功した',        gems: 100 },
+    /* v8 */
+    { id: 'mission_10',   name: '日課',                 desc: 'デイリーミッションの報酬を 10 回受け取った',  gems: 200 },
+    { id: 'hell_grad',    name: '地獄の卒業生',         desc: '地獄モードで編を卒業した',                    gems: 300 },
+    { id: 'hell_clear',   name: '地獄の世界一',         desc: '地獄モードで世界一を達成した',                gems: 1500 }
   ];
 
 
@@ -924,6 +928,18 @@
     kusso: { hair: 'short', color: '#111', skin: '#6b4226', eye: '#111' }, bello: { hair: 'spiky', color: '#111', skin: '#6b4226', eye: '#111' }
   };
 
+  /* ------------------------------------------------ v8：デイリーミッション（日付が変わるとリセット。報酬は受け取り式） */
+  var MISSIONS = [
+    { id: 'm_train',  name: '練習を 10 回行う',       key: 'weeksTrained', goal: 10, reward: { gems: 60 } },
+    { id: 'm_goal',   name: '公式戦で 5 ゴール',       key: 'goals',        goal: 5,  reward: { gems: 80 } },
+    { id: 'm_flow',   name: 'FLOW に 1 回突入',        key: 'flows',        goal: 1,  reward: { gems: 100 } },
+    { id: 'm_choice', name: 'ストーリー分岐を 3 回選ぶ', key: 'choices',      goal: 3,  reward: { pieces: 10 } },
+    { id: 'm_grad',   name: '編を 1 回卒業する',        key: 'grads',        goal: 1,  reward: { gems: 200 } },
+    { id: 'm_scout',  name: 'スカウトを 1 回引く',      key: 'scouts',       goal: 1,  reward: { pieces: 5 } }
+  ];
+  /* 難易度：地獄モードは全試合の敵レート ×1.15、卒業・世界一の報酬 ×1.5 */
+  var DIFFICULTIES = { normal: { name: '通常', rateMult: 1.0, rewardMult: 1.0, desc: '標準の敵レート' }, hell: { name: '地獄', rateMult: 1.15, rewardMult: 1.5, desc: '全試合の敵レート ×1.15。卒業・世界一の Ego Gems とピース ×1.5' } };
+
   /* ------------------------------------------------------- 調整パラメータ */
   var PARAMS = {
     BASE_MAIN: 10,     COMP_MAIN: 0.006,
@@ -956,13 +972,14 @@
     FINAL_SQUAD: 5, FINAL_USES: 4, FINAL_MIN_HEALTHY: 3, /* 決戦：5 人編成・同一選手の起用上限（全 18 局面）・故障で 3 人未満なら敗退 */
     PARTNER_GROWTH_BASE: 0.015, PARTNER_GROWTH_TIER: 0.005, /* 相棒：主属性の成長 +1.5% + 0.5%×段階 */
     MASTERY_GROWTH: 0.01, MASTERY_BASE: 0.01, MASTERY_XP_PART: 1, MASTERY_XP_FINAL: 3,
-    FINAL_LOSS_KEEPS_GRADS: true            /* 決戦敗退時に卒業生を失わない（原作でも W杯敗退は除籍ではない） */
+    FINAL_LOSS_KEEPS_GRADS: true,           /* 決戦敗退時に卒業生を失わない（原作でも W杯敗退は除籍ではない） */
+    JUDGE_MS: 900                           /* 判定演出の長さ（UI） */
   };
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
     CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
-    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS,
+    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY, LOOKS: LOOKS, MISSIONS: MISSIONS, DIFFICULTIES: DIFFICULTIES,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',

@@ -70,6 +70,7 @@ function playPart(state) {
 /** カード 1 枚を第一編から決戦まで通す（卒業生で次の編へ。決戦は同一卒業生 5 体の複製で出撃） */
 function playRun(cardId, dupes, advisor) {
   const state = BL.newState(); state.meta.roster[cardId] = { dupes: dupes || 0, tier: 0 };
+  if (process.env.DIFF) state.meta.difficulty = process.env.DIFF;
   const adv = advisor || 'ego';
   let r = BL.startRun(state, { cardId, advisorId: adv }); if (!r.ok) throw new Error('start ' + r.reason);
   const out = { arcReached: 0, cleared: false, reason: '' };
