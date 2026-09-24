@@ -202,8 +202,65 @@
                 sig: { name: '騎士の突撃', desc: 'Option C +10% / Option A +3%', fx: { opt: { C: 10, A: 3 } } } },
     ness:     { name: 'アレクシス・ネス', tag: '皇帝の魔術師',        ident: { SHT: 0.85, SPD: 0.95, TEC: 1.35, INT: 1.2, PHY: 0.8 }, fav: 'B',
                 passive: { name: '皇帝の魔術師', desc: 'Option B +5%、Option D +3%。', opt: { B: 5, D: 3 } },
-                sig: { name: '魔術のスルーパス', desc: 'Option B +9% / Option D +5%', fx: { opt: { B: 9, D: 5 } } } }
+                sig: { name: '魔術のスルーパス', desc: 'Option B +9% / Option D +5%', fx: { opt: { B: 9, D: 5 } } } },
+    /* ---- 青い監獄組（原作登場・PWC 未収録） ---- */
+    otoru:    { name: '音留徹平',     tag: '音速のサイド',           ident: { SHT: 0.9, SPD: 1.15, TEC: 1.05, INT: 0.9, PHY: 0.85 }, fav: 'C',
+                passive: { name: '音速のクロス', desc: 'Option C +3%。', opt: { C: 3 } }, sig: { name: '音留のカットイン', desc: 'Option C +6% / Option B +3%', fx: { opt: { C: 6, B: 3 } } } },
+    nio:      { name: '仁王和真',     tag: '鉄壁のDF',               ident: { SHT: 0.75, SPD: 0.95, TEC: 0.9, INT: 1.15, PHY: 1.25 }, fav: 'A',
+                passive: { name: '鉄壁のDF', desc: 'Option A +3%。練習HP消費 -1。', opt: { A: 3 }, hpCost: -1 }, sig: { name: '仁王立ち', desc: 'Option A +6% / 全選択肢 +2%', fx: { opt: { A: 6 }, all: 2 } } },
+    tsunzaki: { name: '劈大河',       tag: '剛腕',                   ident: { SHT: 0.9, SPD: 0.95, TEC: 0.8, INT: 0.8, PHY: 1.25 }, fav: 'A',
+                passive: { name: '剛腕', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '劈く一撃', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    saramadara:{ name: '皿斑海琉',    tag: '反射神経',               ident: { SHT: 0.7, SPD: 0.9, TEC: 0.85, INT: 1.1, PHY: 1.2 }, fav: 'C',
+                passive: { name: '反射神経', desc: 'FLOW 突入率 +5%。', flowP: 0.05 }, sig: { name: 'セーブからのカウンター', desc: 'Option C +5% / Option A +3%', fx: { opt: { C: 5, A: 3 } } } },
+    hiiragi:  { name: '柊零次',       tag: '静かなる技巧',           ident: { SHT: 0.85, SPD: 0.95, TEC: 1.1, INT: 1.1, PHY: 0.8 }, fav: 'B',
+                passive: { name: '静かなる技巧', desc: 'Option B +3%。', opt: { B: 3 } }, sig: { name: '柊の切り返し', desc: 'Option B +6%', fx: { opt: { B: 6 } } } },
+    nishioka: { name: '西岡初',       tag: '初速',                   ident: { SHT: 0.9, SPD: 1.15, TEC: 0.9, INT: 0.85, PHY: 0.9 }, fav: 'C',
+                passive: { name: '初速', desc: 'Option C +3%。', opt: { C: 3 } }, sig: { name: '西岡ダッシュ', desc: 'Option C +6%', fx: { opt: { C: 6 } } } },
+    fukaku:   { name: '不角源',       tag: '角のない巨体',           ident: { SHT: 0.95, SPD: 0.85, TEC: 0.8, INT: 0.8, PHY: 1.25 }, fav: 'A',
+                passive: { name: '角のない巨体', desc: 'Option A +3%。練習HP消費 -1。', opt: { A: 3 }, hpCost: -1 }, sig: { name: '不角の壁', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    tanaka:   { name: '田中信玄',     tag: '軍師',                   ident: { SHT: 0.85, SPD: 0.85, TEC: 1.05, INT: 1.15, PHY: 0.9 }, fav: 'B',
+                passive: { name: '軍師', desc: 'Option B +3%。', opt: { B: 3 } }, sig: { name: '風林火山', desc: 'Option B +5% / Option D +3%', fx: { opt: { B: 5, D: 3 } } } },
+    shiguma:  { name: '志熊恭平',     tag: '熊の体幹',               ident: { SHT: 0.9, SPD: 0.9, TEC: 0.85, INT: 0.8, PHY: 1.2 }, fav: 'A',
+                passive: { name: '熊の体幹', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '志熊の押し込み', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    ishikari: { name: '石狩幸雄',     tag: '一撃必殺',               ident: { SHT: 1.1, SPD: 0.9, TEC: 0.9, INT: 0.85, PHY: 0.95 }, fav: 'A',
+                passive: { name: '一撃必殺', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '石狩の弾丸', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    chou:     { name: '超健人',       tag: '超加速',                 ident: { SHT: 0.9, SPD: 1.1, TEC: 1.05, INT: 0.9, PHY: 0.85 }, fav: 'C',
+                passive: { name: '超加速', desc: 'Option C +3%。', opt: { C: 3 } }, sig: { name: '超ドリブル', desc: 'Option C +5% / Option B +3%', fx: { opt: { C: 5, B: 3 } } } },
+    yuzu:     { name: '柚春彦',       tag: '柚のパス',               ident: { SHT: 0.85, SPD: 0.95, TEC: 1.15, INT: 1.0, PHY: 0.8 }, fav: 'B',
+                passive: { name: '柚のパス', desc: 'Option B +3%。', opt: { B: 3 } }, sig: { name: '春彦のスルー', desc: 'Option B +6%', fx: { opt: { B: 6 } } } },
+    sendouji: { name: '猿堂寺暁',     tag: '空中の猿',               ident: { SHT: 1.05, SPD: 0.85, TEC: 0.85, INT: 0.8, PHY: 1.1 }, fav: 'A',
+                passive: { name: '空中の猿', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '猿堂寺ヘッド', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    hayate:   { name: '颯波留',       tag: '疾風',                   ident: { SHT: 0.9, SPD: 1.2, TEC: 0.95, INT: 0.85, PHY: 0.8 }, fav: 'C',
+                passive: { name: '疾風', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: '颯の突風', desc: 'Option C +6%', fx: { opt: { C: 6 } } } },
+    jarai:    { name: '蛇来弥勒',     tag: '蛇の足技',               ident: { SHT: 0.85, SPD: 0.9, TEC: 1.15, INT: 1.0, PHY: 0.85 }, fav: 'B',
+                passive: { name: '蛇の足技', desc: 'Option B +3%。', opt: { B: 3 } }, sig: { name: '弥勒の幻惑', desc: 'Option B +6%', fx: { opt: { B: 6 } } } },
+    kori:     { name: '狐里輝',       tag: '狐の嗅覚',               ident: { SHT: 0.85, SPD: 0.95, TEC: 1.05, INT: 1.15, PHY: 0.8 }, fav: 'B',
+                passive: { name: '狐の嗅覚', desc: 'Option B +2%、Option D +2%。', opt: { B: 2, D: 2 } }, sig: { name: '狐里の抜け道', desc: 'Option B +4% / Option D +4%', fx: { opt: { B: 4, D: 4 } } } },
+    wakatsuki:{ name: '若月樹',       tag: '若木の体幹',             ident: { SHT: 0.9, SPD: 1.05, TEC: 0.85, INT: 0.8, PHY: 1.15 }, fav: 'A',
+                passive: { name: '若木の体幹', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '若月の突進', desc: 'Option A +5% / Option C +3%', fx: { opt: { A: 5, C: 3 } } } },
+    sokura:   { name: '曽倉哲',       tag: '曽倉の左足',             ident: { SHT: 1.1, SPD: 0.85, TEC: 0.9, INT: 0.85, PHY: 0.95 }, fav: 'A',
+                passive: { name: '曽倉の左足', desc: 'Option A +3%。', opt: { A: 3 } }, sig: { name: '曽倉ミドル', desc: 'Option A +6%', fx: { opt: { A: 6 } } } },
+    himizu:   { name: '日不見愛基',   tag: '影走り',                 ident: { SHT: 0.85, SPD: 1.1, TEC: 0.9, INT: 1.05, PHY: 0.85 }, fav: 'C',
+                passive: { name: '影走り', desc: 'Option C +3%。', opt: { C: 3 } }, sig: { name: '日不見の裏抜け', desc: 'Option C +6%', fx: { opt: { C: 6 } } } },
+    haiji:    { name: '灰地静',       tag: '静かな司令塔',           ident: { SHT: 0.8, SPD: 0.9, TEC: 1.1, INT: 1.15, PHY: 0.85 }, fav: 'B',
+                passive: { name: '静かな司令塔', desc: 'Option B +3%。', opt: { B: 3 } }, sig: { name: '灰地の展開', desc: 'Option B +5% / Option D +3%', fx: { opt: { B: 5, D: 3 } } } },
+    /* ---- U-20 W杯 各国代表 ---- */
+    teddy:    { name: 'テディ・ナイト', tag: 'イングランドの新星',   ident: { SHT: 1.25, SPD: 1.15, TEC: 1.0, INT: 0.95, PHY: 1.0 }, fav: 'A',
+                passive: { name: 'ナイトの騎士道', desc: 'Option A +5%、Option C +3%。', opt: { A: 5, C: 3 } }, sig: { name: 'テディの一閃', desc: 'Option A +8% / Option C +4%', fx: { opt: { A: 8, C: 4 } } } },
+    achampong:{ name: 'アチャンポン', tag: '司令塔',                 ident: { SHT: 0.9, SPD: 0.95, TEC: 1.15, INT: 1.25, PHY: 0.9 }, fav: 'B',
+                passive: { name: '司令塔', desc: 'Option B +4%、Option D +2%。', opt: { B: 4, D: 2 } }, sig: { name: 'アチャンポンの魔法', desc: 'Option B +7% / Option D +4%', fx: { opt: { B: 7, D: 4 } } } },
+    onaji:    { name: 'オナジ',       tag: 'ナイジェリアの猛獣',     ident: { SHT: 1.15, SPD: 1.05, TEC: 0.85, INT: 0.8, PHY: 1.25 }, fav: 'A',
+                passive: { name: '猛獣', desc: 'Option A +5%。', opt: { A: 5 } }, sig: { name: 'オナジの咆哮', desc: 'Option A +8%', fx: { opt: { A: 8 } } } },
+    kusso:    { name: 'クッソ',       tag: 'ナイジェリアの頭脳',     ident: { SHT: 0.85, SPD: 0.95, TEC: 1.1, INT: 1.25, PHY: 0.85 }, fav: 'B',
+                passive: { name: 'ゲームメイク', desc: 'Option B +4%。', opt: { B: 4 } }, sig: { name: 'クッソの魔術', desc: 'Option B +7%', fx: { opt: { B: 7 } } } },
+    hugo:     { name: 'ユーゴー',     tag: 'フランスの巨躯',         ident: { SHT: 1.15, SPD: 0.95, TEC: 0.95, INT: 0.9, PHY: 1.15 }, fav: 'A',
+                passive: { name: '巨躯', desc: 'Option A +4%。', opt: { A: 4 } }, sig: { name: 'ユーゴーの砲撃', desc: 'Option A +7%', fx: { opt: { A: 7 } } } },
+    raiden:   { name: 'ライデン',     tag: '雷光',                   ident: { SHT: 0.95, SPD: 1.15, TEC: 0.85, INT: 0.85, PHY: 1.15 }, fav: 'C',
+                passive: { name: '雷光', desc: 'Option C +4%。', opt: { C: 4 } }, sig: { name: 'ライデン・スパーク', desc: 'Option C +7%', fx: { opt: { C: 7 } } } }
   };
+
+  /* ポジション適性：カード第1ポジションに応じて対応する選択肢に +2%（PWC のポジション情報を反映） */
+  var POS_AFFINITY = { CF: 'A', CB: 'A', OMF: 'B', RMF: 'B', LMF: 'B', DMF: 'D', RWG: 'C', LWG: 'C', RSB: 'C', LSB: 'C' };
 
   /* ---------------------------------------------------------- アドバイザー
    * PWC の「アドバイザーキャラ」枠に対応。RUN 開始時に 1 名を選択。unlock: 解放条件（実績ID）
@@ -526,12 +583,13 @@
     COND_DOWN_P: 0.15, COND_UP_P: 0.12, COND_REST_UP_P: 0.60,
     FLOW_CARD_P: 0.15, FLOW_CARD_BONUS: 5,   /* ★4FLOW 由来カード：FLOW 突入率 +15% / FLOW ボーナス +5pt */
     HOT_MULT: 1.25,                         /* 化学反応練習：週ごとに指定される1属性の主獲得量 ×1.25 */
+    POS_BONUS: 2,                           /* ポジション適性 +2% */
     P_CAP: 92                               /* Climax 成功率の上限(%)。最低保証は無いが、100% も無い（単発の試練は対象外） */
   };
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
-    CHARACTERS: CHARACTERS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
+    CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',

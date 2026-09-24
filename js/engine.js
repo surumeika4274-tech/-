@@ -60,7 +60,7 @@
         gems: P.INITIAL_GEMS, roster: roster, hof: [],
         achievements: {}, pendingAch: [],
         records: { runs: 0, eliminations: 0, clears: 0, bestArc: -1, gachaPulls: 0, wcTitles: 0, bestRank: 300, bestBid: 0, bestTotal: 0 },
-        history: [], sfx: true, createdAt: Date.now()
+        history: [], sfx: true, portraits: {}, createdAt: Date.now()
       },
       run: null, wc: null
     };
@@ -136,6 +136,7 @@
       merge(charOf(card).passive);
       merge(D.TYPE_MAP[card.type]);
       if (card.flow) merge({ flowP: P.FLOW_CARD_P, flowBonus: P.FLOW_CARD_BONUS });
+      var posOpt = D.POS_AFFINITY[card.pos && card.pos[0]]; if (posOpt) { var pf = { opt: {} }; pf.opt[posOpt] = P.POS_BONUS; merge(pf); }
     }
     if (player.advisorId) { var adv = advisorById(player.advisorId); if (adv) merge(adv.fx); }
     if (player.club) { var club = clubById(player.club); if (club) merge(club.passive); }
@@ -819,6 +820,15 @@
     return v.toLocaleString() + '円';
   };
   BL.toggleSfx = function (state) { state.meta.sfx = !state.meta.sfx; BL.save(state); return state.meta.sfx; };
+  /** 利用者が権利を持つ画像をキャラのポートレートとして端末内に保存（data URL、上限 60KB／枚・合計 3MB） */
+  BL.setPortrait = function (state, charId, dataUrl) {
+    if (!D.CHARACTERS[charId]) return { ok: false, reason: 'char' };
+    if (!dataUrl) { delete state.meta.portraits[charId]; BL.save(state); return { ok: true, removed: true }; }
+    if (dataUrl.length > 60 * 1024) return { ok: false, reason: 'size' };
+    var total = 0; for (var k in state.meta.portraits) total += state.meta.portraits[k].length;
+    if (total + dataUrl.length > 3 * 1024 * 1024) return { ok: false, reason: 'quota' };
+    state.meta.portraits[charId] = dataUrl; BL.save(state); return { ok: true };
+  };
   /** RUN サマリー（共有用テキスト） */
   BL.runSummary = function (run) {
     var card = cardById(run.cardId); var arc = arcOf(run); var s = run.stats;

@@ -386,3 +386,27 @@ h4.sect { margin: 18px 0 6px; color: var(--accent2); }
 .notice.tips { display: block; }
 .notice.tips ul { margin: 6px 0 0; padding-left: 1.2em; font-size: .85rem; line-height: 1.7; }
 .summary-box { width: 100%; min-height: 140px; background: var(--bg2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-family: inherit; font-size: .9rem; }
+
+/* ============================================================ card art */
+.card-svg { display: block; width: 100%; height: auto; border-radius: 8px; }
+.char-card { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: start; }
+.char-card .card-art { cursor: pointer; }
+.char-card .card-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card-svg.r7, .card-svg.r8 { filter: drop-shadow(0 0 8px rgba(255,209,102,.35)); }
+.card-svg.r8 { filter: drop-shadow(0 0 12px rgba(255,45,85,.45)); }
+.detail-grid { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: start; }
+.detail-art { display: flex; flex-direction: column; gap: 8px; }
+.portrait-ctl { display: flex; gap: 6px; flex-wrap: wrap; }
+.portrait-ctl label { cursor: pointer; }
+.muted.tiny { font-size: .68rem; line-height: 1.5; }
+.player-name .thumb { display: inline-block; margin-right: 6px; vertical-align: middle; cursor: pointer; }
+.player-name .thumb svg { border-radius: 6px; }
+.side .thumb { display: inline-block; }
+.side .thumb svg { display: block; border-radius: 6px; }
+.pull { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.pull-art svg { border-radius: 6px; }
+@media (max-width: 520px) {
+  .char-card { grid-template-columns: 84px 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-art { flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
+}

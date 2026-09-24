@@ -21,6 +21,7 @@
   function rc(r) { return D.RARITY[r].color; }
   function sfx(n) { if (state.meta.sfx !== false) BL.SFX.play(n); }
   function typeIcon(t) { return (D.TYPE_MAP[t] || {}).icon || ''; }
+  function art(card, size) { return BL.ART.svg(card, { portrait: (state.meta.portraits || {})[card.char] || null, size: size || 120 }); }
   function charOfRun(run) { return D.CHARACTERS[run.charId]; }
 
   function toast(msg, kind) {
@@ -109,11 +110,12 @@
         '<button class="btn primary" data-action="pick-card" data-arg="' + card.id + '"' + (state.run || state.wc ? ' disabled' : '') + '>この選手で育成開始</button>';
     } else actions = '<button class="btn ghost sm" data-action="card-detail" data-arg="' + card.id + '">詳細</button>';
     return '<article class="card char-card' + (own ? '' : ' unowned') + '" style="--rc:' + rc(card.rar) + '">' +
+      '<div class="card-art" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 120) + '</div><div class="card-body">' +
       '<div class="card-top"><div class="rarity">' + stars(card.rar) + cardBadge(card) + '</div><div class="lb">' + typeIcon(card.type) + ' ' + esc(card.type) + (own ? (own.dupes ? ' / 限界突破 +' + own.dupes : '') : ' / 未所持') + '</div></div>' +
-      '<h3>' + esc(c.name) + '<small>【' + esc(card.title) + '】 ' + esc(card.pos.join('/')) + ' — ' + esc(c.tag) + '</small></h3>' +
+      '<h3>' + esc(c.name) + '<small>【' + esc(card.title) + '】 ' + esc(card.pos.join('/')) + (card.stage ? ' / ' + esc(card.stage) : '') + ' — ' + esc(c.tag) + '</small></h3>' +
       '<div class="stat-line">' + statLine + '<span class="st total"><i>合計</i>' + num(BL.sumStats(prof.stats)) + '</span></div>' +
       '<div class="passive"><b>' + esc(c.passive.name) + '</b> ' + esc(c.passive.desc) + '</div>' +
-      '<div class="card-actions">' + actions + '</div></article>';
+      '<div class="card-actions">' + actions + '</div></div></article>';
   }
   function rarityFilterBar(current, action) {
     var opts = [['all', '全て']].concat(D.RARITY_ORDER.map(function (r) { return [r, D.RARITY[r].label + ' ' + D.RARITY[r].name]; }));
@@ -126,7 +128,7 @@
     var note = state.run ? '<div class="notice warn">育成中の選手がいます。RUN を終えるまで新規育成は開始できません（リセット・放棄は不可）。<button class="btn primary sm" data-action="resume-run">育成を再開</button></div>' :
                state.wc ? '<div class="notice warn">FIFAワールドカップに出撃中の選手がいます。<button class="btn gold sm" data-action="wc-resume">W杯を再開</button></div>' : '';
     var tips = state.meta.records.runs === 0 ? '<div class="notice tips"><b>はじめての方へ</b><ul><li>「この選手で育成開始」→ アドバイザーを選ぶと RUN 開始。以後の行動は全て即時保存され、やり直しは不可能。</li><li>練習は HP を約15% 消費。HP50% 未満で効率半減、30% 未満で練習すると 40% で選手生命が終わる。休養で +40%。</li><li>試合の Climax は「対応2能力の合計 ÷ 敵レート」で成功率が決まる。育成画面右上の「次の試合」で事前に確認できる。</li><li>初期配布の ★1 潔世一は生存縛り。除籍で得る補償ジェムと実績ジェムでスカウトを回し、限界突破を積むのが基本ループ。</li></ul></div>' : '';
-    return note + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル9枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）が周回を跨いで蓄積。</div>' +
+    return note + tips + '<div class="muted small">所持 ' + ids.length + ' / ' + BL.CARDS.length + ' 枚（PWC 全170カード + 改変版オリジナル75枚）。同一カード再排出で限界突破（初期値 +5% / 成長 +3%）が周回を跨いで蓄積。</div>' +
       rarityFilterBar(ui.rosterFilter, 'roster-filter') + '<div class="grid">' + cards.map(function (c) { return cardCardHtml(c, state.meta.roster[c.id], { owned: true }); }).join('') + '</div>';
   }
   function renderDex() {
@@ -144,14 +146,19 @@
     var c = D.CHARACTERS[card.char]; var own = state.meta.roster[card.id]; var prof = BL.cardProfile(card, own ? own.dupes : 0);
     var rows = D.STATS.map(function (s) { return '<tr><td style="color:' + D.STAT_META[s].color + '"><b>' + s + '</b> ' + D.STAT_META[s].jp + '</td><td>' + num(prof.stats[s]) + '</td><td>×' + prof.growth[s].toFixed(2) + '</td></tr>'; }).join('');
     var others = BL.CARDS.filter(function (x) { return x.char === card.char && x.id !== card.id; }).map(function (x) { return '<span class="tag" style="border-color:' + rc(x.rar) + '">' + stars(x.rar) + ' ' + esc(x.title) + (state.meta.roster[x.id] ? ' ✓' : '') + '</span>'; }).join(' ');
+    var hasPortrait = !!(state.meta.portraits || {})[card.char];
+    var posOpt = D.POS_AFFINITY[card.pos[0]];
     return '<div class="modal-head"><h2 style="color:' + rc(card.rar) + '">' + stars(card.rar) + ' ' + esc(c.name) + '【' + esc(card.title) + '】' + cardBadge(card) + '</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div>' +
-      '<p class="muted">' + esc(D.RARITY[card.rar].name) + '（' + esc(D.RARITY[card.rar].tier) + '）<br>' + typeIcon(card.type) + ' ' + esc(card.type) + 'タイプ（' + esc(D.TYPE_MAP[card.type].desc) + '） / ' + esc(card.pos.join(' / ')) + (card.pwc ? ' / PWC ' + esc(card.pwc === '4FLOW' ? '★4 FLOW' : '★' + card.pwc) + ' 由来' : ' / 改変版オリジナル') + (card.flow ? ' / FLOW 突入率 +15%・FLOW ボーナス +5pt' : '') + '</p>' +
+      '<div class="detail-grid"><div class="detail-art">' + art(card, 160) +
+      '<div class="portrait-ctl"><label class="btn ghost sm"><input type="file" accept="image/*" data-portrait="' + card.char + '" hidden>画像を設定</label>' + (hasPortrait ? '<button class="btn ghost sm" data-action="portrait-remove" data-arg="' + card.char + '">画像を削除</button>' : '') + '</div>' +
+      '<p class="muted tiny">原作画像は著作物のため同梱していない。利用者が権利を持つ画像を端末内（localStorage）に縮小保存し、このキャラの全カードに表示する。</p></div><div class="detail-body">' +
+      '<p class="muted">' + esc(D.RARITY[card.rar].name) + '（' + esc(D.RARITY[card.rar].tier) + '）<br>' + typeIcon(card.type) + ' ' + esc(card.type) + 'タイプ（' + esc(D.TYPE_MAP[card.type].desc) + '） / ' + esc(card.pos.join(' / ')) + (posOpt ? '（ポジション適性：Option ' + posOpt + ' +' + P.POS_BONUS + '%）' : '') + (card.stage ? ' / 段階：' + esc(card.stage) : '') + (card.pwc ? ' / PWC ' + esc(card.pwc === '4FLOW' ? '★4 FLOW' : '★' + card.pwc) + ' 由来' : ' / 改変版オリジナル') + (card.flow ? ' / FLOW 突入率 +15%・FLOW ボーナス +5pt' : '') + '</p>' +
       '<table class="tbl"><thead><tr><th>能力</th><th>初期値</th><th>成長補正</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<div class="passive big"><b>固有エゴ：' + esc(c.passive.name) + '</b><br>' + esc(c.passive.desc) + '</div>' +
       '<div class="passive big"><b>固有覚醒スキル：' + esc(c.sig.name) + '</b><br>' + esc(c.sig.desc) + '（主属性 ' + D.TYPE_MAP[card.type].stat + ' が ' + P.SIG_TH + ' 以上で Climax 成功、または FLOW 成功で覚醒）</div>' +
       (own ? '<p class="muted">限界突破 +' + own.dupes + '（初期値 +' + Math.round(own.dupes * P.LB_STEP * 100) + '% / 成長 +' + Math.round(own.dupes * P.LB_GROWTH * 100) + '%）</p>' : '<p class="muted">未所持</p>') +
       (others ? '<div class="muted small">同キャラの他カード：' + others + '</div>' : '') +
-      (own && !state.run && !state.wc ? '<div class="modal-foot center"><button class="btn primary" data-action="pick-card" data-arg="' + card.id + '">この選手で育成開始</button></div>' : '');
+      '</div></div>' + (own && !state.run && !state.wc ? '<div class="modal-foot center"><button class="btn primary" data-action="pick-card" data-arg="' + card.id + '">この選手で育成開始</button></div>' : '');
   }
   function renderAdvisorPick() {
     var card = BL.cardById(ui.pickCard); if (!card) return '';
@@ -178,7 +185,7 @@
   }
   function renderGachaResult() {
     var res = ui.modal.results.map(function (r, i) {
-      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms"><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-n">' + esc(r.name) + '</div><div class="pull-t">' + typeIcon(r.type) + ' ' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
+      return '<div class="pull' + (D.RARITY[r.rar].stars >= 6 ? ' hi' : '') + '" style="--rc:' + rc(r.rar) + '; animation-delay:' + (i * 90) + 'ms" data-action="card-detail" data-arg="' + r.id + '"><div class="pull-art">' + art(BL.cardById(r.id), 96) + '</div><div class="pull-r">' + stars(r.rar) + (r.flow ? ' F' : '') + '</div><div class="pull-t">' + (r.isNew ? '<b class="new">NEW</b>' : '限界突破 +' + r.dupes) + '</div></div>';
     }).join('');
     var costN = ui.modal.n === 10 ? P.GACHA_TEN : P.GACHA_SINGLE;
     return '<div class="modal-head"><h2>スカウト結果</h2><button class="btn ghost sm" data-action="close-modal">閉じる</button></div><div class="pulls">' + res + '</div>' +
@@ -195,10 +202,11 @@
                     wc.status === 'champion' ? '<span class="tag gold">🏆 FIFA W杯 優勝</span>' : '<span class="tag danger">W杯 ' + esc(D.WORLD_CUP.stages[Math.min(wc.stage, D.WORLD_CUP.stages.length - 1)].name) + ' 敗退</span>';
       var btn = wc.status === 'none' ? '<button class="btn gold" data-action="wc-start" data-arg="' + e.id + '"' + (state.wc || state.run ? ' disabled' : '') + '>FIFAワールドカップに出撃（一発勝負）</button>' :
                 wc.status === 'inprogress' ? '<button class="btn primary" data-action="wc-resume">W杯を再開</button>' : '';
-      return '<article class="card hof-card" style="--rc:' + rc(e.rar) + '"><div class="card-top"><div class="rarity">' + stars(e.rar) + '</div>' + wcLabel + '</div>' +
+      var hc = BL.cardById(e.cardId);
+      return '<article class="card hof-card char-card" style="--rc:' + rc(e.rar) + '">' + (hc ? '<div class="card-art">' + art(hc, 120) + '</div>' : '') + '<div class="card-body"><div class="card-top"><div class="rarity">' + stars(e.rar) + '</div>' + wcLabel + '</div>' +
         '<h3>' + esc(e.name) + '<small>' + new Date(e.clearedAt).toLocaleDateString('ja-JP') + ' 世界一達成 / アドバイザー ' + esc((BL.advisorById(e.advisorId) || {}).name || '') + (e.club ? ' / ' + esc(BL.clubById(e.club).name) : '') + '</small></h3>' +
         '<div class="stat-line">' + st + '<span class="st total"><i>合計</i>' + num(BL.sumStats(e.stats)) + '</span></div>' +
-        '<div class="muted">最終年俸 ' + yen(e.bid) + ' / スキル ' + (BL.skillCount(e.skills) + (e.sig || 0)) + ' / ゴール ' + e.totals.goals + '</div><div class="card-actions">' + btn + '</div></article>';
+        '<div class="muted">最終年俸 ' + yen(e.bid) + ' / スキル ' + (BL.skillCount(e.skills) + (e.sig || 0)) + ' / ゴール ' + e.totals.goals + '</div><div class="card-actions">' + btn + '</div></div></article>';
     }).join('');
     return '<div class="notice">FIFAワールドカップは殿堂入り選手ごとに<b>一度きり</b>の挑戦。4回の Climax で3勝以上（2-2 の引き分けは即時敗北）を4連戦。決勝はノエル・ノア率いるフランス代表。敗退した選手は再挑戦できない。</div><div class="grid">' + list + '</div>';
   }
@@ -258,7 +266,7 @@
   function runMatchCtx() {
     var run = state.run; var arc = BL.arcOf(run); var m = run.match;
     return { kind: 'run', title: '第' + arc.n + '章 ' + arc.title, sub: m.name, enemy: m.enemy, lead: m.lead, highlights: m.highlights, intro: m.intro,
-             needText: ruleText(m), charName: charOfRun(run).name, canon: m.canon };
+             needText: ruleText(m), charName: charOfRun(run).name, canon: m.canon, card: BL.cardById(run.cardId) };
   }
   function ruleText(m) {
     switch (m.rule) {
@@ -321,7 +329,7 @@
       '<div class="ch-title">第' + arc.n + '章：' + esc(arc.title) + ' — ' + esc(seg.name) + '</div><div class="weeks">公式戦まで <b>あと ' + run.weeksLeft + ' 週</b></div><div class="ch-sub">' + esc(mdef.name) + '</div>' +
       '<div class="head-btns"><button class="btn ghost sm" data-action="open-story">ストーリー</button><button class="btn ghost sm" data-action="to-lobby">ロビー</button></div></header>' +
       '<div class="train-grid"><div class="col"><div class="panel player">' +
-      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
+      '<div class="player-name" style="--rc:' + rc(card.rar) + '"><span class="thumb" data-action="card-detail" data-arg="' + card.id + '">' + art(card, 64) + '</span><span class="rarity">' + stars(card.rar) + '</span><b>' + esc(c.name) + '</b><span class="muted">【' + esc(card.title) + '】' + typeIcon(card.type) + '</span><small>' + esc(c.passive.name) + '：' + esc(c.passive.desc) + ' ／ アドバイザー ' + esc(adv.name) + '：' + esc(adv.desc) + (club ? ' ／ ' + esc(club.passive.desc) : '') + '</small></div>' +
       '<div class="hp ' + hpClass(run.hp) + '"><div class="hp-label"><span>肉体健全度 HP</span><b>' + run.hp + '%</b><em>' + hpLabel(run.hp) + '</em></div><div class="hp-bar"><i style="width:' + run.hp + '%"></i></div></div>' +
       '<div class="money"><span class="cond" style="color:' + cond.color + '">' + cond.icon + ' ' + cond.label + '</span><span>BLランク <b>' + (run.rank || 300) + '位</b></span><span>年俸 <b>' + yen(run.bid) + '</b></span><span>Cash <b>' + cash(run.cash) + '</b></span><span>💎 <b>' + num(state.meta.gems) + '</b></span></div>' +
       (run.protein || run.note ? '<div class="buffs">' + (run.protein ? '<span class="tag gold">🥤 次回練習×2</span>' : '') + (run.note ? '<span class="tag gold">📓 次試合 +10%</span>' : '') + '</div>' : '') + '</div>' +
@@ -379,7 +387,7 @@
     var body = (m.showResult && m.lastResult) ? renderClimaxResult(m, ctx) : (m.current ? renderClimax(m, ctx) : '');
     var flow = (m.current && m.current.flow && !m.showResult);
     return '<section class="screen match' + (flow ? ' in-flow' : '') + '"><header class="match-head"><div class="mh-title">' + esc(ctx.title) + '<small>' + esc(ctx.sub) + '</small></div>' +
-      '<div class="score"><div class="side me"><i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i></div></div>' +
+      '<div class="score"><div class="side me">' + (ctx.card ? '<span class="thumb">' + art(ctx.card, 48) + '</span>' : '') + '<i>' + esc(ctx.charName) + '</i><b>' + m.me + '</b></div><div class="vs">-</div><div class="side en"><b>' + m.en + '</b><i>' + esc(ctx.enemy) + '</i><span class="thumb">' + BL.ART.emblem(ctx.enemy.replace(/^[^ ]+ /, ''), '#ff2a4a', 48) + '</span></div></div>' +
       '<div class="dots">' + dots + '</div><div class="need">' + esc(ctx.needText) + '</div></header>' + body + '</section>';
   }
   function renderClimax(m, ctx) {
@@ -460,7 +468,7 @@
         '<div class="modal-foot center"><button class="btn gold lg" data-action="wc-begin">キックオフ</button></div></section>';
     }
     if (wc.phase === 'match' || ((wc.phase === 'stageResult' || wc.phase === 'end') && wc.match && wc.match.showResult)) {
-      var ctx = { kind: 'wc', title: 'FIFA W杯 ' + st.name, sub: st.flag + ' ' + st.team, enemy: st.team, lead: st.star, highlights: D.WORLD_CUP.highlights, intro: st.intro, needText: ruleText(wc.match), charName: entry.name };
+      var ctx = { kind: 'wc', title: 'FIFA W杯 ' + st.name, sub: st.flag + ' ' + st.team, enemy: st.team, lead: st.star, highlights: D.WORLD_CUP.highlights, intro: st.intro, needText: ruleText(wc.match), charName: entry.name, card: BL.cardById(entry.cardId) };
       return renderMatch(wc.match, ctx);
     }
     if (wc.phase === 'stageResult') { var last = wc.results[wc.results.length - 1]; return '<section class="screen wc-intro"><div class="wc-kicker">FIFA WORLD CUP</div><h2>' + esc(last.stage) + ' 勝利！ ' + last.me + ' - ' + last.en + '</h2><p class="muted">' + esc(last.team) + ' を撃破。次のステージへ進む。</p><div class="modal-foot center"><button class="btn gold lg" data-action="wc-stage-next">次のステージへ</button></div></section>'; }
@@ -555,6 +563,7 @@
       else render();
     },
     'close-run': function () { BL.closeRun(state); ui.lobbyTab = 'roster'; ui.inLobby = false; render(); },
+    'portrait-remove': function (arg) { BL.setPortrait(state, arg, null); toast('画像を削除した', 'ok'); render(); },
     'copy-summary': function () {
       if (!state.run) return; var text = BL.runSummary(state.run);
       var done = function () { toast('結果をクリップボードにコピーした', 'ok'); };
@@ -575,6 +584,30 @@
     if (actions[act]) { e.preventDefault(); actions[act](arg, el); }
   }
   document.addEventListener('click', onClick);
+  /* ポートレート画像の取り込み：端末内で 160×200 に縮小して保存 */
+  document.addEventListener('change', function (e) {
+    var input = e.target; if (!input || !input.matches || !input.matches('input[type=file][data-portrait]')) return;
+    var charId = input.getAttribute('data-portrait'); var file = input.files && input.files[0]; if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var cv = document.createElement('canvas'); var W = 160, H = 200; cv.width = W; cv.height = H; var cx = cv.getContext('2d');
+          var s = Math.max(W / img.width, H / img.height); var dw = img.width * s, dh = img.height * s;
+          cx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+          var q = 0.82, url = cv.toDataURL('image/jpeg', q);
+          while (url.length > 60 * 1024 && q > 0.3) { q -= 0.1; url = cv.toDataURL('image/jpeg', q); }
+          var res = BL.setPortrait(state, charId, url);
+          if (!res.ok) { toast({ size: '画像が大きすぎる', quota: '保存容量の上限', char: '不明なキャラ' }[res.reason] || '保存できない', 'warn'); return; }
+          toast('画像を設定した（このキャラの全カードに表示）', 'ok'); render();
+        } catch (err) { toast('画像を処理できない', 'warn'); }
+      };
+      img.onerror = function () { toast('画像を読み込めない', 'warn'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && ui.modal && ui.modal.type !== 'event') { ui.modal = null; render(); return; }
     if (ui.modal || ui.screen === 'title' || ui.inLobby || !state.run) return;

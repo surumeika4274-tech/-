@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-/* data/pwc_cards.json（PWC 選手カード一覧）→ js/cards.js を生成（8段階レアリティ版）
+/* data/pwc_cards.json（PWC 選手カード一覧）+ 改変版オリジナル → js/cards.js を生成（8段階レアリティ版）
  *   node tools/build_cards.js
  *
  * 8段階への割り当て：キャラごとの原作の「格」を (floor, peak) で定義し、PWC のレアリティで内挿する。
  *   t = { ★1:0, ★2:0.25, ★3:0.5, ★4:0.8, ★4FLOW:0.8, ★5:1 }
  *   tier = round(floor + t × (peak − floor))   ※ ★4FLOW は flow フラグ付き
- * PWC に選手カードが無い世界最強／マスター／世界11傑クラスは「改変版オリジナル」カードとして追加する。
+ * 改変版オリジナル：PWC に選手カードが無いキャラを、ストーリー段階（若手／二次選考／新英雄大戦／マスター 等）ごとに複数個体生成する。
  */
 'use strict';
 const fs = require('fs');
@@ -37,26 +37,58 @@ const cards = src.map(c => {
   const tier = Math.max(1, Math.min(8, Math.round(lo + T[c.rar] * (hi - lo))));
   return { char, title: c.title, rar: String(tier), flow: c.rar === '4FLOW', pwc: c.rar, type: c.type, pos: c.pos, origin: 'pwc' };
 });
-/* 改変版オリジナル（PWC に選手カードが無い上位クラス） */
+
+/* ------------------------------------------------ 改変版オリジナル（ストーリー段階ごとの複数個体） */
+const O = (char, title, rar, type, pos, stage) => ({ char, title, rar: String(rar), flow: false, pwc: null, origin: 'mod', type, pos, stage });
 const ORIGINAL = [
-  { char: 'noa',       title: '世界最高のストライカー',   rar: '8', type: 'キック',     pos: ['CF', 'OMF'] },
-  { char: 'ego_if',    title: '現役if・青い監獄の設計者', rar: '8', type: '賢さ',       pos: ['OMF', 'DMF'] },
-  { char: 'snuffy',    title: 'マスター・ユーヴァース',   rar: '7', type: '賢さ',       pos: ['DMF', 'CB'] },
-  { char: 'lavinho',   title: 'マスター・FCバルチャ',     rar: '7', type: 'テクニック', pos: ['LWG', 'OMF'] },
-  { char: 'prince',    title: 'マスター・マンシャイン',   rar: '7', type: 'キック',     pos: ['CF', 'RWG'] },
-  { char: 'kaiser',    title: '皇帝',                     rar: '6', type: 'キック',     pos: ['CF', 'LWG'] },
-  { char: 'lorenzo',   title: '守備の魔物',               rar: '6', type: 'フィジカル', pos: ['CB', 'DMF'] },
-  { char: 'chevalier', title: '電光石火の騎士',           rar: '6', type: 'スピード',   pos: ['RWG', 'CF'] },
-  { char: 'ness',      title: '皇帝の魔術師',             rar: '5', type: 'テクニック', pos: ['OMF', 'LMF'] }
-].map(c => Object.assign({ flow: false, pwc: null, origin: 'mod' }, c));
+  /* 世界最強／マスター（若手時代 → 現役 → 指導者） */
+  O('noa', '若き日のノア', 6, 'フィジカル', ['CF', 'OMF'], '若手時代'), O('noa', 'バスタードの規律', 7, '賢さ', ['CF', 'DMF'], '指導者'), O('noa', '世界最高のストライカー', 8, 'キック', ['CF', 'OMF'], '世界最強'),
+  O('ego_if', '若き日の絵心', 6, 'キック', ['CF', 'OMF'], '若手時代'), O('ego_if', '現役if・青い監獄の設計者', 8, '賢さ', ['OMF', 'DMF'], '現役if'),
+  O('snuffy', '現役時代の名将', 6, 'テクニック', ['DMF', 'OMF'], '現役時代'), O('snuffy', 'マスター・ユーヴァース', 7, '賢さ', ['DMF', 'CB'], 'マスター'),
+  O('lavinho', 'ブラジルの遊び人', 6, 'スピード', ['LWG', 'RWG'], '現役時代'), O('lavinho', 'マスター・FCバルチャ', 7, 'テクニック', ['LWG', 'OMF'], 'マスター'),
+  O('prince', 'マンシャインの王子', 6, 'スピード', ['RWG', 'CF'], '現役'), O('prince', 'マスター・マンシャイン', 7, 'キック', ['CF', 'RWG'], 'マスター'),
+  /* 新世代世界11傑・バスタード／各クラブの看板 */
+  O('kaiser', '青い薔薇', 5, 'テクニック', ['CF', 'LWG'], '新英雄大戦'), O('kaiser', '皇帝', 6, 'キック', ['CF', 'LWG'], '新英雄大戦'), O('kaiser', '世界11傑の皇帝', 7, 'キック', ['CF', 'OMF'], '世界11傑'),
+  O('ness', 'カイザーの従者', 4, '賢さ', ['OMF', 'LMF'], '新英雄大戦'), O('ness', '皇帝の魔術師', 5, 'テクニック', ['OMF', 'LMF'], '新英雄大戦'),
+  O('lorenzo', 'イタリアの守護者', 5, 'フィジカル', ['CB', 'DMF'], '新英雄大戦'), O('lorenzo', '守備の魔物', 6, 'フィジカル', ['CB', 'DMF'], '新英雄大戦'),
+  O('chevalier', 'P・X・Gの騎士', 5, 'スピード', ['RWG', 'CF'], '新英雄大戦'), O('chevalier', '電光石火の騎士', 6, 'スピード', ['RWG', 'CF'], '新英雄大戦'), O('chevalier', 'フランス代表の刃', 7, 'キック', ['CF', 'RWG'], 'U-20 W杯'),
+  /* 青い監獄組（二次選考 → 新英雄大戦） */
+  O('otoru', '二次選考', 2, 'スピード', ['LWG', 'LMF'], '二次選考'), O('otoru', '新英雄大戦', 4, 'スピード', ['LWG', 'RWG'], '新英雄大戦'),
+  O('nio', '二次選考', 2, 'フィジカル', ['CB', 'RSB'], '二次選考'), O('nio', 'U-20日本代表', 4, '賢さ', ['CB', 'DMF'], 'U-20日本代表'), O('nio', '新英雄大戦', 5, 'フィジカル', ['CB', 'DMF'], '新英雄大戦'),
+  O('tsunzaki', '二次選考', 2, 'フィジカル', ['CF', 'CB'], '二次選考'), O('tsunzaki', '新英雄大戦', 4, 'フィジカル', ['CF', 'OMF'], '新英雄大戦'),
+  O('saramadara', '二次選考', 2, 'コンディション', ['CB', 'DMF'], '二次選考'), O('saramadara', '新英雄大戦', 4, 'フィジカル', ['CB', 'DMF'], '新英雄大戦'),
+  O('hiiragi', '二次選考', 2, 'テクニック', ['OMF', 'RMF'], '二次選考'), O('hiiragi', '新英雄大戦', 4, 'テクニック', ['OMF', 'DMF'], '新英雄大戦'),
+  O('nishioka', '二次選考', 2, 'スピード', ['RWG', 'RSB'], '二次選考'), O('nishioka', '新英雄大戦', 4, 'スピード', ['RWG', 'RMF'], '新英雄大戦'),
+  O('fukaku', '二次選考', 2, 'フィジカル', ['CB', 'CF'], '二次選考'), O('fukaku', '新英雄大戦', 4, 'スタミナ', ['CB', 'DMF'], '新英雄大戦'),
+  O('tanaka', '二次選考', 2, '賢さ', ['DMF', 'OMF'], '二次選考'), O('tanaka', '新英雄大戦', 4, '賢さ', ['DMF', 'CB'], '新英雄大戦'),
+  O('shiguma', '二次選考', 2, 'フィジカル', ['CB', 'LSB'], '二次選考'), O('shiguma', '新英雄大戦', 4, 'フィジカル', ['CB', 'CF'], '新英雄大戦'),
+  O('ishikari', '二次選考', 2, 'キック', ['CF', 'RWG'], '二次選考'), O('ishikari', '新英雄大戦', 4, 'キック', ['CF', 'OMF'], '新英雄大戦'),
+  O('chou', '二次選考', 2, 'スピード', ['RMF', 'RWG'], '二次選考'), O('chou', '新英雄大戦', 4, 'テクニック', ['RMF', 'OMF'], '新英雄大戦'),
+  O('yuzu', '二次選考', 2, 'テクニック', ['LMF', 'OMF'], '二次選考'), O('yuzu', '新英雄大戦', 4, 'テクニック', ['LMF', 'DMF'], '新英雄大戦'),
+  O('sendouji', '二次選考', 2, 'キック', ['CF', 'LWG'], '二次選考'), O('sendouji', '新英雄大戦', 4, 'フィジカル', ['CF', 'CB'], '新英雄大戦'),
+  O('hayate', '二次選考', 2, 'スピード', ['LWG', 'LSB'], '二次選考'), O('hayate', '新英雄大戦', 4, 'スピード', ['LWG', 'RWG'], '新英雄大戦'),
+  O('jarai', '二次選考', 2, 'テクニック', ['OMF', 'LMF'], '二次選考'), O('jarai', '新英雄大戦', 4, 'テクニック', ['OMF', 'CF'], '新英雄大戦'),
+  O('kori', '二次選考', 2, '賢さ', ['RMF', 'OMF'], '二次選考'), O('kori', '新英雄大戦', 4, '賢さ', ['RMF', 'DMF'], '新英雄大戦'),
+  O('wakatsuki', '二次選考', 2, 'スタミナ', ['CB', 'LSB'], '二次選考'), O('wakatsuki', '新英雄大戦', 4, 'フィジカル', ['CB', 'RSB'], '新英雄大戦'),
+  O('sokura', '二次選考', 2, 'キック', ['CF', 'OMF'], '二次選考'), O('sokura', '新英雄大戦', 4, 'キック', ['CF', 'LWG'], '新英雄大戦'),
+  O('himizu', '二次選考', 2, 'スピード', ['RSB', 'RWG'], '二次選考'), O('himizu', '新英雄大戦', 4, '賢さ', ['RSB', 'RMF'], '新英雄大戦'),
+  O('haiji', '二次選考', 2, '賢さ', ['DMF', 'LMF'], '二次選考'), O('haiji', '新英雄大戦', 4, 'テクニック', ['DMF', 'OMF'], '新英雄大戦'),
+  /* U-20 W杯 各国代表 */
+  O('teddy', 'イングランドの新星', 5, 'キック', ['CF', 'LWG'], 'U-20 W杯'), O('teddy', '新世代世界11傑', 6, 'スピード', ['CF', 'RWG'], 'U-20 W杯'), O('teddy', '騎士の覚醒', 7, 'キック', ['CF', 'OMF'], 'U-20 W杯'),
+  O('achampong', 'イングランドの司令塔', 4, '賢さ', ['OMF', 'DMF'], 'U-20 W杯'), O('achampong', '魔法の指揮者', 6, 'テクニック', ['OMF', 'RMF'], 'U-20 W杯'),
+  O('onaji', 'ナイジェリアの猛獣', 4, 'フィジカル', ['CF', 'CB'], 'U-20 W杯'), O('onaji', '灼熱のエース', 6, 'キック', ['CF', 'RWG'], 'U-20 W杯'),
+  O('kusso', 'ナイジェリアの頭脳', 4, '賢さ', ['OMF', 'DMF'], 'U-20 W杯'), O('kusso', 'クッソの魔術', 5, 'テクニック', ['OMF', 'LMF'], 'U-20 W杯'),
+  O('hugo', 'フランスの巨躯', 4, 'フィジカル', ['CF', 'CB'], 'U-20 W杯'), O('hugo', 'フランス代表FW', 6, 'キック', ['CF', 'OMF'], 'U-20 W杯'),
+  O('raiden', '雷光のサイド', 4, 'スピード', ['RSB', 'RWG'], 'U-20 W杯'), O('raiden', 'フランス代表DF', 5, 'フィジカル', ['RSB', 'CB'], 'U-20 W杯')
+];
 const all = cards.concat(ORIGINAL);
 all.sort((a, b) => Number(b.rar) - Number(a.rar) || a.char.localeCompare(b.char) || a.title.localeCompare(b.title, 'ja'));
 all.forEach((c, i) => { c.id = 'k' + String(i + 1).padStart(3, '0'); });
 
-const lines = all.map(c => `  { id: '${c.id}', char: '${c.char}', title: ${JSON.stringify(c.title)}, rar: '${c.rar}', flow: ${c.flow}, pwc: ${JSON.stringify(c.pwc)}, origin: '${c.origin}', type: '${c.type}', pos: ${JSON.stringify(c.pos)} }`);
+const lines = all.map(c => `  { id: '${c.id}', char: '${c.char}', title: ${JSON.stringify(c.title)}, rar: '${c.rar}', flow: ${c.flow}, pwc: ${JSON.stringify(c.pwc)}, origin: '${c.origin}', type: '${c.type}', pos: ${JSON.stringify(c.pos)}${c.stage ? ', stage: ' + JSON.stringify(c.stage) : ''} }`);
 const out = `/* ============================================================================
  * 選手カード一覧（自動生成: tools/build_cards.js / 出典: data/pwc_cards.json + 改変版オリジナル）
- *  rar: '1'〜'8'（8段階） flow: ★4FLOW 由来  pwc: PWC でのレアリティ（null = 改変版オリジナル）
+ *  rar: '1'〜'8'（8段階） flow: ★4FLOW 由来  pwc: PWC でのレアリティ（null = 改変版オリジナル） stage: ストーリー段階（オリジナルのみ）
  *  type: PWC のタイプ（キック / スピード / テクニック / 賢さ / フィジカル / スタミナ / コンディション）
  * ========================================================================== */
 (function (root) {
