@@ -267,7 +267,8 @@
     { id: 'balance', name: 'バランス',   desc: '全属性 成長 +4%。合計ステータスの足切りに強い。', growth: { SHT: 0.04, SPD: 0.04, TEC: 0.04, INT: 0.04, PHY: 0.04 } }
   ];
   /* エゴ・ピース：所持済みカードの再排出（限界突破）時に段階に応じて獲得。交換所で任意のカードと交換できる（PWC のピース／星上げに対応する救済） */
-  var PIECES = { gain: { '1': 2, '2': 3, '3': 5, '4': 10, '5': 20, '6': 40, '7': 80, '8': 150 }, cost: { '1': 30, '2': 50, '3': 90, '4': 200, '5': 400, '6': 800, '7': 1600, '8': 3200 } };
+  var PIECES = { gain: { '1': 2, '2': 3, '3': 5, '4': 10, '5': 20, '6': 40, '7': 80, '8': 150 }, cost: { '1': 30, '2': 50, '3': 90, '4': 200, '5': 400, '6': 800, '7': 1600, '8': 3200 },
+                 starUp: { '2': 60, '3': 150, '4': 400, '5': 900, '6': 1800, '7': 3600, '8': 7200 } }; /* starUp: その段階へ星上げする費用（ピース） */
   /* 編末ランク：合計ステータス ÷ 編基準値 */
   var PART_RANKS = [{ r: 3.0, k: 'SS' }, { r: 2.2, k: 'S' }, { r: 1.6, k: 'A' }, { r: 1.2, k: 'B' }, { r: 0.9, k: 'C' }, { r: 0, k: 'D' }];
 
@@ -494,6 +495,265 @@
         { label: '全力でついていく', fx: { roll: { p: 0.3, win: { stat: { SPD: 1.8 } }, lose: { stat: { SPD: 0.5 }, hp: -12 },
                   winText: '一瞬だけロキと並んだ。俊敏性が跳ね上がった。', loseText: '影すら踏めなかった。だが脚は確実に速くなった。' } } },
         { label: '加速のフォームを観察', fx: { stat: { SPD: 0.6, INT: 0.4 } }, result: '神童の重心移動を解析した。' } ] }
+,
+    /* ---- v6 追加：一般イベント ---- */
+    { id: 'ev_kira', rival: 'kira', title: '吉良涼介「U-18代表のエースだったのに…」',
+      text: '入寮テストで脱落した吉良の名前が、掲示板から消されていく。残った者だけが次へ進む。',
+      choices: [
+        { label: '掲示板を見つめ、自分の名前を確かめる', fx: { stat: { INT: 0.6 }, cond: 1 }, result: '生き残っている事実が、覚悟に変わった。戦術眼が向上。' },
+        { label: '目を逸らして練習に戻る', fx: { trained: 0.6 }, result: '感傷に浸る時間はない。練習の密度が上がった。' } ] },
+    { id: 'ev_nanase', rival: 'nanase', title: '七星虹郎「教えてください、先輩！」',
+      text: '七星が目を輝かせて駆け寄ってくる。「その動き、どうやってるんスか！？」',
+      choices: [
+        { label: '丁寧に教える', fx: { stat: { INT: 0.8, TEC: 0.3 } }, result: '人に説明することで、自分の動きが言語化された。戦術眼が向上。' },
+        { label: '一緒に走る', fx: { stat: { SPD: 0.7 }, hp: -6 }, result: '七星の無尽蔵のスタミナに付き合わされた。俊敏性が向上。' } ] },
+    { id: 'ev_igarashi', rival: 'igarashi', title: '五十嵐栗夢「俺、まだ生き残ってる！」',
+      text: '五十嵐が泣きながら笑っている。「ギリギリでも、生き残ればいいんだよな…？」',
+      choices: [
+        { label: '生存戦略を語り合う', fx: { stat: { INT: 0.6 }, hp: 6 }, result: '「生き残ること」を最優先に考える視点が加わった。' },
+        { label: '一緒にシュート練習', fx: { stat: { SHT: 0.7 } }, result: '五十嵐のトリッキーな崩しからのシュートを反復した。' } ] },
+    { id: 'ev_gagamaru', rival: 'gagamaru', title: '我牙丸吟「暇だから遊ぼうぜ」',
+      text: '我牙丸が四つん這いから跳ね起きる。「サッカーってさ、生き物とやるみたいで面白いよな」',
+      choices: [
+        { label: '野生の反応速度に付き合う', fx: { stat: { SPD: 0.6, PHY: 0.6 } }, result: '予測不能な動きへの反応が磨かれた。' },
+        { label: 'GK役を頼んでシュート練習', fx: { stat: { SHT: 0.9 } }, result: '野生のセービングをこじ開け続けた。決定力が向上。' } ] },
+    { id: 'ev_kiyora', rival: 'kiyora', title: '清羅刃「バランスだよ」',
+      text: '清羅がボールを軽く扱いながら言う。「何かに特化するより、全部できた方が生き残れる」',
+      choices: [
+        { label: '全体練習に付き合う', fx: { allStat: 0.25 }, result: '偏りのない動きが身についた。' },
+        { label: '一番低い能力を集中的に鍛える', fx: { weakest: 1.0 }, result: '弱点が底上げされた。' } ] },
+    { id: 'ev_zantetsu', rival: 'zantetsu', title: '剣城斬鉄「日本語、ムズカシイ」',
+      text: '剣城が真顔で言う。「ボールは…蹴る。それだけ、分かればいい」',
+      choices: [
+        { label: '単純明快な理論に乗る', fx: { stat: { SHT: 0.6, PHY: 0.5 } }, result: '余計な思考を捨てた。身体が軽くなった。' },
+        { label: '会話を試みる', fx: { stat: { INT: 0.3 }, cond: 1 }, result: '噛み合わない会話に、なぜか笑いが漏れた。' } ] },
+    { id: 'ev_naruhaya', rival: 'naruhaya', title: '成早朝日「ちゃんと名前で呼べよ」',
+      text: '成早が食ってかかる。「俺だってエゴくらい持ってる！」',
+      choices: [
+        { label: '1on1で相手をする', fx: { stat: { TEC: 0.6, SPD: 0.4 } }, result: '成早の粘り強い守備を崩し続けた。' },
+        { label: '名前で呼んで謝る', fx: { cond: 1, hp: 4 }, result: '「…分かればいいんだよ」。空気が和らいだ。' } ] },
+    { id: 'ev_okawa', rival: 'okawa', title: '大川響鬼「勝つのは俺だ」',
+      text: '大川が拳を握る。「二子の戦術より、俺の突破の方が上だ」',
+      choices: [
+        { label: '突破合戦', fx: { stat: { SPD: 0.8, PHY: 0.3 }, hp: -6 }, result: '大川の突進をかわし続けた。' },
+        { label: '二子の戦術を一緒に分析', fx: { stat: { INT: 0.8 } }, result: '支配的戦術の穴を見つける訓練になった。' } ] },
+    { id: 'ev_lorenzo', rival: 'lorenzo', arcs: ['nel', 'wc'], title: 'ドン・ロレンツォ「殺しにいく」',
+      text: '世界最高峰のDFが目の前に立つ。「ここから先は、一歩も通さない」',
+      choices: [
+        { label: '正面から突破を試みる', fx: { roll: { p: 0.3, win: { stat: { TEC: 1.6, PHY: 0.6 } }, lose: { hp: -18, stat: { PHY: 0.3 } },
+                  winText: 'ロレンツォを一度だけ抜いた。世界基準の守備を破る感覚を掴んだ。', loseText: '完全に潰された。「甘い」' } } },
+        { label: '守備の間合いを学ぶ', fx: { stat: { INT: 0.8, PHY: 0.3 } }, result: '世界最高のDFの狙いを読み解いた。' } ] },
+    { id: 'ev_chevalier', rival: 'chevalier', arcs: ['nel', 'wc'], title: 'シャルル・シュヴァリエ「ヒーローになるんだ」',
+      text: 'フランスの新星が、澄んだ目で言う。「オレは誰かのために蹴る」',
+      choices: [
+        { label: 'ヒーロー論を語り合う', fx: { stat: { INT: 0.6, SHT: 0.4 }, cond: 1 }, result: '自分のエゴを再確認した。' },
+        { label: 'シュート練習に付き合う', fx: { stat: { SHT: 1.0 } }, result: 'シュヴァリエの正確無比なシュートを研究した。' } ] },
+    { id: 'ev_snuffy', rival: 'snuffy', arcs: ['nel', 'wc'], title: 'マルク・スナッフィー「サッカーは足し算だ」',
+      text: 'ユーヴァースのマスターが穏やかに語る。「才能に、正しい理論を足せ」',
+      choices: [
+        { label: '理論を叩き込まれる', fx: { stat: { INT: 1.0, SHT: 0.4 } }, result: '得点への最短距離を数式で理解した。' },
+        { label: '実戦形式で試す', fx: { stat: { SHT: 0.8, TEC: 0.4 }, hp: -8 }, result: '理論を身体に落とし込んだ。' } ] },
+    { id: 'ev_lavinho', rival: 'lavinho', arcs: ['nel', 'wc'], title: 'ラヴィーニョ「ボールと踊れ」',
+      text: 'バルチャのマスターがリズムを刻む。「考えるな、感じろ。それがフットボールだ」',
+      choices: [
+        { label: 'リズム練習に付き合う', fx: { stat: { TEC: 1.2 } }, result: 'ボールタッチの引き出しが増えた。' },
+        { label: '即興のドリブル勝負', fx: { roll: { p: 0.35, win: { stat: { TEC: 1.5, SPD: 0.6 } }, lose: { stat: { TEC: 0.4 }, hp: -8 },
+                  winText: '一瞬だけリズムを合わせ、ラヴィーニョを抜いた。', loseText: '踊らされた。「まだ硬いな」' } } } ] },
+    { id: 'ev_prince', rival: 'prince', arcs: ['nel', 'wc'], title: 'クリス・プリンス「見せてみろ」',
+      text: 'マンシャインのマスターが腕を組む。「価値のあるプレーだけが、オレの目に残る」',
+      choices: [
+        { label: '全力の得点シーンを見せる', fx: { stat: { SHT: 0.8, SPD: 0.5 } }, result: 'プリンスが一瞬だけ頷いた。決定力が向上。' },
+        { label: '値段交渉を持ちかける', fx: { bidPerArc: 300000 }, result: '「面白い」。年俸評価が上がった。' } ] },
+    { id: 'ev_luna', rival: 'luna', arcs: ['nel', 'wc'], title: 'レオナルド・ルナ「スペインの技を見せてやる」',
+      text: '流麗なボールタッチ。「ボールは友達、じゃない。ボールは自分の一部だ」',
+      choices: [
+        { label: 'タッチを真似る', fx: { stat: { TEC: 1.0, INT: 0.3 } }, result: 'ボールが足に吸い付く感覚を掴んだ。' },
+        { label: 'ポゼッションを崩す練習', fx: { stat: { INT: 0.7, SPD: 0.4 } }, result: 'パス回しの穴を読む力が向上した。' } ] },
+    { id: 'ev_honda', rival: 'honda', title: '本田圭佑「ゴール前で、何を考えとる？」',
+      text: '特別ゲストが問いかける。「迷ったら、蹴れ。迷いが一番の敵や」',
+      choices: [
+        { label: '「決めることだけ」と答える', fx: { stat: { SHT: 0.8 }, cond: 1 }, result: '「ええ顔や」。決定力と心が整った。' },
+        { label: 'メンタルの保ち方を聞く', fx: { hp: 10, cond: 1 }, result: '折れない心の作り方を学んだ。' } ] },
+    { id: 'ev_video', rival: null, title: '分析ルームの映像研究',
+      text: '深夜の分析ルーム。自分の失敗シーンが何度もリピートされる。',
+      choices: [
+        { label: '失敗を徹底的に言語化する', fx: { stat: { INT: 1.0 } }, result: '自分の癖と敵の狙いが見えた。戦術眼が向上。' },
+        { label: '成功シーンだけ見て寝る', fx: { hp: 8, cond: 1 }, result: 'イメージを固めて眠った。' } ] },
+    { id: 'ev_media', rival: null, title: '取材班の密着',
+      text: 'カメラがこちらを追う。「あなたのエゴを一言で表すと？」',
+      choices: [
+        { label: '堂々と語る', fx: { bidPerArc: 200000, cond: 1 }, result: '注目度が上がり、年俸評価がわずかに上昇した。' },
+        { label: '無視して練習', fx: { trained: 0.6 }, result: '雑音を遮断した。練習効率が上がった。' } ] },
+    { id: 'ev_night', rival: null, title: '深夜の自主練',
+      text: '消灯後、ボールを蹴る音が聞こえる。誰かがまだ練習している。',
+      choices: [
+        { label: '混ざって限界まで蹴る', fx: { roll: { p: 0.55, win: { trained: 1.2 }, lose: { hp: -14, cond: -1 },
+                  winText: '静寂の中で集中が極まった。獲得量が跳ね上がった。', loseText: '寝不足で翌日の練習が崩れた。' } } },
+        { label: '寝る', fx: { hp: 6 }, result: '回復を優先した。' } ] },
+    { id: 'ev_rain', rival: null, title: '豪雨の練習',
+      text: 'ピッチが水に沈む。ボールは止まり、脚は重い。',
+      choices: [
+        { label: 'フィジカルで押し切る', fx: { stat: { PHY: 1.0 }, hp: -8 }, result: '重いピッチで体幹が鍛えられた。' },
+        { label: '浮き球の技術を磨く', fx: { stat: { TEC: 0.8 } }, result: '水たまりを避ける浮き球の精度が上がった。' } ] },
+    { id: 'ev_scout', rival: null, title: 'スカウトの視察',
+      text: 'スタンドにスーツの男たち。ノートに何かを書き込んでいる。',
+      choices: [
+        { label: '見せつける', fx: { roll: { p: 0.5, win: { bidPerArc: 400000 }, lose: { cond: -1 },
+                  winText: 'スカウトの目が止まった。年俸評価が上がった。', loseText: '意識しすぎてプレーが硬くなった。' } } },
+        { label: 'いつも通りやる', fx: { trained: 0.5 }, result: '普段どおりの練習を積んだ。' } ] },
+    { id: 'ev_dorm', rival: null, title: '寮の食堂で',
+      text: '今日のメニューは特盛り。栄養士が「食え」と皿を置く。',
+      choices: [
+        { label: '完食する', fx: { hp: 10, stat: { PHY: 0.3 } }, result: 'HP が回復し、体が重くなるほど食べた。' },
+        { label: '半分残して走る', fx: { stat: { SPD: 0.4 }, hp: 3 }, result: '軽さを保った。' } ] },
+    { id: 'ev_shoes', rival: null, title: '新しいスパイク',
+      text: '購買部に新モデルが入荷した。「足に合えば化けるぞ」',
+      choices: [
+        { label: '買う（Cash 消費）', fx: { cashPerArc: -15000, stat: { SPD: 0.5, SHT: 0.5 } }, result: '足に馴染んだ。俊敏性と決定力が向上。' },
+        { label: '今のスパイクで十分', fx: { stat: { TEC: 0.3 } }, result: '慣れた道具で技術を磨いた。' } ] },
+    { id: 'ev_medical', rival: null, title: 'メディカルチェック',
+      text: 'ドクターが眉をひそめる。「筋肉に張りがある。無理は禁物だ」',
+      choices: [
+        { label: '治療を受ける', fx: { hp: 15 }, result: '疲労が抜けた。' },
+        { label: '「問題ない」と練習へ', fx: { trained: 0.7, hp: -6 }, result: '痛みを無視して追い込んだ。' } ] },
+    { id: 'ev_teddy', rival: 'teddy', arcs: ['nel', 'wc'], title: 'テディ・ナイト「騎士の一撃」',
+      text: 'イングランドの新星が、静かにゴールを見据える。「格が違うところを見せてやる」',
+      choices: [
+        { label: 'シュート勝負', fx: { roll: { p: 0.35, win: { stat: { SHT: 1.6 } }, lose: { stat: { SHT: 0.4 }, hp: -10 },
+                  winText: '騎士の一撃を上回った。決定力が跳ね上がった。', loseText: '格の違いを見せつけられた。' } } },
+        { label: '観察に徹する', fx: { stat: { INT: 0.7, SHT: 0.3 } }, result: '世界基準のシュート選択を学んだ。' } ] },
+    { id: 'ev_onaji', rival: 'onaji', arcs: ['wc'], title: 'オナジ「ナイジェリアの獣」',
+      text: '規格外の身体能力。「お前ら、細すぎる」',
+      choices: [
+        { label: 'フィジカル勝負', fx: { stat: { PHY: 1.2 }, hp: -10 }, result: '獣のような当たりに耐え続けた。' },
+        { label: '駆け引きで抜く', fx: { stat: { INT: 0.6, TEC: 0.5 } }, result: '力ではなく技で抜く感覚を掴んだ。' } ] },
+    { id: 'ev_hugo', rival: 'hugo', arcs: ['wc'], title: 'ユーゴー「フランスの壁」',
+      text: 'フランス代表の巨漢が笑う。「ロキの前に、まずオレを抜いてみろ」',
+      choices: [
+        { label: '空中戦を挑む', fx: { stat: { PHY: 0.9, SHT: 0.3 } }, result: '空中戦の競り方が上達した。' },
+        { label: '足元で勝負', fx: { stat: { TEC: 0.8 } }, result: '巨漢の足元をすり抜けた。' } ] },
+    /* ---- v6 追加：原作ペアの化学反応イベント（相棒がペア相手のときだけ発生） ---- */
+    { id: 'pv_isagi_bachira', pair: ['isagi', 'bachira'], title: '化学反応「怪物と空間認識」',
+      text: '蜂楽のドリブルが視界の外から現れ、潔の視野がそれを拾う。二人の「見えている景色」が重なった。',
+      choices: [
+        { label: '即興のコンビネーションを極める', fx: { stat: { INT: 1.2, TEC: 1.0 } }, result: '互いの動きが読めるようになった。戦術眼と技術が大きく向上。' },
+        { label: 'ゴール前の崩しに集中', fx: { stat: { SHT: 1.0, INT: 0.6 } }, result: '怪物の囮からの決定機を反復した。' } ] },
+    { id: 'pv_isagi_nagi', pair: ['isagi', 'nagi'], title: '化学反応「天才と凡才」',
+      text: '凪のトラップと潔の予測。「お前がそこにいるから、オレは蹴れる」',
+      choices: [
+        { label: '凪の感覚を言語化させる', fx: { stat: { TEC: 1.3, INT: 0.6 } }, result: '天才の感覚が理論になった。技術が大きく向上。' },
+        { label: '潔の理論を凪に叩き込む', fx: { stat: { INT: 1.0, SHT: 0.8 } }, result: '凡才の積み上げが天才に伝わった。' } ] },
+    { id: 'pv_nagi_reo', pair: ['nagi', 'reo'], title: '化学反応「相棒」',
+      text: '玲王のパスが、凪の足元に寸分違わず届く。言葉はいらない。',
+      choices: [
+        { label: '阿吽の呼吸を磨く', fx: { stat: { TEC: 1.0, INT: 1.0 } }, result: '互いの位置を見ずに合わせられるようになった。' },
+        { label: '玲王の資金で環境を整える', fx: { cashPerArc: 30000, stat: { TEC: 0.5 } }, result: 'Cash と技術が向上した。' } ] },
+    { id: 'pv_chigiri_kunigami', pair: ['chigiri', 'kunigami'], title: '化学反応「神速とヒーロー」',
+      text: '千切の裏抜けに、國神のロングボールが一直線に届く。',
+      choices: [
+        { label: 'ロングカウンターを反復', fx: { stat: { SPD: 1.3, PHY: 0.7 } }, result: '一撃で試合を決めるカウンターが形になった。' },
+        { label: 'フィジカルとスピードの両立を鍛える', fx: { stat: { SPD: 0.8, PHY: 1.0 } }, result: '走力と当たり負けしない体が同時に育った。' } ] },
+    { id: 'pv_rin_sae', pair: ['rin', 'sae'], title: '化学反応「糸師兄弟」',
+      text: '冴の「壊す」蹴りと凛の「殺す」蹴り。血の繋がった二人のボールが、同じ軌道を描く。',
+      choices: [
+        { label: '兄弟のシュート練習に混ざる', fx: { roll: { p: 0.45, win: { stat: { SHT: 2.0, TEC: 1.0 } }, lose: { stat: { SHT: 0.6 }, hp: -12 },
+                  winText: '世界最高峰の兄弟の蹴りを目に焼き付け、決定力が爆発した。', loseText: '「消えろ」。二人の視線に射抜かれた。' } } },
+        { label: '二人の駆け引きを分析する', fx: { stat: { INT: 1.2, SHT: 0.5 } }, result: '天才同士の読み合いを解析した。' } ] },
+    { id: 'pv_isagi_rin', pair: ['isagi', 'rin'], title: '化学反応「宿敵」',
+      text: '凛が潔を見て舌打ちする。「お前がいると、オレの視界が広がるのが気に食わない」',
+      choices: [
+        { label: '互いの視野を奪い合う', fx: { stat: { INT: 1.4, SHT: 0.6 } }, result: 'メタビジョンの解像度が上がった。' },
+        { label: 'ゴール前で競り合う', fx: { stat: { SHT: 1.2, PHY: 0.5 }, hp: -6 }, result: '最高のライバルと殴り合うように蹴り合った。' } ] },
+    { id: 'pv_isagi_barou', pair: ['isagi', 'barou'], title: '化学反応「王様と奴隷」',
+      text: '馬狼が潔を睨む。「お前の囮で、オレが決める。それだけだ」',
+      choices: [
+        { label: '王様のフィニッシュを引き出す', fx: { stat: { SHT: 1.3, PHY: 0.7 } }, result: '強引な突破からの決定力が育った。' },
+        { label: '奴隷の反逆を練習する', fx: { stat: { INT: 1.0, SHT: 0.6 } }, result: '王様を利用して自分が決める形を作った。' } ] },
+    { id: 'pv_rin_shidou', pair: ['rin', 'shidou'], title: '化学反応「相性最悪の最強」',
+      text: '凛と士道が同時にゴール前へ突っ込む。憎み合う二人のシュートが、なぜか噛み合う。',
+      choices: [
+        { label: '二人の間に割って入る', fx: { stat: { SHT: 1.2, SPD: 1.0 }, hp: -10 }, result: '殺気の中で決定力と俊敏性が研ぎ澄まされた。' },
+        { label: '距離を取って学ぶ', fx: { stat: { INT: 0.9, SHT: 0.5 } }, result: '狂気と冷静の両方を観察した。' } ] },
+    { id: 'pv_aryu_tokimitsu', pair: ['aryu', 'tokimitsu'], title: '化学反応「オシャとネガティブ」',
+      text: '蟻生の空中戦と時光の壁。「オシャに競れ」「無理かも…」',
+      choices: [
+        { label: '空中戦の反復', fx: { stat: { PHY: 1.6 }, hp: -8 }, result: '規格外の二人と競り続け、肉体が大幅に向上。' },
+        { label: 'ポジショニングを学ぶ', fx: { stat: { INT: 0.8, PHY: 0.6 } }, result: '空中戦に入る前の位置取りを覚えた。' } ] },
+    { id: 'pv_niko_bachira', pair: ['niko', 'bachira'], title: '化学反応「影と怪物」',
+      text: '二子の支配的な戦術の上で、蜂楽の怪物が暴れ回る。',
+      choices: [
+        { label: '戦術と即興の両立を試す', fx: { stat: { INT: 1.2, TEC: 0.9 } }, result: '型と型破りを同時に扱えるようになった。' },
+        { label: '二子の指示で動く', fx: { stat: { INT: 1.0 }, cond: 1 }, result: '考える負担が減り、集中が保てた。' } ] },
+    { id: 'pv_yukimiya_hiori', pair: ['yukimiya', 'hiori'], title: '化学反応「一瞬と俯瞰」',
+      text: '氷織の正確なパスが、雪宮の一瞬の閃きに合う。',
+      choices: [
+        { label: 'ワンタッチの崩しを磨く', fx: { stat: { TEC: 1.2, INT: 0.8 } }, result: '狭い局面を一瞬で崩す型ができた。' },
+        { label: '1on1の練習相手になる', fx: { stat: { SHT: 0.9, TEC: 0.6 } }, result: '雪宮のフェイントを何度も見た。' } ] },
+    { id: 'pv_karasu_otoya', pair: ['karasu', 'otoya'], title: '化学反応「烏と忍者」',
+      text: '烏の読みと乙夜の消える動き。DFが何もできずに崩れていく。',
+      choices: [
+        { label: '死角への侵入を反復', fx: { stat: { SPD: 1.2, INT: 1.0 } }, result: '死角に入る動き出しを体で覚えた。' },
+        { label: '烏の駆け引きを教わる', fx: { stat: { INT: 1.1, TEC: 0.5 } }, result: '弱点を作り出す狡猾さを学んだ。' } ] },
+    { id: 'pv_kaiser_ness', pair: ['kaiser', 'ness'], title: '化学反応「皇帝と魔術師」',
+      text: 'ネスの魔術的なパスが、カイザーの足元に寸分違わず届く。「跪け」',
+      choices: [
+        { label: '皇帝のフィニッシュを盗む', fx: { stat: { SHT: 1.6, TEC: 0.6 } }, result: 'カイザーインパクトの原理を理解した。' },
+        { label: 'ネスのパスコースを読む', fx: { stat: { INT: 1.0, TEC: 0.8 } }, result: '魔術の種を見抜いた。' } ] },
+    { id: 'pv_noa_isagi', pair: ['noa', 'isagi'], title: '化学反応「世界最高と目撃者」',
+      text: 'ノアが潔を見て言う。「お前の目は、オレの動きを言語化できる」',
+      choices: [
+        { label: '世界最高の練習に付き合う', fx: { allStat: 0.5 }, result: '全能力が世界基準に引き上げられた。' },
+        { label: '完全無欠の理論を聞く', fx: { stat: { INT: 1.2, SHT: 0.8 } }, result: 'ノアの「完璧」の定義を理解した。' } ] },
+    { id: 'pv_kunigami_raichi', pair: ['kunigami', 'raichi'], title: '化学反応「ヒーローと気迫」',
+      text: '國神の大砲と雷市の突進。泥臭い二人のゴール前。',
+      choices: [
+        { label: 'ゴール前の肉弾戦', fx: { stat: { PHY: 1.2, SHT: 0.8 }, hp: -8 }, result: '当たり負けしない決定力が育った。' },
+        { label: 'ロングシュートを反復', fx: { stat: { SHT: 1.2 } }, result: '遠くから撃ち抜く自信がついた。' } ] },
+    { id: 'pv_gagamaru_igarashi', pair: ['gagamaru', 'igarashi'], title: '化学反応「野生と生存本能」',
+      text: '我牙丸の反射と五十嵐のしぶとさ。「生き残るためなら何でもやる」',
+      choices: [
+        { label: '反応速度の訓練', fx: { stat: { SPD: 1.1, PHY: 0.7 } }, result: '予測不能な状況への反応が磨かれた。' },
+        { label: '生存戦略を練る', fx: { stat: { INT: 0.8 }, hp: 6 }, result: '無駄な消耗を避ける知恵がついた。' } ] },
+    { id: 'pv_loki_chevalier', pair: ['loki', 'chevalier'], title: '化学反応「フランスの新星たち」',
+      text: 'ロキの加速にシュヴァリエのパスが追いつく。世界最速の連携。',
+      choices: [
+        { label: '超高速のカウンターを反復', fx: { stat: { SPD: 1.4, TEC: 0.8 }, hp: -6 }, result: '世界最速の連携に食らいついた。' },
+        { label: 'パスの精度を磨く', fx: { stat: { TEC: 1.1, INT: 0.6 } }, result: '走る味方に合わせる精度が上がった。' } ] },
+    { id: 'pv_snuffy_barou', pair: ['snuffy', 'barou'], title: '化学反応「マスターと王様」',
+      text: 'スナッフィーが馬狼に言う。「王様なら、王様のやり方で足し算をしろ」',
+      choices: [
+        { label: '王様の理論武装', fx: { stat: { SHT: 1.4, INT: 0.8 } }, result: '独善に理論が加わった。決定力と戦術眼が向上。' },
+        { label: 'HUNTING BEASTの動きを学ぶ', fx: { stat: { SHT: 1.0, PHY: 1.0 } }, result: '狩る動きが身についた。' } ] },
+    { id: 'pv_lavinho_nagi', pair: ['lavinho', 'nagi'], title: '化学反応「マスターと天才」',
+      text: 'ラヴィーニョが凪に言う。「面倒くさがりのお前が、一番踊れる」',
+      choices: [
+        { label: 'リズムの中でトラップ', fx: { stat: { TEC: 1.8 } }, result: '重力を無視するトラップの精度が極まった。' },
+        { label: '天才の「めんどくさい」を解剖', fx: { stat: { INT: 1.0, TEC: 0.6 } }, result: '省エネの最適解を学んだ。' } ] },
+    { id: 'pv_prince_chigiri', pair: ['prince', 'chigiri'], title: '化学反応「マスターと神速」',
+      text: 'プリンスが千切の走りを見て言う。「価値のある速さだ」',
+      choices: [
+        { label: '価値ある加速を磨く', fx: { stat: { SPD: 1.7 } }, result: '神速の切れ味が増した。' },
+        { label: '裏抜けのタイミングを学ぶ', fx: { stat: { SPD: 1.0, INT: 0.8 } }, result: 'いつ走るかを体が覚えた。' } ] },
+    { id: 'pv_kurona_yukimiya', pair: ['kurona', 'yukimiya'], title: '化学反応「シャークと一瞬」',
+      text: '黒名の初速と雪宮の閃き。バスタードの若手が噛み合う。',
+      choices: [
+        { label: '高速の連携', fx: { stat: { SPD: 1.2, TEC: 0.8 } }, result: '速さと技術が同時に育った。' },
+        { label: 'ボール奪取の練習', fx: { stat: { PHY: 0.7, TEC: 0.7 } }, result: '奪ってからの一撃が速くなった。' } ] },
+    { id: 'pv_aiku_sendou', pair: ['aiku', 'sendou'], title: '化学反応「U-20の矛と盾」',
+      text: '愛空の守備と閃堂の攻撃。日本代表の矛盾が、練習で火花を散らす。',
+      choices: [
+        { label: '矛盾の対決に混ざる', fx: { stat: { PHY: 1.2, INT: 0.8 }, hp: -8 }, result: '世界基準の攻守を体で学んだ。' },
+        { label: '両者の間合いを分析', fx: { stat: { INT: 1.3 } }, result: '攻守の間合いの取り方が見えた。' } ] },
+    { id: 'pv_teddy_achampong', pair: ['teddy', 'achampong'], title: '化学反応「イングランドの新世代」',
+      text: 'テディの一撃とアチャンポンの突破。イングランドの矛が揃う。',
+      choices: [
+        { label: '世界の決定力に触れる', fx: { stat: { SHT: 1.4, PHY: 0.6 } }, result: '世界基準のフィニッシュを学んだ。' },
+        { label: '突破の型を学ぶ', fx: { stat: { SPD: 0.9, TEC: 0.9 } }, result: '力強い突破が身についた。' } ] },
+    { id: 'pv_mitoma_isagi', pair: ['mitoma', 'isagi'], title: '化学反応「ワールドストライカーの教え」',
+      text: '三笘が潔の動きを見て言う。「見えているなら、あとは速さだ」',
+      choices: [
+        { label: 'ドリブルの初速を学ぶ', fx: { stat: { SPD: 1.3, TEC: 0.7 } }, result: '見えた景色に体が追いつくようになった。' },
+        { label: '判断の速さを鍛える', fx: { stat: { INT: 1.2, SPD: 0.5 } }, result: '選択肢を選ぶ速度が上がった。' } ] }
   ];
 
   /* ------------------------------------------------------ 新英雄大戦 クラブ */
@@ -571,7 +831,64 @@
     { id: 'rank_1',       name: 'BLランキング1位',      desc: '青い監獄ランキング 1 位に到達した',           gems: 500 },
     { id: 'part_ss',      name: '編評価 SS',            desc: '編末ランクで SS を獲得した',                  gems: 300 },
     { id: 'exchange_1',   name: 'ピース交換',           desc: 'エゴ・ピースでカードを交換した',              gems: 100 },
-    { id: 'five_parts',   name: '五編踏破',             desc: '第五編・決戦に到達した',                      gems: 400 }
+    { id: 'five_parts',   name: '五編踏破',             desc: '第五編・決戦に到達した',                      gems: 400 },
+    /* v6 */
+    { id: 'grad_first',   name: '初卒業',               desc: '第一編を卒業し、選手を次の編へ持ち越した',   gems: 150 },
+    { id: 'grad_4',       name: '決戦資格',             desc: '第四編を卒業した（決戦メンバー候補）',       gems: 400 },
+    { id: 'grads_5',      name: '五人の卒業生',         desc: '育成済み選手が 5 名以上になった',            gems: 300 },
+    { id: 'final_first',  name: '決戦出撃',             desc: '5 人の決戦メンバーで U-20 W杯に出撃した',    gems: 300 },
+    { id: 'squad_clear',  name: '五人の世界一',         desc: '決戦メンバー 5 人で世界一を達成した',        gems: 1000 },
+    { id: 'star_up',      name: '星上げ',               desc: 'エゴ・ピースでカードの段階を上げた',         gems: 200 },
+    { id: 'upgrade_1',    name: 'エゴ強化',             desc: '永続強化を初めて購入した',                   gems: 100 },
+    { id: 'upgrade_max',  name: '完全強化',             desc: 'いずれかの永続強化を最大 Lv にした',         gems: 500 },
+    { id: 'mastery_5',    name: '熟練の証',             desc: 'いずれかのキャラの熟練度が Lv5 に達した',    gems: 300 },
+    { id: 'chem_pair',    name: '原作の化学反応',       desc: '原作ペアの化学反応イベントが発生した',       gems: 150 }
+  ];
+
+
+  /* ---------------------------------------------------- v6：永続強化（エゴ強化）
+   * Ego Gems で購入。Lv→Lv+1 の費用 = cost × (Lv+1)。RUN 開始時にスナップショットされ、その RUN に適用される。
+   */
+  var UPGRADES = [
+    { id: 'train_eff',  name: '練習理論',           icon: '📈', desc: '全属性の成長補正 +2%／Lv',                 max: 10, cost: 200, per: { growthAll: 0.02 } },
+    { id: 'base_stat',  name: '入寮前トレーニング', icon: '🏃', desc: '第一編開始時の初期ステータス +2%／Lv',     max: 10, cost: 250, per: { baseStat: 0.02 } },
+    { id: 'hp_rest',    name: '回復設備',           icon: '🛏', desc: '休養の HP 回復 +3／Lv',                    max: 5,  cost: 150, per: { restBonus: 3 } },
+    { id: 'flow_p',     name: 'ゾーン誘導',         icon: '🌊', desc: 'FLOW 突入率 +1%／Lv',                      max: 5,  cost: 300, per: { flowP: 0.01 } },
+    { id: 'awaken_th',  name: '覚醒理論',           icon: '💡', desc: 'スキル・固有覚醒の閾値 −2%／Lv',           max: 5,  cost: 250, per: { thMult: -0.02 } },
+    { id: 'event_rate', name: '化学反応の場',       icon: '⚗', desc: '突発化学反応イベント率 +2%／Lv',           max: 5,  cost: 150, per: { eventRate: 0.02 } },
+    { id: 'store_disc', name: '購買部コネ',         icon: '🏪', desc: '購買部の価格 −3%／Lv',                     max: 5,  cost: 100, per: { priceMult: -0.03 } },
+    { id: 'bid_up',     name: '代理人契約',         icon: '📝', desc: '年俸（入札）評価 +3%／Lv',                 max: 5,  cost: 200, per: { bidMult: 0.03 } },
+    { id: 'elim_gems',  name: '再起の契約',         icon: '💎', desc: '除籍時の補償ジェム +10%／Lv',              max: 5,  cost: 150, per: { elimGemMult: 0.10 } },
+    { id: 'final_uses', name: '決戦の采配',         icon: '🧭', desc: '決戦で同じ選手を起用できる回数の上限 +1／Lv', max: 2, cost: 800, per: { finalUses: 1 } }
+  ];
+  /* 熟練度：キャラごとの累積 XP（編を卒業 +1、決戦制覇 +3）。Lv ごとに成長補正 +1%・初期値 +1% */
+  var MASTERY_TH = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
+  /* 原作ペアの化学反応：相棒（同行カード）がペア相手のとき、成長補正・選択肢補正とペア専用イベントが解放される */
+  var CHEMISTRY = [
+    { a: 'isagi',    b: 'bachira',   name: '怪物と空間認識',       fx: { growth: { INT: 0.04, TEC: 0.04 }, opt: { B: 2 } } },
+    { a: 'isagi',    b: 'nagi',      name: '天才と凡才の共鳴',     fx: { growth: { TEC: 0.04, SHT: 0.04 }, opt: { A: 2 } } },
+    { a: 'nagi',     b: 'reo',       name: '相棒',                 fx: { growth: { TEC: 0.04, INT: 0.04 }, opt: { B: 2 }, cashMult: 1.1 } },
+    { a: 'chigiri',  b: 'kunigami',  name: '神速とヒーロー',       fx: { growth: { SPD: 0.04, PHY: 0.04 }, opt: { C: 2 } } },
+    { a: 'rin',      b: 'sae',       name: '糸師兄弟',             fx: { growth: { SHT: 0.05, TEC: 0.05 }, opt: { A: 3 } } },
+    { a: 'isagi',    b: 'rin',       name: '宿敵',                 fx: { growth: { INT: 0.04, SHT: 0.04 }, opt: { D: 2 } } },
+    { a: 'isagi',    b: 'barou',     name: '王様と奴隷',           fx: { growth: { SHT: 0.04, PHY: 0.04 }, opt: { A: 2 } } },
+    { a: 'rin',      b: 'shidou',    name: '相性最悪の最強',       fx: { growth: { SHT: 0.04, SPD: 0.04 }, all: 1 } },
+    { a: 'aryu',     b: 'tokimitsu', name: 'オシャとネガティブ',   fx: { growth: { PHY: 0.06 }, opt: { A: 2 } } },
+    { a: 'niko',     b: 'bachira',   name: '影と怪物',             fx: { growth: { INT: 0.04, TEC: 0.04 }, opt: { B: 2 } } },
+    { a: 'yukimiya', b: 'hiori',     name: '一瞬と俯瞰',           fx: { growth: { TEC: 0.04, INT: 0.04 }, opt: { B: 2 } } },
+    { a: 'karasu',   b: 'otoya',     name: '烏と忍者',             fx: { growth: { SPD: 0.04, INT: 0.04 }, opt: { C: 2 } } },
+    { a: 'kaiser',   b: 'ness',      name: '皇帝と魔術師',         fx: { growth: { SHT: 0.05, TEC: 0.05 }, opt: { A: 3 } } },
+    { a: 'noa',      b: 'isagi',     name: '世界最高と目撃者',     fx: { growth: { SHT: 0.02, SPD: 0.02, TEC: 0.02, INT: 0.02, PHY: 0.02 }, all: 1 } },
+    { a: 'kunigami', b: 'raichi',    name: 'ヒーローと気迫',       fx: { growth: { PHY: 0.04, SHT: 0.04 }, opt: { A: 2 } } },
+    { a: 'gagamaru', b: 'igarashi',  name: '野生と生存本能',       fx: { growth: { PHY: 0.04, SPD: 0.04 }, opt: { C: 2 } } },
+    { a: 'loki',     b: 'chevalier', name: 'フランスの新星たち',   fx: { growth: { SPD: 0.04, TEC: 0.04 }, opt: { C: 2 } } },
+    { a: 'snuffy',   b: 'barou',     name: 'マスターと王様',       fx: { growth: { SHT: 0.05, PHY: 0.05 }, opt: { A: 3 } } },
+    { a: 'lavinho',  b: 'nagi',      name: 'マスターと天才',       fx: { growth: { TEC: 0.06 }, opt: { B: 3 } } },
+    { a: 'prince',   b: 'chigiri',   name: 'マスターと神速',       fx: { growth: { SPD: 0.06 }, opt: { C: 3 } } },
+    { a: 'kurona',   b: 'yukimiya',  name: 'シャークと一瞬',       fx: { growth: { SPD: 0.04, TEC: 0.04 }, opt: { C: 2 } } },
+    { a: 'aiku',     b: 'sendou',    name: 'U-20の矛と盾',         fx: { growth: { PHY: 0.04, INT: 0.04 }, opt: { A: 2 } } },
+    { a: 'teddy',    b: 'achampong', name: 'イングランドの新世代', fx: { growth: { SHT: 0.04, PHY: 0.04 }, opt: { A: 2 } } },
+    { a: 'mitoma',   b: 'isagi',     name: 'ワールドストライカーの教え', fx: { growth: { SPD: 0.04, INT: 0.04 }, opt: { C: 2 } } }
   ];
 
   /* ------------------------------------------------------- 調整パラメータ */
@@ -599,12 +916,20 @@
     FLOW_CARD_P: 0.15, FLOW_CARD_BONUS: 5,   /* ★4FLOW 由来カード：FLOW 突入率 +15% / FLOW ボーナス +5pt */
     HOT_MULT: 1.25,                         /* 化学反応練習：週ごとに指定される1属性の主獲得量 ×1.25 */
     POS_BONUS: 2,                           /* ポジション適性 +2% */
-    P_CAP: 92                               /* Climax 成功率の上限(%)。最低保証は無いが、100% も無い（単発の試練は対象外） */
+    P_CAP: 92,                              /* Climax 成功率の上限(%)。最低保証は無いが、100% も無い（単発の試練は対象外） */
+    /* v6 */
+    STARUP_MAX: 3,                          /* 1 カードあたりの星上げ回数上限 */
+    PIECES_GRAD: 10, PIECES_ELIM: 3,        /* 卒業／除籍で得るピース（× 編番号） */
+    FINAL_SQUAD: 5, FINAL_USES: 4, FINAL_MIN_HEALTHY: 3, /* 決戦：5 人編成・同一選手の起用上限（全 18 局面）・故障で 3 人未満なら敗退 */
+    PARTNER_GROWTH_BASE: 0.015, PARTNER_GROWTH_TIER: 0.005, /* 相棒：主属性の成長 +1.5% + 0.5%×段階 */
+    MASTERY_GROWTH: 0.01, MASTERY_BASE: 0.01, MASTERY_XP_PART: 1, MASTERY_XP_FINAL: 3,
+    FINAL_LOSS_KEEPS_GRADS: true            /* 決戦敗退時に卒業生を失わない（原作でも W杯敗退は除籍ではない） */
   };
 
   BL.DATA = {
     STATS: STATS, STAT_META: STAT_META, TYPE_MAP: TYPE_MAP, RARITY: RARITY, RARITY_ORDER: RARITY_ORDER,
     CHARACTERS: CHARACTERS, POS_AFFINITY: POS_AFFINITY, POLICIES: POLICIES, PIECES: PIECES, PART_RANKS: PART_RANKS, ADVISORS: ADVISORS, SKILLS: SKILLS, FAMILY_JP: FAMILY_JP, OPTIONS: OPTIONS,
+    UPGRADES: UPGRADES, MASTERY_TH: MASTERY_TH, CHEMISTRY: CHEMISTRY,
     ITEMS: ITEMS, CONDITIONS: CONDITIONS, COND_ORDER: COND_ORDER, EVENTS: EVENTS, NEL_CLUBS: NEL_CLUBS,
     WORLD_CUP: WORLD_CUP, ACHIEVEMENTS: ACHIEVEMENTS, PARAMS: PARAMS,
     DISCLAIMER: '本ゲームは原作のブルーロックを忠実に再現した、『ブルーロックPWC』の改変版である',

@@ -1,2 +1,4 @@
 shots/
 node_modules/
+assets/portraits/*
+!assets/portraits/README.md

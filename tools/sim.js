@@ -33,10 +33,13 @@ const POLICY_BY_TYPE = { 'キック': 'shoot', 'フィジカル': 'shoot', 'ス�
 function policyFor(run) { if (process.env.POLICY) return process.env.POLICY; const c = BL.cardById(run.cardId); return POLICY_BY_TYPE[c && c.type] || 'balance'; }
 function bestOption(opts) { let b = opts[0]; for (const o of opts) if (o.p > b.p) b = o; return b; }
 
-function playRun(cardId, dupes, advisor) {
-  const state = BL.newState(); state.meta.roster[cardId] = { dupes: dupes || 0 };
-  BL.startRun(state, cardId, advisor || 'ego');
-  const out = { arcReached: 0, cleared: false, reason: '' };
+function bestFinalPick(cur) {
+  let best = null;
+  for (const pe of cur.players) { if (!pe.avail) continue; for (const o of pe.options) if (!best || o.p > best.o.p || (o.p === best.o.p && pe.uses < best.pe.uses)) best = { pe, o }; }
+  return best;
+}
+/** 1 RUN（編）を最後まで進める。戻り値 'graduated' | 'gameover' | 'clear' */
+function playPart(state) {
   let guard = 0;
   while (state.run && guard++ < 3000) {
     const run = state.run;
@@ -48,21 +51,40 @@ function playRun(cardId, dupes, advisor) {
       case 'event': BL.resolveEvent(state, Math.floor(rnd() * 2)); break;
       case 'match':
         if (run.match.showResult) { BL.dismissResult(state); break; }
-        BL.chooseClimax(state, bestOption(run.match.current.options).key); break;
+        if (run.match.current.players) { const b = bestFinalPick(run.match.current); BL.chooseClimax(state, b.o.key, b.pe.i); }
+        else BL.chooseClimax(state, bestOption(run.match.current.options).key);
+        break;
       case 'matchResult':
         if (run.match && run.match.showResult) { BL.dismissResult(state); break; }
         BL.nextAfterMatch(state); break;
-      case 'evaluation':
-        if (run.evalResult.survived) out.arcReached = run.arc + 1;
-        BL.advance(state); break;
-      case 'gameover': out.reason = run.gameover.reason; BL.closeRun(state); break;
-      case 'clear': out.cleared = true; BL.closeRun(state); break;
+      case 'evaluation': BL.advance(state); break;
+      case 'graduated': return 'graduated';
+      case 'gameover': return 'gameover';
+      case 'clear': return 'clear';
       default: throw new Error('unknown phase ' + run.phase);
     }
   }
-  if (guard >= 3000) throw new Error('loop guard');
-  return out;
+  throw new Error('loop guard');
 }
+/** カード 1 枚を第一編から決戦まで通す（卒業生で次の編へ。決戦は同一卒業生 5 体の複製で出撃） */
+function playRun(cardId, dupes, advisor) {
+  const state = BL.newState(); state.meta.roster[cardId] = { dupes: dupes || 0, tier: 0 };
+  const adv = advisor || 'ego';
+  let r = BL.startRun(state, { cardId, advisorId: adv }); if (!r.ok) throw new Error('start ' + r.reason);
+  const out = { arcReached: 0, cleared: false, reason: '' };
+  for (let i = 0; i < 8; i++) {
+    const res = playPart(state);
+    if (res === 'gameover') { out.reason = state.run.gameover.reason; BL.closeRun(state); return out; }
+    if (res === 'clear') { out.cleared = true; out.arcReached = ARCS_N; BL.closeRun(state); return out; }
+    const g = state.meta.grads[state.meta.grads.length - 1]; out.arcReached = g.part; BL.closeRun(state);
+    if (g.part >= ARCS_N - 1) {
+      for (let k = 0; k < 4; k++) { const c = JSON.parse(JSON.stringify(g)); c.id = 'clone' + k; state.meta.grads.push(c); }
+      r = BL.startFinal(state, state.meta.grads.map(x => x.id), adv); if (!r.ok) throw new Error('final ' + r.reason);
+    } else { r = BL.startRun(state, { gradId: g.id, advisorId: adv }); if (!r.ok) throw new Error('next ' + r.reason); }
+  }
+  throw new Error('too many parts');
+}
+const ARCS_N = BL.STORY.arcs.length;
 module.exports = { playRun };
 
 if (require.main === module) {
@@ -77,7 +99,7 @@ if (require.main === module) {
   console.log('card'.padEnd(34), 'rar', ' typ', '  第一'.padStart(6), '第二'.padStart(6), '第三'.padStart(6), '第四'.padStart(6), '第五'.padStart(6), '  clear%');
   const agg = {};
   for (const c of cards) {
-    const surv = [0, 0, 0, 0, 0, 0]; let clears = 0;
+    const surv = [0, 0, 0, 0, 0]; let clears = 0;
     for (let i = 0; i < N; i++) { const r = playRun(c.id, dupes); for (let k = 0; k < 5; k++) if (r.arcReached >= k + 1) surv[k]++; if (r.cleared) clears++; }
     const name = (BL.cardName(c)).slice(0, 18);
     const pad = 34 - [...name].reduce((a, ch) => a + (ch.charCodeAt(0) > 255 ? 2 : 1), 0);
